@@ -102,6 +102,7 @@ sudo apt-get autoclean
 sudo apt-get autoremove
 sudo apt-get update
 sudo apt-get upgrade
+sudo apt-get dist-upgrade 
 \end{lstlisting}
 
 Remove the default folders from the home directory:
@@ -139,13 +140,17 @@ In case of an additional laptop beside the internal youBot PC, the network conne
 
 \begin{itemize}
 	\item \textbf{first '\#':} indicates the actual youBot, i.e. for the youot-hbrs2 the IP address space is 192.168.2.10\#
-	\item \textbf{second '\#':} indicates the PC number on a particular youBot, i.e. \textit{youbot-hbrs2-pc1} gets the IP 192.168.2.101 and \textit{youbot-hbrs2-pc2} gets the IP 192.168.2.102.
+	\item \textbf{second '\#':} indicates the PC ID on a particular youBot, i.e. \textit{youbot-hbrs2-pc1} gets the IP 192.168.2.101 and \textit{youbot-hbrs2-pc2} gets the IP 192.168.2.102.
 \end{itemize}
 
 \subsubsection{EtherCAT}
 For the EtherCAT connection, a random but valid static IP address is recommended.\\
 
 \textbf{INFO}: do not forget to set the subnet mask to 255.255.255.0
+
+\subsubsection{WLAN}
+TDB: connect to youbot-developers, PW, Fritz Stick works plug and play, other stick drivers see wiki, youbot-hbrs2 has not internal wifi, but 1 has
+
 
 \subsection{Hostname(s)}
 If the hostname was not set correct during the installtion, it can be changed by editing the file:
@@ -160,7 +165,7 @@ youbot-hbrs#-pc#
 
 \begin{itemize}
 	\item \textbf{first '\#':} indicates the actual youBot. At BRSU, there currently exist two youBots, resulting in the names \textit{youbot-hbrs1-pc\#} and \textit{youbot-hbrs2-pc\#}.
-	\item \textbf{second '\#':} indicates the PC number on a particular youBot. The \textit{youbot-hbrs2} has two PCs, the internal and and additional laptop. The internal PC is called \textit{youbot-hbrs2-pc1} and the second laptop \textit{youbot-hbrs2-pc2}.
+	\item \textbf{second '\#':} indicates the PC ID on a particular youBot. The \textit{youbot-hbrs2} has two PCs, the internal and and additional laptop. The internal PC is called \textit{youbot-hbrs2-pc1} and the second laptop \textit{youbot-hbrs2-pc2}.
 \end{itemize}
 
 Finally, add the hostname and the related IP address of another youBot PC to the hosts file:
@@ -186,7 +191,8 @@ Finally, copy the generated SSH key and add it to the related github account:
 cat ~/.ssh/id_rsa.pub
 \end{lstlisting}
 
-
+\subsection{NTP Server and Client}
+TBD
 
 
 \newpage
@@ -215,6 +221,27 @@ Please follow the instructions on the following webpage to setup the RoboCup@Wor
 https://github.com/b-it-bots/RoboCupAtWork
 \end{lstlisting}
 
+\subsection{Change GIT Remotes}
+By default the repositories of the b-it-bots are read-only. In order to push changes from the youBot PCs to a respository, the github user "youbot-hbrs" has a fork for each repository. The remotes can be changed as follows:
+\begin{lstlisting}
+cd ~/RoboCupAtWork/
+git remote rename origin b-it-bots
+git remote add origin git@github.com:youbot-hbrs/RoboCupAtWork.git
+\end{lstlisting}
+
+\begin{lstlisting}
+cd ~/external_software/hbrs-ros-pkg/
+git remote rename origin b-it-bots
+git remote add origin git@github.com:b-it-bots/hbrs-ros-pkg.git
+\end{lstlisting}
+
+\begin{lstlisting}
+roscd third-party-software/
+git remote rename origin b-it-bots
+git remote add origin git@github.com:youbot-hbrs/third-party-software.git
+\end{lstlisting}
+
+
 
 \subsection{Setup .bashrc}
 Please follow the instructions on the following webpage to setup the RoboCup@Work software on the youBot:
@@ -227,17 +254,17 @@ cp user.bashrc ~/.bashrc
 
 Adapt all aliases, variables like ROBOT, ROBOT\_ENV in the .bashrc file to the needs of the specific youBot.\\
 
-\textbf{INFO}: do not forget to replace the \# with the specific PC number on which you are working right now.
+\textbf{INFO}: do not forget to replace the \# with the specific PC ID on which you are working on right now.
 
 
 \subsection{UDEV Rules}
 Copy the predefined udev rules into the rules.d directory:
 \begin{lstlisting}
 cd ~/RoboCupAtWork/setup/udev_rules
-sudo cp *.* /etc/udev/rules.d/
+sudo cp 50-youbot-hbrs#-devices.rules /etc/udev/rules.d/
 \end{lstlisting}
 
-
+\textbf{INFO}: do not forget to replace the \# with the specific youBot ID on which you are working on right now.
 
 \subsection{Battery Status Monitor}
 The battery status monitor checks the current state of the battery and also the power connection. In case of a drop of the battery level below $ 10\% $, a beep sound will be played on the mainboard speaker. If a roscore is present the voltage information are published as a rostopic. 
@@ -269,6 +296,10 @@ roscd raw_laptop_battery_monitor
 rosmake
 sudo cp youbot_battery_monitor.sh ./bin/youbot_battery_monitor /etc/youbot/
 \end{lstlisting}
+
+
+\subsection{ZeroMQ - RefereeBox Communication}
+TBD
 
 \end{document}
 
