@@ -13,7 +13,6 @@
   <depend package="roscpp"/>
   <depend package="youbot_oodl"/>
   <depend package="youbot_navigation_common"/>
-  <depend package="raw_teleop"/>
   <depend package="youbot_description"/>
   <depend package="raw_default_robot_config"/>
   <depend package="youbot_arm_navigation"/>
