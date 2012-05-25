@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<launch>
+	<rosparam file="$(find youbot_description)/controller/arm_joint_universal_control.yaml" command="load" ns="arm_1"/>
+	<rosparam file="$(find youbot_description)/controller/gripper_joint_position_control.yaml" command="load" ns="arm_1"/>
+
+	<group>
+		<machine name="pc1" address="youbot-hbrs2-pc1" default="true"/>
+	
+		<include file="$(find youbot_oodl)/launch/youbot_oodl_driver.launch" />
+		<include file="$(find raw_bringup)/components/youbot_joint_state_publisher.launch" />
+
+		<include file="$(find raw_bringup)/components/arm.launch" />		
+
+		<include file="$(find raw_bringup)/components/base_front_hokuyo_node.launch" />
+		<include file="$(find raw_bringup)/components/base_rear_hokuyo_node.launch" />
+
+		<include file="$(find raw_teleop)/ros/launch/teleop_joypad.launch" />
+	</group>
+
+	<group>
+		<machine name="pc2" address="youbot-hbrs2-pc2" default="true"/>
+	
+		<!-- asus or kinect camera -->
+		<include file="$(find raw_bringup)/components/cam3d.launch" />
+	</group>
+</launch>
