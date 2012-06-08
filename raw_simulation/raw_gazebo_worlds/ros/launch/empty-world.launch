@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-	
-	<node name="gazebo" pkg="gazebo" type="gazebo" args="-s -1 $(find raw_gazebo_worlds)/common/worlds/empty.world" respawn="false" output="screen"/>
-
-</launch>
