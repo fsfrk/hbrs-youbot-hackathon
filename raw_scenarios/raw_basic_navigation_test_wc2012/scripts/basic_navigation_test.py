@@ -28,7 +28,7 @@ def main():
                          'wront_task_format':'GET_TASK'})
         
         smach.StateMachine.add('SELECT_POSE_TO_APPROACH', select_pose_to_approach(),
-            transitions={'pose_selected':'WAIT_DESIRED_DURATION',
+            transitions={'pose_selected':'MOVE_TO_LOCATION',
                          'location_not_known':'INCREMENT_TASK_INDEX'})
         
         smach.StateMachine.add('MOVE_TO_LOCATION', approach_pose(),
@@ -40,8 +40,11 @@ def main():
         
         smach.StateMachine.add('INCREMENT_TASK_INDEX', increment_task_index(),
             transitions={'succeeded':'SELECT_POSE_TO_APPROACH',
-                         'no_more_tasks':'overall_success'})
+                         'no_more_tasks':'MOVE_TO_EXIT'})
 
+        smach.StateMachine.add('MOVE_TO_EXIT', approach_pose("exit"),
+            transitions={'succeeded':'overall_success', 
+                        'failed':'MOVE_TO_EXIT'})
 
             
     # Start SMACH viewer
