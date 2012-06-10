@@ -16,6 +16,7 @@
   <depend package="brics_actuator"/>
   <depend package="std_srvs"/>
   <depend package="arm_navigation_msgs"/>
+  <depend package="pr2_teleop"/>
 
 </package>
 
