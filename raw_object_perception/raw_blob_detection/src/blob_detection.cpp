@@ -100,8 +100,10 @@ public:
       double miny = currentBlob->MinY(); 
       double blob_x = ( ( minx + maxx ) / 2 );
       double blob_y = ( ( miny + maxy ) / 2 ); 
-      double dist_x = ( blob_x - master_image_center_x ) - ( master_image_width / 2 ); 
-      double dist_y = ( blob_y - master_image_center_y ) - ( master_image_height / 2 ); 
+      //double dist_x = ( blob_x - master_image_center_x ) - ( master_image_width / 2 ); 
+      //double dist_y = ( blob_y - master_image_center_y ) - ( master_image_height / 2 );
+      double dist_x = ( blob_x ) - ( master_image_width / 2 ); 
+      double dist_y = ( blob_y ) - ( master_image_height / 2 ); 
       double distance = sqrt( ( dist_x * dist_x ) + ( dist_y * dist_y ) ); 
 
       double rotation = 0.0; 
@@ -112,8 +114,8 @@ public:
       std::cout << "Blob Center x:\t\t" << blob_x << std::endl; 
       std::cout << "Blob Center y:\t\t" << blob_y << std::endl; 
       std::cout << "Distance to Center:\t" << distance << std::endl; 
-      std::cout << "Horizontal Offset:\t" << abs( dist_x ) << std::endl; 
-      std::cout << "Vertical Offset:\t" << abs( dist_y ) << std::endl; 
+      std::cout << "Horizontal Offset:\t" << dist_x << std::endl; 
+      std::cout << "Vertical Offset:\t" << dist_y << std::endl; 
       std::cout << "Rotational Offset:\t" << rotation << std::endl; 
       std::cout << "\n" << std::endl; 
 
@@ -124,8 +126,8 @@ public:
       // it is simply the object and its background in the frame of view of the camera. 
       if( i == 0 )
       {
-        x_offset = abs( dist_x ); 
-        y_offset = abs( dist_y ); 
+        x_offset = dist_x; 
+        y_offset = dist_y; 
         rot_offset = rotation; 
 
         // + = left / - = right
@@ -154,8 +156,8 @@ public:
           base_movement.publish( base_velocity ); 
         }
       }
-
-      cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 ); 
+      
+      cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
     }
 
     //-------------------------------------------------------------------------
@@ -187,9 +189,9 @@ public:
     std::string rot_str = "Rotation: "; 
     rot_str += boost::lexical_cast<std::string>( rot_offset ); 
 
-    cvPutText( blob_image, x_str.c_str(), cvPoint( 75, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
-    cvPutText( blob_image, y_str.c_str(),  cvPoint( 225, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
-    cvPutText( blob_image, rot_str.c_str(), cvPoint( 375, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
+    cvPutText( blob_image, x_str.c_str(), cvPoint( 50, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
+    cvPutText( blob_image, y_str.c_str(),  cvPoint( 200, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
+    cvPutText( blob_image, rot_str.c_str(), cvPoint( 350, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
 
     //cvShowImage( "Original", cv_image ); 
     //cvShowImage( "Thresholding", gray ); 
