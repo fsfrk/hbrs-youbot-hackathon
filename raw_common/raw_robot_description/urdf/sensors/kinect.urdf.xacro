@@ -2,7 +2,7 @@
 <robot name="kinect_hardware" xmlns:xacro="http://ros.org/wiki/xacro">
   <property name="M_PI" value="3.14159"/>
 
-  <include filename="$(find raw_description)/urdf/sensors/kinect.gazebo.xacro"/>
+  <include filename="$(find raw_robot_description)/urdf/sensors/kinect.gazebo.xacro"/>
 
   <xacro:macro name="kinect" params="name parent *origin">
    <joint name="${name}_camera_joint" type="fixed">
@@ -23,7 +23,7 @@
     <visual>
       <origin xyz=" 0 0 0 " rpy="0 0 0" />
       <geometry>
-       <mesh filename="package://raw_description/meshes/kinect/kinect.dae"/>
+       <mesh filename="package://raw_robot_description/meshes/kinect/kinect.dae"/>
       </geometry>
     </visual>
 
