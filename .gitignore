@@ -12,3 +12,4 @@ msg_gen
 srv_gen
 *.cfgc
 CMakeFiles
+CMakeCache.txt
