@@ -4,6 +4,7 @@
 #include "cv_bridge/CvBridge.h"
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
+#include "geometry_msgs/Twist.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -20,10 +21,11 @@ public:
 
   ImageConverter(ros::NodeHandle &n) : n_(n), it_(n_)
   {
-    image_pub_ = it_.advertise("image_topic_2",1);
-
-    //cvNamedWindow( "Image window" );
+    //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
     image_sub_ = it_.subscribe( "/usb_cam/image_raw", 1, &ImageConverter::imageCallback, this );
+
+    //  TODO: Add publishing messages to the YouBot Arm controllers.
+    base_movement = n_.advertise<geometry_msgs::Twist>( "/cmd_vel", 1); 
   }
 
   ~ImageConverter()
@@ -48,6 +50,7 @@ public:
 
     CBlob* currentBlob; 
 
+    // Covert the image from a ROS image message to a OpenCV Image (IplImage) type.
     try
     {
       cv_image = bridge_.imgMsgToCv(msg_ptr, "bgr8");
@@ -66,6 +69,8 @@ public:
     IplImage* gray = cvCreateImage( cvGetSize( cv_image ), 8, 1 );
     cvCvtColor( cv_image, gray, CV_BGR2GRAY );
 
+    cvSmooth( cv_image, cv_image, CV_GAUSSIAN, 7, 7 );
+
     blob_image = cvCreateImage( cvGetSize( cv_image ), 8, 3 ); 
 
     cvThreshold( gray, gray, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU );
@@ -74,11 +79,9 @@ public:
     CBlobResult blobs = CBlobResult( gray, NULL, 0 );
 
     //  Make sure they are big enough to really be considered.
-    //  In this case we will use an area of AT LEAST 200 px. 
-    int minimum_blob_area = 200; 
-    int maximum_blob_area = 1000;
+    //  In this case we will use an area of AT LEAST 100 px. 
+    int minimum_blob_area = 100; 
     blobs.Filter( blobs, B_EXCLUDE, CBlobGetArea(), B_LESS, minimum_blob_area ); 
-    blobs.Filter( blobs, B_EXCLUDE, CBlobGetArea(), B_GREATER, maximum_blob_area ); 
 
     int blob_number = blobs.GetNumBlobs(); 
     std::cout << "\nNumber of Blobs Present: " << blob_number << std::endl; 
@@ -87,19 +90,18 @@ public:
     {
       CBlobGetOrientation get_orientation; 
       currentBlob = blobs.GetBlob(i);
-      currentBlob->FillBlob( blob_image, CV_RGB( 0, 0, ( rand() % 255 ) ) );
+      currentBlob->FillBlob( blob_image, CV_RGB( 0, 0, 255 ) );
 
+      // Obtain distance information about the blob. This in particular looks at the distance between the
+      // centroid of the blob (est) and the center of the image being captured (intersection of the axis).
       double maxx = currentBlob->MaxX(); 
       double minx = currentBlob->MinX(); 
       double maxy = currentBlob->MaxY(); 
       double miny = currentBlob->MinY(); 
-
       double blob_x = ( ( minx + maxx ) / 2 );
       double blob_y = ( ( miny + maxy ) / 2 ); 
-
-      double dist_x = ( blob_x - master_image_center_x ); 
-      double dist_y = ( blob_y - master_image_center_y ); 
-
+      double dist_x = ( blob_x - master_image_center_x ) - ( master_image_width / 2 ); 
+      double dist_y = ( blob_y - master_image_center_y ) - ( master_image_height / 2 ); 
       double distance = sqrt( ( dist_x * dist_x ) + ( dist_y * dist_y ) ); 
 
       double rotation = 0.0; 
@@ -115,19 +117,56 @@ public:
       std::cout << "Rotational Offset:\t" << rotation << std::endl; 
       std::cout << "\n" << std::endl; 
 
+      // Base adjustment stuff. This code assumes that the largest blob is the one that you
+      // want to work with. This being the case the arm/camera will need to be guided to the
+      // object in question before it can be turned on as this system will direct the arm to
+      // interact with the largest blob that it can find. This module should only be used once
+      // it is simply the object and its background in the frame of view of the camera. 
       if( i == 0 )
       {
         x_offset = abs( dist_x ); 
         y_offset = abs( dist_y ); 
         rot_offset = rotation; 
+
+        // + = left / - = right
+        if( x_offset != 0 )
+        {
+          double move_speed = 0.0; 
+
+          if( x_offset < 0 )
+          {
+            // move the robot base left
+            move_speed = -0.1; 
+          }
+          else if( x_offset > 0 )
+          {
+            // move the robot right
+            move_speed = 0.1; 
+          }
+          else
+          {
+            // should never happen but just in case.
+            move_speed = 0.0; 
+          }
+
+          // Prepare and then send the base movement commands.
+          base_velocity.linear.y = move_speed; 
+          base_movement.publish( base_velocity ); 
+        }
       }
 
       cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 ); 
     }
 
-    // display filtered blobs
-    //cvMerge( blob_image, NULL, NULL, NULL, display_image );
-
+    //-------------------------------------------------------------------------
+    //---------------- VISUAL OUTPUT FOR DEBUGGING ONLY -----------------------
+    //-------------------------------------------------------------------------
+    //    When this is being used on the robot all of the code below may be 
+    //  commented out as there is no need to see what the robot is seeing. This
+    //  was meant only for development purposes. Commenting it out will consume
+    //  fewer resources on the robot.
+    //-------------------------------------------------------------------------
+    
     // Setting up fonts for overlay information.
     CvFont font;
     cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 1.0, 1.0, 0, 1, CV_AA);
@@ -157,6 +196,10 @@ public:
     cvShowImage( "Found Blobs", blob_image ); 
     //cvShowImage( "Blob Detection", display_image ); 
 
+    //-------------------------------------------------------------------------
+    //----------------------- END OF VISUAL OUTPUT ----------------------------
+    //-------------------------------------------------------------------------
+
     //  Wait for user interaction.
     cvWaitKey(3);
   }
@@ -167,7 +210,9 @@ protected:
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_sub_;
   sensor_msgs::CvBridge bridge_;
-  image_transport::Publisher image_pub_;
+  //image_transport::Publisher image_pub_;
+  ros::Publisher base_movement; 
+  geometry_msgs::Twist base_velocity;
 };
 
 int main(int argc, char** argv)
