@@ -1,3 +1,14 @@
+//---------------------------------------------------------- blob_detection.cpp
+//-----------------------------------------------------------------------------
+//  Description: 
+//
+//    This is a ROS node that is designed to perform blob detection to look for
+//  objects in images that are provided through a web camera interface. It 
+//  requires the use of the b-it-bots raw_usb_cam ROS node in order to properly
+//  recieve the data to use.
+//-----------------------------------------------------------------------------
+//  Author: Matthew S Roscoe [mat.roscoe@unb.ca]
+//-----------------------------------------------------------------------------
 #include <ros/ros.h>
 #include "sensor_msgs/Image.h"
 #include "image_transport/image_transport.h"
@@ -17,8 +28,15 @@
 class ImageConverter 
 {
 
+//-----------------------------------------------------------------------------
+//------------------------------ PUBLIC FUNCTIONS -----------------------------
+//-----------------------------------------------------------------------------
 public:
 
+  //------------------------------------------------------------ ImageConverter
+  //---------------------------------------------------------------------------
+  //    This function is used for all of the incoming and outgoing ROS messages
+  //---------------------------------------------------------------------------
   ImageConverter(ros::NodeHandle &n) : n_(n), it_(n_)
   {
     //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
@@ -28,11 +46,27 @@ public:
     base_movement = n_.advertise<geometry_msgs::Twist>( "/cmd_vel", 1); 
   }
 
+  //----------------------------------------------------------- ~ImageConverter
+  //---------------------------------------------------------------------------
+  //   Standard Destructor.
+  //--------------------------------------------------------------------------- 
   ~ImageConverter()
   {
-    cvDestroyWindow("Image window");
+    //  OpenCV calls to destroy any HighGUI windows that may have been opened using
+    //  the provided names. 
+    cvDestroyWindow( "Original" );
+    cvDestroyWindow( "Thresholding" ); 
+    cvDestroyWindow( "Found Blobs" ); 
+    cvDestroyWindow( "Blob Detection" ); 
   }
 
+  //------------------------------------------------------------- imageCallBack
+  //---------------------------------------------------------------------------
+  //    This function is the call back function for the ROS Image Message. 
+  //  Each time a new image comes from the USB Camera (through raw_usb_cam)
+  //  this function will be called. It is responsible for all of the blob
+  //  detection as well as any processing that is applied to the images.
+  //---------------------------------------------------------------------------
   void imageCallback(const sensor_msgs::ImageConstPtr& msg_ptr)
   {
     int master_image_width = 0; 
@@ -206,17 +240,23 @@ public:
     cvWaitKey(3);
   }
 
+//-----------------------------------------------------------------------------
+//--------------------- PROTECTED FUNCTIONS / VARIABLES -----------------------
+//-----------------------------------------------------------------------------
 protected:
 
   ros::NodeHandle n_;
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_sub_;
   sensor_msgs::CvBridge bridge_;
-  //image_transport::Publisher image_pub_;
   ros::Publisher base_movement; 
   geometry_msgs::Twist base_velocity;
 };
 
+//------------------------------------------------------------------------ main
+//-----------------------------------------------------------------------------
+//    Main Function. Should be self evident.
+//-----------------------------------------------------------------------------
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "image_converter");
