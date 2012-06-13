@@ -54,7 +54,7 @@ if (__name__ == "__main__"):
 
 			single_marker.scale.x = 0.5
 			single_marker.scale.y = 0.5
-			single_marker.scale.z = 0.5
+			single_marker.scale.z = 0.3
 			single_marker.color.r = 1.0
 			single_marker.color.g = 0.0
 			single_marker.color.b = 0.0

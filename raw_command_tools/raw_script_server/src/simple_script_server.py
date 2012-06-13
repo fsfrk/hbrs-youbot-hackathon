@@ -104,7 +104,6 @@ class simple_script_server:
 		
 		if (not rospy.has_param("/arm_1/arm_controller/joints")):
 			rospy.logerr("No joints given.")
-			exit(0)
 		else:
 			self.arm1_joint_names = sorted(rospy.get_param("/arm_1/arm_controller/joints"))
 			self.gripper1_joint_names = sorted(rospy.get_param("/arm_1/gripper_controller/joints"))
