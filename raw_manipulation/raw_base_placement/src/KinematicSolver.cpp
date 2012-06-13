@@ -30,7 +30,6 @@ KinematicSolver::~KinematicSolver()
 void KinematicSolver::UpdateDHTable(JointParameter p)
 {
   DH_Parameters youBot_unifiedDHparam(10,4);
- // cout << youBot_unifiedDHparam.rows()<<endl;
  
   youBot_unifiedDHparam << 0,              p(0,0),    0,    0,
                            deg2rad(90),  p(0,1),    0,    deg2rad(90),
@@ -42,14 +41,33 @@ void KinematicSolver::UpdateDHTable(JointParameter p)
 			   0,     0,         L2,   p(0,5),
 			   0,     0,         L3,   p(0,6),
 			   deg2rad(-90),  L4,        0,    p(0,7);
-  //youBot_unifiedDHparam << 0,p(1,1),0,0,(deg2rad(pi/2)),p(1,2),0,0,deg2rad(pi/2),0,0,p (1,3),0,dbase,abase,0,0,L_Prior,0,0,0,0,0,p(1,4),deg2rad(pi/2),0,L1,p(1,5),   0,0,L2,p(1,6),0,0,L3,p(1,7),deg2rad(-pi/2),L4,0,p(1,8);
-
-  //youBot_unifiedDHparam << 1,p(0,1),0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,p(0,1);
-  //cout << "The new table is "<<endl<< youBot_unifiedDHparam<<endl;
 
  dh_table = youBot_unifiedDHparam;
 }
 
+void KinematicSolver::sampleRedundancyParam(Pose CurrentLocation)
+{
+
+//Deterministic Sampling based on 
+//1. Map Occupancy information
+//2. quickly reachable from Current Location
+
+}
+
+//
+void KinematicSolver::stateIsvalid(Pose PreferredState)
+{
+
+//Checks whether the state is valid or not in terms of map occupancy
+
+}
+
+void KinematicSolver::costEstimate(Pose CurrentLocation, Pose PrefferedState)
+{
+
+//Cost to move from Current Pose to Preferred State
+
+}
 
 HomogenousTransform KinematicSolver::calculateForwardKinematics(JointParameter parameter)
 {	
@@ -67,19 +85,12 @@ HomogenousTransform KinematicSolver::calculateForwardKinematics(JointParameter p
     HomogenousTransform T7 = ht_from_dh(dh_table(8,0), dh_table(8,1), dh_table(8,2), dh_table(8,3));
     HomogenousTransform T8 = ht_from_dh(dh_table(9,0), dh_table(9,1), dh_table(9,2), dh_table(9,3));
     
-    /*cout  <<"T0 = "<<T0.affine()<<endl; 
-    cout  <<"T1 = "<<T1.affine()<<endl; 
-    cout  <<"T2 = "<<T2.affine()<<endl;  
-    cout  <<"T3 = "<<T3.affine()<<endl; */
+    /*cout  <<"T0 = "<<T0.affine()<<endl;*/
    	
     HomogenousTransform TRobot = T0*T1*T2*T3*TJoint*TArmPrior*T4*T5*T6*T7*T8;    
     
     HomogenousTransform TBase = (T0*T1*T2*T3);
-
-    //cout <<"TRobot = "<<TRobot.affine()<<endl;   
-    //cout<<"-----------------"<<endl;
-    //Normalize(TBase);
-     //cout <<"TRobot = "<<TRobot.affine()<<endl;   
+  
     return TRobot;
 }
 

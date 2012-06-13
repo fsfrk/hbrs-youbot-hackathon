@@ -15,6 +15,9 @@
   <depend package="eigen"/>
   <depend package="urdf"/>
   <depend package="raw_srvs"/>
+  <depend package="tf"/>
+  <depend package="bullet"/>
+
 </package>
 
 

@@ -34,13 +34,19 @@ public:
 
 	HomogenousTransform calculateForwardKinematics(JointParameter parameter);
 
-	HomogenousTransform getTransform(int dh_line, float theta);
+//	HomogenousTransform getTransform(int dh_line, float theta);
         
         bool solveIK(Pose GoalPose, JointParameter& currentConfig);
  
        // std::vector<HomogenousTransform> getSingleTransformations(JointParameter parameter);
 
         void UpdateDHTable(JointParameter parameter);
+ 
+        void sampleRedundancyParam(Pose CurrentLocation);
+
+        void stateIsvalid(Pose PreferredState);
+      
+         void costEstimate(Pose CurrentLocation, Pose PrefferedState);
 
       //Jacobian getJacobian(JointParameter q);
 

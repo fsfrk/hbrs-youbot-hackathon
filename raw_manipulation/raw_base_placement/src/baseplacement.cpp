@@ -5,6 +5,9 @@
 #include "HomogenousTransform.h"
 #include "KinematicSolver.h"
 #include <raw_srvs/GetPoseStamped.h>
+#include <tf/transform_datatypes.h>
+#include <LinearMath/btMatrix3x3.h>
+//#include <LinearMath/btQuaternion.h>
 
 using namespace std;
 /**
@@ -14,21 +17,31 @@ using namespace std;
 bool calculateOptimalBasePose(raw_srvs::GetPoseStamped::Request  &req,
          raw_srvs::GetPoseStamped::Response &res )
 {
-  KinematicSolver youBot;
-  // Solve IK
-  Pose Goal;
-  Goal << 500,500,0.5,0.5,0.5,0.5,0.5;
-  JointParameter prefConfig(1,8);
+	  btQuaternion q;
+	  double roll, pitch, yaw;
+	  double roll_obj, pitch_obj, yaw_obj;
+	  KinematicSolver youBot;
+	  Pose Goal;
+	  JointParameter prefConfig(1,8);
 
-  req.object_pose;
+	  // Request Processing
+	  float x_obj = req.object_pose.pose.position.x;
+	  float y_obj = req.object_pose.pose.position.y;
+	  float z_obj = req.object_pose.pose.position.z;
+	  tf::quaternionMsgToTF(req.object_pose.pose.orientation, q);
+	  btMatrix3x3(q).getRPY(roll_obj, pitch_obj, yaw_obj);  
 
-  res.base_pose;
+	  Goal << x_obj,y_obj,z_obj,roll_obj, pitch_obj, yaw_obj;
+	  
+	  
+	  // Response 
+	  youBot.solveIK(Goal,prefConfig);
+	  res.base_pose.pose.position.x = prefConfig(0);
+	  res.base_pose.pose.position.y = prefConfig(1);
+	  res.base_pose.pose.position.z = 0;
+	  tf::quaternionTFToMsg(tf::createQuaternionFromRPY(0,0,prefConfig(2)),res.base_pose.pose.orientation);
 
-  //youBot.solveIK(Goal,prefConfig);
-  //res.sum = req.a + req.b;
-  //ROS_INFO("request: x=%ld, y=%ld", (long int)req.a, (long int)req.b);
-  //ROS_INFO("sending back response: [%ld]", (long int)res.sum);
-  return true;
+	  return true;
 }
 
 int main(int argc, char **argv)
@@ -37,11 +50,10 @@ int main(int argc, char **argv)
 
   ros::NodeHandle n;
 
-  //ros::ServiceServer service = n.advertiseService("calculateOptimalBasePose", calculateOptimalBasePose);  
+  ros::ServiceServer service = n.advertiseService("calculateOptimalBasePose", calculateOptimalBasePose);  
 
+  /*
   HomogenousTransform A = ht_from_xyzrpy(0.5,0.5,0.5,0.5,0.5,0.5);
-
-
   //cout << A.rotation().transpose();
   Pose Goal;
   KinematicSolver youBot;
@@ -54,9 +66,9 @@ int main(int argc, char **argv)
   prefConfig << 0.01,0.01,0.5,0.5,0.5,0.5,0.5,0.5;
   //cout << (youBot.calculateForwardKinematics(prefConfig)).affine()<<endl; 
   youBot.solveIK(Goal,prefConfig);
-  cout << prefConfig;
-
-  //ros::spin();
+  cout << prefConfig;*/
 
   ROS_INFO("Ready to estimate base position");
+  ros::spin();
+  return 0;
 }
