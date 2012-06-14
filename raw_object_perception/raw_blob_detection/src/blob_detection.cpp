@@ -169,12 +169,13 @@ public:
         {
           double move_speed = 0.0; 
 
-          if( x_offset < 0 )
+	  // added a buffer for a "good enough" region of interest. [14.06.2012]
+          if( x_offset > 0 && x_offset <= 20 )
           {
             // move the robot base left
             move_speed = -0.1; 
           }
-          else if( x_offset > 0 )
+          else if( x_offset < 0 && x_offset >= -20 )
           {
             // move the robot right
             move_speed = 0.1; 
