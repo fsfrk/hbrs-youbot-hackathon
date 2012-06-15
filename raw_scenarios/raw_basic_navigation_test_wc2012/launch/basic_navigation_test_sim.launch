@@ -6,7 +6,7 @@
 	<include file="$(find raw_bringup_sim)/robots/robot.launch" />
 
 	<!-- navigation -->
-	<include file="$(find raw_2dnav)/ros/launch/2dnav.launch" />	
+	<include file="$(find raw_2dnav)/ros/launch/2dnav_sim.launch" />	
 
 	<!-- script server -->
 	<include file="$(find raw_script_server)/launch/script_server.launch" />
