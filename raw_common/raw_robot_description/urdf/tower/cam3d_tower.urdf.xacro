@@ -5,8 +5,6 @@
        xmlns:xacro="http://ros.org/wiki/xacro">
 
 
-  <include filename="$(find raw_robot_description)/urdf/sensors/kinect.urdf.xacro" />
-
   <property name="height" value="0.515" />
   <property name="width" value="0.03" />
   <property name="depth" value="0.03" />
@@ -41,10 +39,5 @@
       <child link="${name}_link"/>
     </joint>
   </xacro:macro>
-
-  <!-- 3D camera on tower -->
-  <xacro:kinect name="openni" parent="tower_link">
-    <origin xyz="0.05 0 ${height}" rpy="0 0.61 0" />
-  </xacro:kinect>
 
 </root>

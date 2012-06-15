@@ -53,7 +53,7 @@
   <!-- BRSU SPECIFIC STUFF -->
   <include filename="$(find raw_robot_description)/urdf/materials.urdf.xacro" />
   <include filename="$(find raw_robot_description)/urdf/tower/cam3d_tower.urdf.xacro" />
-  <!--include filename="$(find youbot_description)/urdf/sensors/asus_xtion.urdf.xacro" />-->
+  <include filename="$(find raw_robot_description)/urdf/sensors/kinect.urdf.xacro" />
 
   <!-- base laser rear -->
   <xacro:hokuyo_urg04_laser name="base_laser_rear" parent="base" ros_topic="scan_rear" update_rate="10" min_angle="-1.57" max_angle="1.57" >
@@ -65,10 +65,12 @@
     <origin xyz="-0.015 0 0.025" rpy="0 0 0" />
   </xacro:cam3d_tower>
 
-  <!-- ASUS Xtion on arm joint 4 
-  <xacro:asus_xtion name="asus_xtion" parent="arm_link_4" ros_topic="/camera/rgb/points" tilt="0.0">
-    <origin xyz="0.03 0 0.055" rpy="0 -${M_PI/2} ${M_PI}" />
-  </xacro:asus_xtion>
+  <!-- 3D camera on tower -->
+  <xacro:kinect name="openni" parent="plate_link">
+    <origin xyz="-0.010 0.008 0.422" rpy="-0.048 0.419 0.031" />
+  </xacro:kinect>
+
+
   -->
 
 </robot>
