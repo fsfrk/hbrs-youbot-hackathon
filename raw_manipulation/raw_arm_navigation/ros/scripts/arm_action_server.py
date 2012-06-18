@@ -111,16 +111,7 @@ class ArmActionServer:
 		else:
 			result.error_code = control_msgs.msg.FollowJointTrajectoryResult.SUCCESSFUL
 			self.as_move_joint_trajectory.set_succeeded(result)
-'''
-	def execute_cb_move_joint_planned(self, action):
-		rospy.loginfo("move arm to joint configuration with planning")
-		
-		if not self.is_joint_configuration_not_in_limits(joint_config):
-			result = raw_arm_navigation.msg.MoveToJointConfigurationResult()
-			result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.JOINT_LIMITS_VIOLATED
-			self.as_move_joint_direct.set_aborted(result)
-			return	
-'''	
+
 	def execute_cb_move_joint_config_direct(self, action_msgs):
 		rospy.loginfo("move arm to joint configuration")
 		
