@@ -17,8 +17,8 @@ OrganizedDominantPlaneExtractor::OrganizedDominantPlaneExtractor()
   // Setup OrganizedMultiPlaneSegmentation
   mps_.setMinInliers(1000);
   mps_.setAngularThreshold(pcl::deg2rad(3.0));
-  mps_.setDistanceThreshold(0.03);
-  mps_.setMaximumCurvature(0.002);
+  mps_.setDistanceThreshold(0.02);
+  mps_.setMaximumCurvature(0.005);
   // Setup ProjectInliers
   pi_.setModelType(pcl::SACMODEL_NORMAL_PLANE);
 }
