@@ -241,16 +241,16 @@ public:
         //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
         //---------------------------------------------------------------------
-        /**
+        
         if( rot_offset != 90 || rot_offset != 270 )
         {
           double rotational_speed = 0.0; 
 
-          if( rot_offset < 90 && rot_offset >= 80 || rot_offset < 270 && rot_offset >= 260 )
+          if( rot_offset < 80 )
           {
             rotational_speed = 0.5; 
           }
-          else if( rot_offset > 90 && rot_offset <= 100 || rot_offset > 270 && rot_offset <= 280 )
+          else if( rot_offset > 100  )
           {
             rotational_speed = -0.5; 
           }
@@ -279,7 +279,7 @@ public:
 
             arm_vel_.velocities.push_back(joint_value);
           }
-        }*/
+        }
 
         //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
