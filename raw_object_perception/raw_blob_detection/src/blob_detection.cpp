@@ -119,6 +119,9 @@ public:
 
     int blob_number = blobs.GetNumBlobs(); 
     std::cout << "\nNumber of Blobs Present: " << blob_number << std::endl; 
+
+    CBlob largest_blob; 
+    blobs.GetNthBlob( CBlobGetPerimeter(), 0, largest_blob ); 
     //  Add the found blobs to the blob_image.
     for ( int i = 0; i < blobs.GetNumBlobs(); i++ )
     {
@@ -153,13 +156,14 @@ public:
       std::cout << "Rotational Offset:\t" << rotation << std::endl; 
       std::cout << "\n" << std::endl; 
 
+
       // Base adjustment stuff. This code assumes that the largest blob is the one that you
       // want to work with. This being the case the arm/camera will need to be guided to the
       // object in question before it can be turned on as this system will direct the arm to
       // interact with the largest blob that it can find. This module should only be used once
       // it is simply the object and its background in the frame of view of the camera. 
-      if( i == 0 )
-      {
+      //if( largest_blob == currentBlob )
+      //{
         x_offset = dist_x; 
         y_offset = dist_y; 
         rot_offset = rotation; 
@@ -169,7 +173,7 @@ public:
         {
           double move_speed = 0.0; 
 
-	  // added a buffer for a "good enough" region of interest. [14.06.2012]
+          // added a buffer for a "good enough" region of interest. [14.06.2012]
           if( x_offset > 0 && x_offset <= 20 )
           {
             // move the robot base left
@@ -189,10 +193,10 @@ public:
           // Prepare and then send the base movement commands.
           base_velocity.linear.y = move_speed; 
           base_movement.publish( base_velocity ); 
+
+          cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
         }
-      }
-      
-      cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
+      //}
     }
 
     //-------------------------------------------------------------------------
