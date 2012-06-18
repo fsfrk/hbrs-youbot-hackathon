@@ -25,6 +25,8 @@
 // cvBlobsLib Includes.
 #include <cvblobs/BlobResult.h>
 
+#include <std_srvs/Empty.h>
+
 class ImageConverter 
 {
 
@@ -39,11 +41,16 @@ public:
   //---------------------------------------------------------------------------
   ImageConverter(ros::NodeHandle &n) : n_(n), it_(n_)
   {
-    //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
-    image_sub_ = it_.subscribe( "/usb_cam/image_raw", 1, &ImageConverter::imageCallback, this );
+   
 
     //  TODO: Add publishing messages to the YouBot Arm controllers.
     base_movement = n_.advertise<geometry_msgs::Twist>( "/cmd_vel", 1); 
+
+    _start_srv = n_.advertiseService("start", &ImageConverter::Start, this);
+    _stop_srv = n_.advertiseService("stop", &ImageConverter::Stop, this);
+    ROS_INFO("Advertised 'start' and 'stop' service");
+
+    ROS_INFO("Blob Detection Started");
   }
 
   //----------------------------------------------------------- ~ImageConverter
@@ -246,6 +253,26 @@ public:
     cvWaitKey(3);
   }
 
+  bool Start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+  {
+     //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
+    image_sub_ = it_.subscribe( "/usb_cam/image_raw", 1, &ImageConverter::imageCallback, this );
+
+    ROS_INFO("Blob Detection Enabled");
+
+    return true;
+  }
+
+
+  bool Stop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+  {
+    image_sub_.shutdown();
+
+    ROS_INFO("Blob Detection Disabled");
+
+    return true;
+  }
+
 //-----------------------------------------------------------------------------
 //--------------------- PROTECTED FUNCTIONS / VARIABLES -----------------------
 //-----------------------------------------------------------------------------
@@ -257,6 +284,8 @@ protected:
   sensor_msgs::CvBridge bridge_;
   ros::Publisher base_movement; 
   geometry_msgs::Twist base_velocity;
+  ros::ServiceServer _start_srv; 
+  ros::ServiceServer _stop_srv;
 };
 
 //------------------------------------------------------------------------ main
