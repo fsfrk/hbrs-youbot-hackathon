@@ -96,6 +96,7 @@ def main():
     ## DO MOVEMENT TO CALCULATED BASE POSE
     (roll, pitch, yaw) = tf.transformations.euler_from_quaternion([base_pose.base_pose.pose.orientation.x, base_pose.base_pose.pose.orientation.y, base_pose.base_pose.pose.orientation.z, base_pose.base_pose.pose.orientation.w])
     sss.move("base", [base_pose.base_pose.pose.position.x, base_pose.base_pose.pose.position.y, yaw])
+   ##sss
 
 if __name__ == '__main__':
     main()
