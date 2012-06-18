@@ -41,11 +41,10 @@ public:
   //---------------------------------------------------------------------------
   ImageConverter(ros::NodeHandle &n) : n_(n), it_(n_)
   {
-   
-
     //  TODO: Add publishing messages to the YouBot Arm controllers.
     base_movement = n_.advertise<geometry_msgs::Twist>( "/cmd_vel", 1); 
 
+    // Service commands to allow this node to be started and stopped externally
     _start_srv = n_.advertiseService("start", &ImageConverter::Start, this);
     _stop_srv = n_.advertiseService("stop", &ImageConverter::Stop, this);
     ROS_INFO("Advertised 'start' and 'stop' service");
@@ -133,6 +132,8 @@ public:
     for ( int i = 0; i < blobs.GetNumBlobs(); i++ )
     {
       CBlobGetOrientation get_orientation; 
+      CBlobGetArea get_blob_area; 
+
       currentBlob = blobs.GetBlob(i);
       currentBlob->FillBlob( blob_image, CV_RGB( 0, 0, 255 ) );
 
@@ -144,15 +145,12 @@ public:
       double miny = currentBlob->MinY(); 
       double blob_x = ( ( minx + maxx ) / 2 );
       double blob_y = ( ( miny + maxy ) / 2 ); 
-      //double dist_x = ( blob_x - master_image_center_x ) - ( master_image_width / 2 ); 
-      //double dist_y = ( blob_y - master_image_center_y ) - ( master_image_height / 2 );
       double dist_x = ( blob_x ) - ( master_image_width / 2 ); 
       double dist_y = ( blob_y ) - ( master_image_height / 2 ); 
       double distance = sqrt( ( dist_x * dist_x ) + ( dist_y * dist_y ) ); 
 
       double rotation = 0.0; 
-      rotation = get_orientation( *currentBlob );   
-      //double rotation = tan( get_orientation( currentBlob ) * ( 3.1415926535 / 180 ) ); 
+      rotation = get_orientation( *currentBlob );
 
       //  DEBUGGING
       std::cout << "Blob #:\t\t\t" << i << std::endl; 
@@ -170,8 +168,8 @@ public:
       // object in question before it can be turned on as this system will direct the arm to
       // interact with the largest blob that it can find. This module should only be used once
       // it is simply the object and its background in the frame of view of the camera. 
-      //if( largest_blob == currentBlob )
-      //{
+      if( get_blob_area( largest_blob ) == get_blob_area( *currentBlob ) )
+      {
         x_offset = dist_x; 
         y_offset = dist_y; 
         rot_offset = rotation; 
@@ -204,7 +202,7 @@ public:
 
           cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
         }
-      //}
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -266,7 +264,7 @@ public:
 
   bool Stop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
-    image_sub_.shutdown();
+    image_sub_.shutdown(); 
 
     ROS_INFO("Blob Detection Disabled");
 
@@ -282,8 +280,17 @@ protected:
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_sub_;
   sensor_msgs::CvBridge bridge_;
+
+  // Topics that this node publishes to.
   ros::Publisher base_movement; 
+  ros::Publisher arm_movement;
+
+  // base movement topic.
   geometry_msgs::Twist base_velocity;
+
+
+
+  // Stop and start services for this ROS node.
   ros::ServiceServer _start_srv; 
   ros::ServiceServer _stop_srv;
 };
