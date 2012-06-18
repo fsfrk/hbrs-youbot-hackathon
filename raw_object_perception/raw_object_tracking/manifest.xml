@@ -1,0 +1,27 @@
+<package>
+  <description brief="raw_object_tracking">
+
+     raw_object_tracking
+
+  </description>
+  <author>Sergey Alexandrov</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_object_tracking</url>
+  <depend package="roscpp"/>
+  <depend package="std_srvs"/>
+  <depend package="sensor_msgs"/>
+  <depend package="geometry_msgs"/>
+  <depend package="visualization_msgs"/>
+  <depend package="pcl_ros"/>
+  <depend package="opencv2"/>
+  <depend package="raw_scene_segmentation"/>
+  <depend package="raw_msgs"/>
+  
+  <export>
+    <cpp cflags="-I${prefix}/ros/include" />
+  </export>
+  
+</package>
+
+
