@@ -8,6 +8,8 @@ import brics_actuator.msg
 import raw_arm_navigation.msg
 import arm_navigation_msgs.msg
 import tf
+import control_msgs.msg
+import arm_navigation_msgs.msg
 
 from simple_ik_solver_wrapper import SimpleIkSolver
 
@@ -48,10 +50,11 @@ class ArmActionServer:
 		# action server
 		self.as_move_cart_direct = actionlib.SimpleActionServer("MoveToCartesianPoseDirect", raw_arm_navigation.msg.MoveToCartesianPoseAction, execute_cb = self.execute_cb_move_cartesian_direct)
 		self.as_move_joint_direct = actionlib.SimpleActionServer("MoveToJointConfigurationDirect", raw_arm_navigation.msg.MoveToJointConfigurationAction, execute_cb = self.execute_cb_move_joint_config_direct)
+		self.as_move_joint_trajectory = actionlib.SimpleActionServer("MoveJointTrajectory", control_msgs.msg.FollowJointTrajectoryAction, execute_cb = self.execute_cb_move_joint_trajectory)
+		#self.as_move_joint_planned = actionlib.SimpleActionServer("MoveJointPlanned", arm_navigation_msgs.msg.MoveArmAction, execute_cb = self.execute_cb_move_joint_planned)
 	
 		# additional classes
 		self.iks = SimpleIkSolver()
-	
 	
 	def joint_states_callback(self, msg):
 		for k in range(len(self.joint_names)):
@@ -63,7 +66,6 @@ class ArmActionServer:
 		#print 'joint states received'
 		self.received_state = True
 		
-	
 	def is_joint_configuration_not_in_limits(self, goal_configuration):
 		for goal_joint in goal_configuration.positions:
 			for joint_limit in self.joint_limits:
@@ -72,8 +74,53 @@ class ArmActionServer:
 					return False
 		
 		return True
-	
-	
+	 
+	def execute_cb_move_joint_trajectory(self, goal):
+		is_timed_out = False
+		start = rospy.Time.now()
+		duration = rospy.Duration(5.0)
+		
+		for i in range(len(goal.trajectory.points)):
+			joint_positions = brics_actuator.msg.JointPositions()
+			conf = goal.trajectory.points[i].positions
+			
+			# transform from ROS to BRICS message
+			for i in range(len(self.joint_names)):
+				joint_value = brics_actuator.msg.JointValue()
+				joint_value.joint_uri = self.joint_names[i]
+				joint_value.value = conf[i]
+				joint_value.unit = self.unit
+				joint_positions.positions.append(joint_value)
+			self.pub_joint_positions.publish(joint_positions)
+			
+			# wait to reach the goal position
+			while (not rospy.is_shutdown()):
+				if (self.is_goal_reached(conf)):
+					break
+				if (rospy.Time.now() - start > duration):
+					is_timed_out = True
+					break
+			
+			if (is_timed_out):
+				break
+			
+		result = control_msgs.msg.FollowJointTrajectoryResult()
+		if (is_timed_out):
+			result.error_code = control_msgs.msg.FollowJointTrajectoryResult.PATH_TOLERANCE_VIOLATED
+			self.as_move_joint_trajectory.set_aborted(result)
+		else:
+			result.error_code = control_msgs.msg.FollowJointTrajectoryResult.SUCCESSFUL
+			self.as_move_joint_trajectory.set_succeeded(result)
+'''
+	def execute_cb_move_joint_planned(self, action):
+		rospy.loginfo("move arm to joint configuration with planning")
+		
+		if not self.is_joint_configuration_not_in_limits(joint_config):
+			result = raw_arm_navigation.msg.MoveToJointConfigurationResult()
+			result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.JOINT_LIMITS_VIOLATED
+			self.as_move_joint_direct.set_aborted(result)
+			return	
+'''	
 	def execute_cb_move_joint_config_direct(self, action_msgs):
 		rospy.loginfo("move arm to joint configuration")
 		
@@ -94,7 +141,6 @@ class ArmActionServer:
 		result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.SUCCESS
 		
 		self.as_move_joint_direct.set_succeeded(result)
-
 
 	def execute_cb_move_cartesian_direct(self, action_msgs):
 		rospy.loginfo("move arm to cartesian pose")
@@ -136,8 +182,7 @@ class ArmActionServer:
 			rospy.logerr("NO IK solution found")
 			result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.NO_IK_SOLUTION
 			self.as_move_cart_direct.set_aborted(result)
-				
-		
+						
 	def is_goal_reached(self, goal_pose):
 		for i in range(len(self.joint_names)):
 			#rospy.loginfo("joint: %d -> curr_val: %f --- goal_val: %f", i, goal_pose.positions[i].value, self.current_joint_configuration[i])
@@ -147,7 +192,6 @@ class ArmActionServer:
 					
 		rospy.loginfo("arm goal pose reached")
 		return True
-
 
 if __name__ == "__main__":
 	rospy.init_node("arm_action_server")
