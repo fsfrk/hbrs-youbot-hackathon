@@ -16,6 +16,8 @@
   <depend package="image_transport"/>
   <depend package="geometry_msgs"/>
   <depend package="std_srvs"/>
+  <depend package="arm_navigation_msgs"/>
+  <depend package="brics_actuator"/>
 
 </package>
 

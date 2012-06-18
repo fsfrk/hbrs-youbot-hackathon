@@ -17,6 +17,9 @@
 #include <opencv/highgui.h>
 #include "geometry_msgs/Twist.h"
 
+// BOOST
+#include <boost/units/systems/si.hpp>
+
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
@@ -26,6 +29,10 @@
 #include <cvblobs/BlobResult.h>
 
 #include <std_srvs/Empty.h>
+
+// Arm Movement Stuff
+#include <arm_navigation_msgs/JointLimits.h>
+#include <brics_actuator/JointVelocities.h>
 
 class ImageConverter 
 {
@@ -41,8 +48,32 @@ public:
   //---------------------------------------------------------------------------
   ImageConverter(ros::NodeHandle &n) : n_(n), it_(n_)
   {
+    XmlRpc::XmlRpcValue param_list;
+    n_.getParam("/arm_1/arm_controller/joints", param_list);
+    ROS_ASSERT(param_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+
+    for (int32_t i = 0; i < param_list.size(); ++i)
+    {
+      ROS_ASSERT(param_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
+      arm_joint_names_.push_back(static_cast<std::string>(param_list[i]));
+    }
+
+    //read joint limits
+    for(unsigned int i=0; i < arm_joint_names_.size(); ++i)
+    {
+      arm_navigation_msgs::JointLimits limit;
+      limit.joint_name = arm_joint_names_[i];
+      n_.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/min", limit.min_position);
+      n_.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/max", limit.max_position);
+      arm_joint_limits_.push_back(limit);
+
+    }
+
     //  TODO: Add publishing messages to the YouBot Arm controllers.
     base_movement = n_.advertise<geometry_msgs::Twist>( "/cmd_vel", 1); 
+
+    // Rotational Control for the arm. 
+    pub_arm_vel = n_.advertise<brics_actuator::JointVelocities>("/arm_1/arm_controller/velocity_command", 1);
 
     // Service commands to allow this node to be started and stopped externally
     _start_srv = n_.advertiseService("start", &ImageConverter::Start, this);
@@ -174,7 +205,9 @@ public:
         y_offset = dist_y; 
         rot_offset = rotation; 
 
-        // + = left / - = right
+        //---------------------------------------------------------------------
+        //-------------------- base movement control --------------------------
+        //---------------------------------------------------------------------
         if( x_offset != 0 )
         {
           double move_speed = 0.0; 
@@ -199,9 +232,54 @@ public:
           // Prepare and then send the base movement commands.
           base_velocity.linear.y = move_speed; 
           base_movement.publish( base_velocity ); 
-
-          cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
         }
+
+        //---------------------------------------------------------------------
+        //--------------------- arm rotation control --------------------------
+        //---------------------------------------------------------------------
+        if( rot_offset != 90 || rot_offset != 270 )
+        {
+          double rotational_speed = 0.0; 
+
+          if( rot_offset < 90 && rot_offset >= 80 || rot_offset < 270 && rot_offset >= 260 )
+          {
+            rotational_speed = 0.5; 
+          }
+          else if( rot_offset > 90 && rot_offset <= 100 || rot_offset > 270 && rot_offset <= 280 )
+          {
+            rotational_speed = -0.5; 
+          }
+          else
+          {
+            rotational_speed = 0.0; 
+          }
+
+          arm_vel_.velocities.clear();
+          for(unsigned int i=0; i < arm_joint_names_.size(); ++i)
+          {
+            brics_actuator::JointValue joint_value;
+
+            joint_value.timeStamp = ros::Time::now();
+            joint_value.joint_uri = arm_joint_names_[i];
+            joint_value.unit = to_string(boost::units::si::radian_per_second);
+            
+            if( i == 4 )
+            {
+              joint_value.value = rotational_speed;
+            }
+            else
+            {
+              joint_value.value = 0.0; 
+            }
+
+            arm_vel_.velocities.push_back(joint_value);
+          }
+        }
+
+
+
+        // make sure the last thing we do is paint one centroid for debugging.
+        cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
       }
     }
 
@@ -285,10 +363,15 @@ protected:
   ros::Publisher base_movement; 
   ros::Publisher arm_movement;
 
+  ros::Publisher pub_arm_vel;
+
   // base movement topic.
   geometry_msgs::Twist base_velocity;
 
-
+  // Arm Joint Names.
+  std::vector<std::string> arm_joint_names_;
+  std::vector<arm_navigation_msgs::JointLimits> arm_joint_limits_;
+  brics_actuator::JointVelocities arm_vel_;
 
   // Stop and start services for this ROS node.
   ros::ServiceServer _start_srv; 
