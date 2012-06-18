@@ -12,7 +12,7 @@
 #include <ros/ros.h>
 #include "sensor_msgs/Image.h"
 #include "image_transport/image_transport.h"
-#include "cv_bridge/CvBridge.h"
+#include "cv_bridge/CvBridge.h" 
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 #include "geometry_msgs/Twist.h"
@@ -213,15 +213,19 @@ public:
           double move_speed = 0.0; 
 
           // added a buffer for a "good enough" region of interest. [14.06.2012]
-          if( x_offset > 0 && x_offset <= 20 )
+          if( x_offset >= 10 )
           {
-            // move the robot base left
+            // move the robot base right
             move_speed = -0.1; 
           }
-          else if( x_offset < 0 && x_offset >= -20 )
+          else if( x_offset <= -10 )
           {
-            // move the robot right
+            // move the robot left
             move_speed = 0.1; 
+          }
+          else if( x_offset > -10 && x_offset < 10 )
+          {
+            move_speed = 0.0; 
           }
           else
           {
@@ -237,6 +241,7 @@ public:
         //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
         //---------------------------------------------------------------------
+        /**
         if( rot_offset != 90 || rot_offset != 270 )
         {
           double rotational_speed = 0.0; 
@@ -263,7 +268,7 @@ public:
             joint_value.joint_uri = arm_joint_names_[i];
             joint_value.unit = to_string(boost::units::si::radian_per_second);
             
-            if( i == 4 )
+            if( i == 5 )
             {
               joint_value.value = rotational_speed;
             }
@@ -274,8 +279,15 @@ public:
 
             arm_vel_.velocities.push_back(joint_value);
           }
-        }
+        }*/
 
+        //---------------------------------------------------------------------
+        //--------------------- arm rotation control --------------------------
+        //---------------------------------------------------------------------
+        if( y_offset != 0 )
+        {
+
+        }
 
 
         // make sure the last thing we do is paint one centroid for debugging.
