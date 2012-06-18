@@ -144,6 +144,7 @@ public:
       double distance = sqrt( ( dist_x * dist_x ) + ( dist_y * dist_y ) ); 
 
       double rotation = 0.0; 
+      rotation = get_orientation( *currentBlob );   
       //double rotation = tan( get_orientation( currentBlob ) * ( 3.1415926535 / 180 ) ); 
 
       //  DEBUGGING
