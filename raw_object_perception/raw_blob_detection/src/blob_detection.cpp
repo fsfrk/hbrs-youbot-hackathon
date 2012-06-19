@@ -233,6 +233,7 @@ public:
         }
         //------------------ END OF BASE MOVEMENT CONTROL ---------------------
 
+        /**
         //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
         //---------------------------------------------------------------------
@@ -272,10 +273,9 @@ public:
             }
 
             arm_vel_.velocities.push_back(joint_value);
+            // Publish the arm velocity commands.
+            pub_arm_vel.publish( arm_vel_ );
           }
-
-          // Publish the arm velocity commands.
-          pub_arm_vel.publish( arm_vel_ );
         }
         //------------------- END OF ARM ROTATION CONTROL ---------------------
 
@@ -313,7 +313,7 @@ public:
             joint_value.joint_uri = arm_joint_names_[i];
             joint_value.unit = to_string(boost::units::si::radian_per_second);
             
-            if( i == 5 )
+            if( i == 3 )
             {
               joint_value.value = arm_movement_speed;
             }
@@ -323,15 +323,16 @@ public:
             }
 
             arm_vel_.velocities.push_back(joint_value);
+            // Publish the arm velocity commands.
+            pub_arm_vel.publish( arm_vel_ );
           }
         }
         //------------------- END OF ARM ANGLE CONTROL ------------------------
+        **/
 
         // make sure the last thing we do is paint one centroid for debugging.
         cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
-      }
-
-      free( currentBlob );  
+      } 
     }
 
     //-------------------------------------------------------------------------
