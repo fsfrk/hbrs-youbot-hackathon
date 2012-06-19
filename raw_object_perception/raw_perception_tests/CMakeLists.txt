@@ -53,6 +53,12 @@ target_link_libraries(dominant_plane_extractor_test ${VTK_LIBS}
                                                     scene_segmentation
 )
 
+#...: online_dominant_plane_extraction_test
+rosbuild_add_executable(online_dominant_plane_extractor_test src/online_dominant_plane_extractor_test.cpp
+)
+target_link_libraries(online_dominant_plane_extractor_test scene_segmentation
+)
+
 #...: tabletop_cluster_extractor_test
 rosbuild_add_executable(tabletop_cluster_extractor_test src/tabletop_cluster_extractor_test.cpp
 )
