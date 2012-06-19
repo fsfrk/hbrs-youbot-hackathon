@@ -9,6 +9,7 @@
 #include <std_srvs/Empty.h>
 #include <pcl/filters/passthrough.h>
 
+#include <raw_srvs/GetDominantPlane.h>
 #include <raw_msgs/BoundingBox.h>
 #include <raw_msgs/BoundingBoxList.h>
 #include "bounding_box.h"
@@ -36,10 +37,8 @@ public:
     pn.param("bounding_boxes_topic", bounding_boxes_topic, std::string("bounding_boxes"));
 
     cloud_subscriber_ = nh.subscribe(input_cloud_topic, 5, &FinderNode::cloudCallback, this);
-    bounding_boxes_publisher_ = nh.advertise<raw_msgs::BoundingBoxList>(bounding_boxes_topic, 1);
-    clusters_publisher_ = nh.advertise<sensor_msgs::PointCloud2>(output_clusters_topic, 1);
-    reset_service_ = nh.advertiseService("reset", &FinderNode::resetCallback, this);
-    save_service_ = nh.advertiseService("save", &FinderNode::saveCallback, this);
+    find_service_ = nh.advertiseService("find_object_candidates", &FinderNode::findCallback, this);
+    plane_extractor_client_ = nh.serviceClient<raw_srvs::GetDominantPlane>("extract_dominant_plane");
 
     for (size_t i = 0; i < COLORS_NUM; ++i)
     {
@@ -163,25 +162,19 @@ private:
 
   PlanarPolygonPtr planar_polygon_;
 
-  std::unique_ptr<DominantPlaneExtractor> dpe_;
   std::unique_ptr<TabletopClusterExtractor> tce_;
   std::unique_ptr<ObjectTracker<ObjectT> > tracker_;
   ros::Subscriber cloud_subscriber_;
-  ros::Publisher bounding_boxes_publisher_;
-  ros::Publisher clusters_publisher_;
-  ros::ServiceServer reset_service_;
-  ros::ServiceServer save_service_;
+  ros::ServiceServer find_service_;
+  ros::ServiceClient plane_extractor_client_;
 
   std::string frame_id_;
-
-  static const size_t COLORS_NUM = 32;
-  uint32_t COLORS[COLORS_NUM];
 
 };
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "object_tracker_node");
+  ros::init(argc, argv, "object_candidates_finder_node");
   ros::NodeHandle node;
 
   FinderNode tn(node);
