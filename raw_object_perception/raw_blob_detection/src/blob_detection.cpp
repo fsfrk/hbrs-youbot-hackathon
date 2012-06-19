@@ -207,15 +207,15 @@ public:
           double move_speed = 0.0; 
 
           // added a buffer for a "good enough" region of interest. [14.06.2012]
-          if( x_offset >= 10 )
+          if( x_offset >= 20 )
           {
             // move the robot base right
-            move_speed = -0.1; 
+            move_speed = -0.05; 
           }
-          else if( x_offset <= -10 )
+          else if( x_offset <= -20 )
           {
             // move the robot left
-            move_speed = 0.1; 
+            move_speed = 0.05; 
           }
           else if( x_offset > -10 && x_offset < 10 )
           {
@@ -233,7 +233,7 @@ public:
         }
         //------------------ END OF BASE MOVEMENT CONTROL ---------------------
 
-        /**
+        
         //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
         //---------------------------------------------------------------------
@@ -243,11 +243,11 @@ public:
 
           if( ( rot_offset < 80 && rot_offset >= 0 ) || ( rot_offset < 260 && rot_offset >= 235 ) )
           {
-            rotational_speed = 0.5; 
+            rotational_speed = -0.05; 
           }
           else if( ( rot_offset > 100 && rot_offset < 235 ) || ( rot_offset > 280 && rot_offset <= 359 ) )
           {
-            rotational_speed = -0.5; 
+            rotational_speed = 0.05; 
           }
           else
           {
@@ -263,7 +263,7 @@ public:
             joint_value.joint_uri = arm_joint_names_[i];
             joint_value.unit = to_string(boost::units::si::radian_per_second);
             
-            if( i == 5 )
+            if( i == 4 )
             {
               joint_value.value = rotational_speed;
             }
@@ -282,7 +282,9 @@ public:
         //---------------------------------------------------------------------
         //----------------------- arm angle control ---------------------------
         //---------------------------------------------------------------------
-        if( y_offset != 0 )
+
+	/**        
+	if( y_offset != 0 )
         {
           double arm_movement_speed = 0.0; 
 
