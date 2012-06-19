@@ -12,10 +12,13 @@
 #include <ros/ros.h>
 #include "sensor_msgs/Image.h"
 #include "image_transport/image_transport.h"
-#include "cv_bridge/CvBridge.h"
+#include "cv_bridge/CvBridge.h" 
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 #include "geometry_msgs/Twist.h"
+
+// BOOST
+#include <boost/units/systems/si.hpp>
 
 #include <stdio.h>
 #include <iostream>
@@ -24,6 +27,12 @@
 
 // cvBlobsLib Includes.
 #include <cvblobs/BlobResult.h>
+
+#include <std_srvs/Empty.h>
+
+// Arm Movement Stuff
+#include <arm_navigation_msgs/JointLimits.h>
+#include <brics_actuator/JointVelocities.h>
 
 class ImageConverter 
 {
@@ -39,11 +48,39 @@ public:
   //---------------------------------------------------------------------------
   ImageConverter(ros::NodeHandle &n) : n_(n), it_(n_)
   {
-    //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
-    image_sub_ = it_.subscribe( "/usb_cam/image_raw", 1, &ImageConverter::imageCallback, this );
+    XmlRpc::XmlRpcValue param_list;
+    n_.getParam("/arm_1/arm_controller/joints", param_list);
+    ROS_ASSERT(param_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+
+    for (int32_t i = 0; i < param_list.size(); ++i)
+    {
+      ROS_ASSERT(param_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
+      arm_joint_names_.push_back(static_cast<std::string>(param_list[i]));
+    }
+
+    //read joint limits
+    for(unsigned int i=0; i < arm_joint_names_.size(); ++i)
+    {
+      arm_navigation_msgs::JointLimits limit;
+      limit.joint_name = arm_joint_names_[i];
+      n_.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/min", limit.min_position);
+      n_.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/max", limit.max_position);
+      arm_joint_limits_.push_back(limit);
+
+    }
 
     //  TODO: Add publishing messages to the YouBot Arm controllers.
     base_movement = n_.advertise<geometry_msgs::Twist>( "/cmd_vel", 1); 
+
+    // Rotational Control for the arm. 
+    pub_arm_vel = n_.advertise<brics_actuator::JointVelocities>("/arm_1/arm_controller/velocity_command", 1);
+
+    // Service commands to allow this node to be started and stopped externally
+    _start_srv = n_.advertiseService("start", &ImageConverter::Start, this);
+    _stop_srv = n_.advertiseService("stop", &ImageConverter::Stop, this);
+    ROS_INFO("Advertised 'start' and 'stop' service");
+
+    ROS_INFO("Blob Detection Started");
   }
 
   //----------------------------------------------------------- ~ImageConverter
@@ -71,16 +108,13 @@ public:
   {
     int master_image_width = 0; 
     int master_image_height = 0; 
-    int master_image_center_x = 0;
-    int master_image_center_y = 0;  
 
     double x_offset = 0; 
     double y_offset = 0; 
     double rot_offset = 0; 
 
     IplImage* cv_image = NULL;
-    IplImage* blob_image = NULL;
-    IplImage* display_image = NULL; 
+    IplImage* blob_image = NULL; 
 
     CBlob* currentBlob; 
 
@@ -97,8 +131,6 @@ public:
     //  Obtain image properties that we require. 
     master_image_width = cv_image->width; 
     master_image_height = cv_image->height; 
-    master_image_center_x = ( master_image_width / 2 );
-    master_image_center_y = ( master_image_height / 2 );
 
     IplImage* gray = cvCreateImage( cvGetSize( cv_image ), 8, 1 );
     cvCvtColor( cv_image, gray, CV_BGR2GRAY );
@@ -126,6 +158,8 @@ public:
     for ( int i = 0; i < blobs.GetNumBlobs(); i++ )
     {
       CBlobGetOrientation get_orientation; 
+      CBlobGetArea get_blob_area; 
+
       currentBlob = blobs.GetBlob(i);
       currentBlob->FillBlob( blob_image, CV_RGB( 0, 0, 255 ) );
 
@@ -137,14 +171,12 @@ public:
       double miny = currentBlob->MinY(); 
       double blob_x = ( ( minx + maxx ) / 2 );
       double blob_y = ( ( miny + maxy ) / 2 ); 
-      //double dist_x = ( blob_x - master_image_center_x ) - ( master_image_width / 2 ); 
-      //double dist_y = ( blob_y - master_image_center_y ) - ( master_image_height / 2 );
       double dist_x = ( blob_x ) - ( master_image_width / 2 ); 
       double dist_y = ( blob_y ) - ( master_image_height / 2 ); 
       double distance = sqrt( ( dist_x * dist_x ) + ( dist_y * dist_y ) ); 
 
       double rotation = 0.0; 
-      //double rotation = tan( get_orientation( currentBlob ) * ( 3.1415926535 / 180 ) ); 
+      rotation = get_orientation( *currentBlob );
 
       //  DEBUGGING
       std::cout << "Blob #:\t\t\t" << i << std::endl; 
@@ -162,27 +194,33 @@ public:
       // object in question before it can be turned on as this system will direct the arm to
       // interact with the largest blob that it can find. This module should only be used once
       // it is simply the object and its background in the frame of view of the camera. 
-      //if( largest_blob == currentBlob )
-      //{
+      if( get_blob_area( largest_blob ) == get_blob_area( *currentBlob ) )
+      {
         x_offset = dist_x; 
         y_offset = dist_y; 
         rot_offset = rotation; 
 
-        // + = left / - = right
+        //---------------------------------------------------------------------
+        //-------------------- base movement control --------------------------
+        //---------------------------------------------------------------------
         if( x_offset != 0 )
         {
           double move_speed = 0.0; 
 
           // added a buffer for a "good enough" region of interest. [14.06.2012]
-          if( x_offset > 0 && x_offset <= 20 )
+          if( x_offset >= 10 )
           {
-            // move the robot base left
+            // move the robot base right
             move_speed = -0.1; 
           }
-          else if( x_offset < 0 && x_offset >= -20 )
+          else if( x_offset <= -10 )
           {
-            // move the robot right
+            // move the robot left
             move_speed = 0.1; 
+          }
+          else if( x_offset > -10 && x_offset < 10 )
+          {
+            move_speed = 0.0; 
           }
           else
           {
@@ -193,10 +231,63 @@ public:
           // Prepare and then send the base movement commands.
           base_velocity.linear.y = move_speed; 
           base_movement.publish( base_velocity ); 
-
-          cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
         }
-      //}
+
+        //---------------------------------------------------------------------
+        //--------------------- arm rotation control --------------------------
+        //---------------------------------------------------------------------
+        
+        if( rot_offset != 90 || rot_offset != 270 )
+        {
+          double rotational_speed = 0.0; 
+
+          if( rot_offset < 80 )
+          {
+            rotational_speed = 0.5; 
+          }
+          else if( rot_offset > 100  )
+          {
+            rotational_speed = -0.5; 
+          }
+          else
+          {
+            rotational_speed = 0.0; 
+          }
+
+          arm_vel_.velocities.clear();
+          for(unsigned int i=0; i < arm_joint_names_.size(); ++i)
+          {
+            brics_actuator::JointValue joint_value;
+
+            joint_value.timeStamp = ros::Time::now();
+            joint_value.joint_uri = arm_joint_names_[i];
+            joint_value.unit = to_string(boost::units::si::radian_per_second);
+            
+            if( i == 5 )
+            {
+              joint_value.value = rotational_speed;
+            }
+            else
+            {
+              joint_value.value = 0.0; 
+            }
+
+            arm_vel_.velocities.push_back(joint_value);
+          }
+        }
+
+        //---------------------------------------------------------------------
+        //--------------------- arm rotation control --------------------------
+        //---------------------------------------------------------------------
+        if( y_offset != 0 )
+        {
+
+        }
+
+
+        // make sure the last thing we do is paint one centroid for debugging.
+        cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -245,6 +336,26 @@ public:
     cvWaitKey(3);
   }
 
+  bool Start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+  {
+     //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
+    image_sub_ = it_.subscribe( "/usb_cam/image_raw", 1, &ImageConverter::imageCallback, this );
+
+    ROS_INFO("Blob Detection Enabled");
+
+    return true;
+  }
+
+
+  bool Stop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+  {
+    image_sub_.shutdown(); 
+
+    ROS_INFO("Blob Detection Disabled");
+
+    return true;
+  }
+
 //-----------------------------------------------------------------------------
 //--------------------- PROTECTED FUNCTIONS / VARIABLES -----------------------
 //-----------------------------------------------------------------------------
@@ -254,8 +365,24 @@ protected:
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_sub_;
   sensor_msgs::CvBridge bridge_;
+
+  // Topics that this node publishes to.
   ros::Publisher base_movement; 
+  ros::Publisher arm_movement;
+
+  ros::Publisher pub_arm_vel;
+
+  // base movement topic.
   geometry_msgs::Twist base_velocity;
+
+  // Arm Joint Names.
+  std::vector<std::string> arm_joint_names_;
+  std::vector<arm_navigation_msgs::JointLimits> arm_joint_limits_;
+  brics_actuator::JointVelocities arm_vel_;
+
+  // Stop and start services for this ROS node.
+  ros::ServiceServer _start_srv; 
+  ros::ServiceServer _stop_srv;
 };
 
 //------------------------------------------------------------------------ main

@@ -10,6 +10,13 @@
   <url>http://ros.org/wiki/raw_basic_navigation_test_wc2012</url>
 
     <depend package="raw_generic_states"/>
+    <depend package="raw_default_env_config"/>
+    <depend package="smach"/>
+    <depend package="smach_ros"/>
+    <depend package="raw_generic_states"/>
+    <depend package="raw_bringup"/>
+    <depend package="raw_2dnav"/>
+    <depend package="raw_script_server"/>
+    <depend package="raw_bringup_sim"/>
+
 </package>
-
-
