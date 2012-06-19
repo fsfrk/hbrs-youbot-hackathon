@@ -32,7 +32,7 @@ public:
     // Get topic names from the parameter server.
     ros::NodeHandle pn("~");
     std::string input_cloud_topic, output_clusters_topic, bounding_boxes_topic;
-    pn.param("input_cloud_topic", input_cloud_topic, std::string("/depth_registered/points"));
+    pn.param("input_cloud_topic", input_cloud_topic, std::string("/camera/rgb/points"));
     pn.param("output_clusters_topic", output_clusters_topic, std::string("clusters"));
     pn.param("bounding_boxes_topic", bounding_boxes_topic, std::string("bounding_boxes"));
 
@@ -63,7 +63,7 @@ public:
     tce_->setInputCloud(cloud);
     tce_->setTablePolygon(planar_polygon_);
     tce_->extract(clusters);
-    ROS_INFO("Number of clusters: %li.", clusters.size());
+    ROS_INFO("Number of clusters: %ui.", clusters.size());
 
     for (const PointCloud::Ptr& cluster : clusters)
       tracker_->addCluster(cluster);

@@ -14,7 +14,6 @@ sss = simple_script_server()
 ## Script server class which inherits from script class.
 #
 # Implements actionlib interface for the script server.
-#
 class script_server():
 	## Initializes the actionlib interface of the script server.
 	#
@@ -23,7 +22,7 @@ class script_server():
 		self.script_action_server = actionlib.SimpleActionServer(self.ns_global_prefix, ScriptAction, self.execute_cb, False)
 		self.script_action_server.start()
 	
-#------------------- Actionlib section -------------------#
+    #------------------- Actionlib section -------------------#
 	## Executes actionlib callbacks.
 	#
 	# \param server_goal ScriptActionGoal
@@ -48,7 +47,6 @@ class script_server():
 			self.script_action_server.set_aborted(server_result)
 
 ## Main routine for running the script server
-#
 if __name__ == '__main__':
 	rospy.init_node('script_server')
 	script_server()

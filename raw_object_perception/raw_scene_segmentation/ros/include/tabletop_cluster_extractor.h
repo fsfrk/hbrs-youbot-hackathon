@@ -13,8 +13,9 @@ public:
 
   TabletopClusterExtractor();
 
-  TabletopClusterExtractor(double object_min_height,
-                           double object_max_height,
+  TabletopClusterExtractor(double point_min_height,
+                           double point_max_height,
+                           double object_min_height,
                            double object_cluster_tolerance,
                            int object_cluster_min_size,
                            int object_cluster_max_size);
@@ -48,11 +49,15 @@ public:
 
 private:
 
+  double getClusterCentroidHeight(const PointCloud::Ptr cluster);
+
   PointCloud::ConstPtr input_;
   PlanarPolygonConstPtr table_polygon_;
 
   pcl::ExtractPolygonalPrismData<PointT> eppd_;
   pcl::EuclideanClusterExtraction<PointT> ece_;
+
+  double object_min_height_;
 
 };
 

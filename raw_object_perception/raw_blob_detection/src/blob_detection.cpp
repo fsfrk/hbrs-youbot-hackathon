@@ -231,6 +231,7 @@ public:
           base_velocity.linear.y = move_speed; 
           base_movement.publish( base_velocity ); 
         }
+        //------------------ END OF BASE MOVEMENT CONTROL ---------------------
 
         //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
@@ -239,11 +240,11 @@ public:
         {
           double rotational_speed = 0.0; 
 
-          if( rot_offset < 80 )
+          if( ( rot_offset < 80 && rot_offset >= 0 ) || ( rot_offset < 260 && rot_offset >= 235 ) )
           {
             rotational_speed = 0.5; 
           }
-          else if( rot_offset > 100  )
+          else if( ( rot_offset > 100 && rot_offset < 235 ) || ( rot_offset > 280 && rot_offset <= 359 ) )
           {
             rotational_speed = -0.5; 
           }
@@ -276,18 +277,61 @@ public:
           // Publish the arm velocity commands.
           pub_arm_vel.publish( arm_vel_ );
         }
+        //------------------- END OF ARM ROTATION CONTROL ---------------------
 
         //---------------------------------------------------------------------
-        //--------------------- arm rotation control --------------------------
+        //----------------------- arm angle control ---------------------------
         //---------------------------------------------------------------------
         if( y_offset != 0 )
         {
+          double arm_movement_speed = 0.0; 
 
+          if( y_offset != 0 )
+          {
+            if( y_offset < -10 )
+            {
+              arm_movement_speed = 0.2; 
+            }
+            else if( y_offset > 10 )
+            {
+              arm_movement_speed = -0.2; 
+            }
+            else
+            {
+              // included so that if the location of the centroid is between -10
+              // the arm will not move. 
+              arm_movement_speed = 0.0; 
+            }
+          }
+
+          arm_vel_.velocities.clear();
+          for(unsigned int i=0; i < arm_joint_names_.size(); ++i)
+          {
+            brics_actuator::JointValue joint_value;
+
+            joint_value.timeStamp = ros::Time::now();
+            joint_value.joint_uri = arm_joint_names_[i];
+            joint_value.unit = to_string(boost::units::si::radian_per_second);
+            
+            if( i == 5 )
+            {
+              joint_value.value = arm_movement_speed;
+            }
+            else
+            {
+              joint_value.value = 0.0; 
+            }
+
+            arm_vel_.velocities.push_back(joint_value);
+          }
         }
+        //------------------- END OF ARM ANGLE CONTROL ------------------------
 
         // make sure the last thing we do is paint one centroid for debugging.
         cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
       }
+
+      free( currentBlob );  
     }
 
     //-------------------------------------------------------------------------
@@ -305,7 +349,6 @@ public:
 
     cvLine( blob_image,   cvPoint( 0, (master_image_height/2) ), cvPoint( master_image_width, (master_image_height / 2) ), CV_RGB( 255, 0, 0 ), 2, 0 ); 
     cvLine( blob_image,   cvPoint( (master_image_width/2), 0 ), cvPoint( (master_image_width/2), master_image_height ), CV_RGB( 255, 0, 0 ), 2, 0 );
-    //cvPutText( gray, "Hello World!", cvPoint( 10, gray->height - 10 ), &font, cvScalar( 255, 1, 1 ) );
     cvRectangle( blob_image, cvPoint( 0, blob_image->height-40 ), cvPoint( blob_image->width, blob_image->height ), CV_RGB( 0, 0, 0 ), -1 );
 
     std::string x_str = "X: "; 
@@ -321,8 +364,6 @@ public:
     cvPutText( blob_image, y_str.c_str(),  cvPoint( 200, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
     cvPutText( blob_image, rot_str.c_str(), cvPoint( 350, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
 
-    //cvShowImage( "Original", cv_image ); 
-    //cvShowImage( "Thresholding", gray ); 
     cvShowImage( "Found Blobs", blob_image ); 
 
     //-------------------------------------------------------------------------
