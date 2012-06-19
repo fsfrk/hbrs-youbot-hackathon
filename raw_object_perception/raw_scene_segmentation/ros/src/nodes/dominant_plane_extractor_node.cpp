@@ -8,7 +8,7 @@
 
 #include <raw_srvs/GetDominantPlane.h>
 #include "dominant_plane_extractor.h"
-#include "ransac_dominant_plane_extractor.h"
+#include "organized_dominant_plane_extractor.h"
 
 DominantPlaneExtractor::UPtr dpe;
 PlanarPolygon planar_polygon;
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "dominant_plane_extractor_node");
 
-  dpe = DominantPlaneExtractor::UPtr(new RansacDominantPlaneExtractor);
+  dpe = DominantPlaneExtractor::UPtr(new OrganizedDominantPlaneExtractor);
 
   ros::NodeHandle node;
   ros::ServiceServer extract_plane_service = node.advertiseService("extract_dominant_plane", extractPlaneCallback);
