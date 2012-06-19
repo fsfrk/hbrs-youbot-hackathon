@@ -16,7 +16,6 @@ class ClusterFinderNode
 public:
 
   ClusterFinderNode(ros::NodeHandle& nh)
-  : tce_(new TabletopClusterExtractor)
   {
     // Get service name from the parameter server.
     ros::NodeHandle pn("~");
@@ -24,6 +23,14 @@ public:
     pn.param("find_clusters_service", find_clusters_service, std::string("find_clusters"));
     find_service_ = nh.advertiseService(find_clusters_service, &ClusterFinderNode::findClustersCallback, this);
     ROS_INFO("Cluster finder service started.");
+    // Create TabletopClusterExtractor
+    tce_ = std::unique_ptr<TabletopClusterExtractor>(new TabletopClusterExtractor(0.009,  // point min height
+                                                                                  1.000,  // point max height
+                                                                                  0.100,  // object min height
+                                                                                  0.100,  // object cluster tolerance
+                                                                                  15,     // min cluster size
+                                                                                  5000)); // max cluster size
+    accumulation_duration_ = ros::Duration(10);
   }
 
   bool findClustersCallback(raw_srvs::GetClusters::Request& request, raw_srvs::GetClusters::Response& response)
@@ -125,6 +132,7 @@ private:
   PlanarPolygonPtr planar_polygon_;
 
   std::string frame_id_;
+  ros::Duration accumulation_duration_;
 
 };
 
