@@ -278,11 +278,50 @@ public:
         }
 
         //---------------------------------------------------------------------
-        //--------------------- arm rotation control --------------------------
+        //----------------------- arm angle control ---------------------------
         //---------------------------------------------------------------------
         if( y_offset != 0 )
         {
+          double arm_movement_speed = 0.0; 
 
+          if( y_offset != 0 )
+          {
+            if( y_offset < -10 )
+            {
+              arm_movement_speed = 0.2; 
+            }
+            else if( y_offset > 10 )
+            {
+              arm_movement_speed = -0.2; 
+            }
+            else
+            {
+              // included so that if the location of the centroid is between -10
+              // the arm will not move. 
+              arm_movement_speed = 0.0; 
+            }
+          }
+
+          arm_vel_.velocities.clear();
+          for(unsigned int i=0; i < arm_joint_names_.size(); ++i)
+          {
+            brics_actuator::JointValue joint_value;
+
+            joint_value.timeStamp = ros::Time::now();
+            joint_value.joint_uri = arm_joint_names_[i];
+            joint_value.unit = to_string(boost::units::si::radian_per_second);
+            
+            if( i == 5 )
+            {
+              joint_value.value = arm_movement_speed;
+            }
+            else
+            {
+              joint_value.value = 0.0; 
+            }
+
+            arm_vel_.velocities.push_back(joint_value);
+          }
         }
 
         // make sure the last thing we do is paint one centroid for debugging.
