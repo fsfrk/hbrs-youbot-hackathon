@@ -21,7 +21,7 @@
   </node>
 
   <!-- Online cluster finder test -->
-  <node name="online_cluster_finder_test" pkg="raw_perception_tests" type="online_cluster_finder_test" output="screen" required="true" />
+  <node name="online_cluster_finder_test" pkg="raw_perception_tests" type="online_cluster_finder_test" output="screen" />
 
   <!-- RViz -->
   <node name="rviz" pkg="rviz" type="rviz" required="true" />
