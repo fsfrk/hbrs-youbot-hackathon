@@ -63,7 +63,7 @@ public:
     tce_->setInputCloud(cloud);
     tce_->setTablePolygon(planar_polygon_);
     tce_->extract(clusters);
-    ROS_INFO("Number of clusters: %li.", clusters.size());
+    ROS_INFO("Number of clusters: %ui.", clusters.size());
 
     for (const PointCloud::Ptr& cluster : clusters)
       tracker_->addCluster(cluster);
