@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<launch>
+  
+  <!-- Dominant plane extractor node -->
+  <node pkg="raw_scene_segmentation" type="dominant_plane_extractor_node" name="dominant_plane_extractor_node" output="screen">
+    <param name="input_cloud_topic" type="string" value="/camera/rgb/points" required="true" />
+    <param name="min_x" type="double" value="-1.2" />
+    <param name="max_x" type="double" value="1.5" />
+    <param name="min_y" type="double" value="-1.5" />
+    <param name="max_y" type="double" value="1.5" />
+    <param name="min_z" type="double" value="0.7" />
+    <param name="max_z" type="double" value="1.5" />
+  </node>
+
+  <!-- Cluster finder node -->
+  <node name="cluster_finder_node" pkg="raw_object_tracking" type="cluster_finder_node" output="screen">
+    <param name="input_cloud_topic" type="string" value="/camera/rgb/points" required="true" />
+  </node>
+
+  <!-- Online cluster finder test -->
+  <node name="online_cluster_finder_test" pkg="raw_perception_tests" type="online_cluster_finder_test" output="screen" />
+
+  <!-- RViz -->
+  <node name="rviz" pkg="rviz" type="rviz" required="true" />
+
+</launch>
