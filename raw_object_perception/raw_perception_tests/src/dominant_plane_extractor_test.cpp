@@ -1,11 +1,13 @@
 #include <string>
 #include <vector>
 
+#include <boost/lexical_cast.hpp>
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <pcl/io/io.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/features/integral_image_normal.h>
+#include <pcl/filters/passthrough.h>
 #include <dynamic_reconfigure/server.h>
 
 #include "raw_perception_tests/OrganizedDominantPlaneExtractorTestConfig.h"
@@ -154,14 +156,27 @@ int main (int argc, char** argv)
 {
   ros::init(argc, argv, "dominant_plane_extractor_test");
 
-  if (argc != 3)
+  if (argc != 3 && argc != 5)
   {
-    PCL_ERROR("Usage: %s <filename.pcd> <ransac|organized>\n", argv[0]);
+    ROS_ERROR("Usage: %s <filename.pcd> <ransac|organized> [min_z max_z]", argv[0]);
     return 1;
   }
 
   PointCloud::Ptr cloud(new PointCloud);
   pcl::io::loadPCDFile(argv[1], *cloud);
+
+  if (argc == 5)
+  {
+    float min_z = boost::lexical_cast<float>(argv[3]);
+    float max_z = boost::lexical_cast<float>(argv[4]);
+    pcl::PassThrough<PointT> pass_through;
+    pass_through.setFilterFieldName("z");
+    pass_through.setFilterLimits(min_z, max_z);
+    pass_through.setKeepOrganized(true);
+    pass_through.setInputCloud(cloud);
+    pass_through.filter(*cloud);
+    ROS_INFO("Keep points in %.2f to %.2f range.", min_z, max_z);
+  }
 
   std::unique_ptr<DominantPlaneExtractorTest> dpet;
 
@@ -170,7 +185,7 @@ int main (int argc, char** argv)
   else if (std::string("ransac").compare(argv[2]) == 0)
     dpet.reset(new RansacDominantPlaneExtractorTest(cloud));
   else
-    ROS_ERROR("Unsupported dominant plane extraction method: %s\n", argv[2]);
+    ROS_ERROR("Unsupported dominant plane extraction method: %s", argv[2]);
 
   if (dpet)
     dpet->run();

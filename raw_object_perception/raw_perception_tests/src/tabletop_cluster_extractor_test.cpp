@@ -40,17 +40,9 @@ private:
 
   void extractPlanarPolygon()
   {
-    pcl::PassThrough<PointT> pass_through_;
-    pass_through_.setFilterFieldName("z");
-    double min_z_bound = 0.1, max_z_bound = 1.2;
-    pass_through_.setFilterLimits(min_z_bound, max_z_bound);
-    pass_through_.setKeepOrganized(true);
-    pass_through_.setInputCloud(cloud_);
-    cloud_filtered_.reset(new PointCloud);
-    pass_through_.filter(*cloud_filtered_);
     planar_polygon_.reset(new PlanarPolygon);
-    dpe_->setInputCloud(cloud_filtered_);
-    dpe_->setShrinkPlanePolygonRatio(0.05);
+    dpe_->setInputCloud(cloud_);
+    dpe_->setShrinkPlanePolygonRatio(0.10);
     MEASURE_RUNTIME(dpe_->extract(*planar_polygon_), "Plane extraction");
     std::cout << "Number of points in plane contour: " << planar_polygon_->getContour().size() << std::endl;
     std::cout << "Plane coefficients:\n" << planar_polygon_->getCoefficients() << std::endl;
@@ -59,7 +51,7 @@ private:
   virtual void process()
   {
     std::vector<PointCloud::Ptr> clusters;
-    tce_->setInputCloud(cloud_filtered_);
+    tce_->setInputCloud(cloud_);
     tce_->setTablePolygon(planar_polygon_);
     MEASURE_RUNTIME(tce_->extract(clusters), "Cluster extraction");
 
@@ -76,12 +68,15 @@ private:
     for (const PointCloud::Ptr& cluster : clusters)
     {
       ROS_INFO("Cluster %i: pts %li", i, cluster->points.size());
-      std::string name = boost::str(boost::format("plane_%02i") % i);
+      std::string name = boost::str(boost::format("cluster_%02i") % i);
       pcl::visualization::PointCloudColorHandlerCustom<PointT> single_color(cluster, red[i % 6], grn[i % 6], blu[i % 6]);
       viewer_.addPointCloud<PointT>(cluster, single_color, name);
       viewer_.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, name);
       i++;
     }
+
+    pcl::visualization::PointCloudColorHandlerCustom<PointT> single_color(cloud_, 0, 255, 0);
+    viewer_.addPointCloud<PointT>(cloud_, single_color, "cloud");
 
     displayPlanarPolygon(*planar_polygon_);
   }
@@ -111,7 +106,6 @@ private:
 
   PointCloud::ConstPtr cloud_;
   PlanarPolygonPtr planar_polygon_;
-  PointCloud::Ptr cloud_filtered_;
 
   std::unique_ptr<DominantPlaneExtractor> dpe_;
   std::unique_ptr<TabletopClusterExtractor> tce_;
@@ -124,14 +118,27 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "tabletop_cluster_extractor_test");
 
-  if (argc != 3)
+  if (argc != 3 && argc != 5)
   {
-    ROS_ERROR("Usage: %s <filename.pcd> <ransac|organized>\n", argv[0]);
+    ROS_ERROR("Usage: %s <filename.pcd> <ransac|organized> [min_z max_z]", argv[0]);
     return 1;
   }
 
   PointCloud::Ptr cloud(new PointCloud);
   pcl::io::loadPCDFile(argv[1], *cloud);
+
+  if (argc == 5)
+  {
+    float min_z = boost::lexical_cast<float>(argv[3]);
+    float max_z = boost::lexical_cast<float>(argv[4]);
+    pcl::PassThrough<PointT> pass_through;
+    pass_through.setFilterFieldName("z");
+    pass_through.setFilterLimits(min_z, max_z);
+    pass_through.setKeepOrganized(true);
+    pass_through.setInputCloud(cloud);
+    pass_through.filter(*cloud);
+    ROS_INFO("Keep points in %.2f to %.2f range.", min_z, max_z);
+  }
 
   TabletopClusterExtractorTest clustering(cloud, argv[2]);
   clustering.run();
