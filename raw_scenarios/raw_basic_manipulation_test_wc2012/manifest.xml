@@ -1,0 +1,23 @@
+<package>
+  <description brief="raw_basic_manipulation_test_wc2012">
+
+     raw_basic_manipulation_test_wc2012
+
+  </description>
+  <author>fred</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_basic_manipulation_test_wc2012</url>
+
+  <depend package="rospy" />
+  <depend package="smach" />
+  <depend package="smach_ros" />
+  <depend package="raw_generic_states" />
+  <depend package="raw_default_env_config" />
+  <depend package="raw_bringup" />
+  <depend package="raw_2dnav" />
+  <depend package="raw_script_server" />
+  <depend package="smach" />
+</package>
+
+

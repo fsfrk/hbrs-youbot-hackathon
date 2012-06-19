@@ -15,3 +15,4 @@ EBandPlannerROS:
   in_place_trans_vel: 0.0
 
   rotation_correction_threshold: 0.2
+

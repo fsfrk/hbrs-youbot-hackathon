@@ -12,7 +12,7 @@
 #include <ros/ros.h>
 #include "sensor_msgs/Image.h"
 #include "image_transport/image_transport.h"
-#include "cv_bridge/CvBridge.h"
+#include "cv_bridge/CvBridge.h" 
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 #include "geometry_msgs/Twist.h"
@@ -69,18 +69,18 @@ public:
 
     }
 
-    //  TODO: Add publishing messages to the YouBot Arm controllers.
-    base_movement = n_.advertise<geometry_msgs::Twist>( "/cmd_vel", 1); 
+    // Velocity control for the YouBot base.
+    base_movement = n_.advertise<geometry_msgs::Twist>( "/cmd_vel", 1 ); 
 
-    // Rotational Control for the arm. 
-    pub_arm_vel = n_.advertise<brics_actuator::JointVelocities>("/arm_1/arm_controller/velocity_command", 1);
+    // Rotational Control for the YouBot arm. 
+    pub_arm_vel = n_.advertise<brics_actuator::JointVelocities>( "/arm_1/arm_controller/velocity_command", 1 );
 
     // Service commands to allow this node to be started and stopped externally
     _start_srv = n_.advertiseService("start", &ImageConverter::Start, this);
     _stop_srv = n_.advertiseService("stop", &ImageConverter::Stop, this);
-    ROS_INFO("Advertised 'start' and 'stop' service");
+    ROS_INFO( "Advertised 'start' and 'stop' service for raw_blob_detection" );
 
-    ROS_INFO("Blob Detection Started");
+    ROS_INFO( "Blob Detection Started" );
   }
 
   //----------------------------------------------------------- ~ImageConverter
@@ -94,7 +94,6 @@ public:
     cvDestroyWindow( "Original" );
     cvDestroyWindow( "Thresholding" ); 
     cvDestroyWindow( "Found Blobs" ); 
-    cvDestroyWindow( "Blob Detection" ); 
   }
 
   //------------------------------------------------------------- imageCallBack
@@ -104,20 +103,17 @@ public:
   //  this function will be called. It is responsible for all of the blob
   //  detection as well as any processing that is applied to the images.
   //---------------------------------------------------------------------------
-  void imageCallback(const sensor_msgs::ImageConstPtr& msg_ptr)
+  void imageCallback( const sensor_msgs::ImageConstPtr& msg_ptr )
   {
     int master_image_width = 0; 
     int master_image_height = 0; 
-    int master_image_center_x = 0;
-    int master_image_center_y = 0;  
 
     double x_offset = 0; 
     double y_offset = 0; 
     double rot_offset = 0; 
 
     IplImage* cv_image = NULL;
-    IplImage* blob_image = NULL;
-    IplImage* display_image = NULL; 
+    IplImage* blob_image = NULL; 
 
     CBlob* currentBlob; 
 
@@ -128,14 +124,12 @@ public:
     }
     catch (sensor_msgs::CvBridgeException error)
     {
-      ROS_ERROR("error");
+      ROS_ERROR( "Error converting from ROS image message to OpenCV IplImage" );
     }
 
     //  Obtain image properties that we require. 
     master_image_width = cv_image->width; 
     master_image_height = cv_image->height; 
-    master_image_center_x = ( master_image_width / 2 );
-    master_image_center_y = ( master_image_height / 2 );
 
     IplImage* gray = cvCreateImage( cvGetSize( cv_image ), 8, 1 );
     cvCvtColor( cv_image, gray, CV_BGR2GRAY );
@@ -213,15 +207,19 @@ public:
           double move_speed = 0.0; 
 
           // added a buffer for a "good enough" region of interest. [14.06.2012]
-          if( x_offset > 0 && x_offset <= 20 )
+          if( x_offset >= 10 )
           {
-            // move the robot base left
+            // move the robot base right
             move_speed = -0.1; 
           }
-          else if( x_offset < 0 && x_offset >= -20 )
+          else if( x_offset <= -10 )
           {
-            // move the robot right
+            // move the robot left
             move_speed = 0.1; 
+          }
+          else if( x_offset > -10 && x_offset < 10 )
+          {
+            move_speed = 0.0; 
           }
           else
           {
@@ -233,6 +231,7 @@ public:
           base_velocity.linear.y = move_speed; 
           base_movement.publish( base_velocity ); 
         }
+        //------------------ END OF BASE MOVEMENT CONTROL ---------------------
 
         //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
@@ -241,11 +240,11 @@ public:
         {
           double rotational_speed = 0.0; 
 
-          if( rot_offset < 90 && rot_offset >= 80 || rot_offset < 270 && rot_offset >= 260 )
+          if( ( rot_offset < 80 && rot_offset >= 0 ) || ( rot_offset < 260 && rot_offset >= 235 ) )
           {
             rotational_speed = 0.5; 
           }
-          else if( rot_offset > 90 && rot_offset <= 100 || rot_offset > 270 && rot_offset <= 280 )
+          else if( ( rot_offset > 100 && rot_offset < 235 ) || ( rot_offset > 280 && rot_offset <= 359 ) )
           {
             rotational_speed = -0.5; 
           }
@@ -263,7 +262,7 @@ public:
             joint_value.joint_uri = arm_joint_names_[i];
             joint_value.unit = to_string(boost::units::si::radian_per_second);
             
-            if( i == 4 )
+            if( i == 5 )
             {
               joint_value.value = rotational_speed;
             }
@@ -274,13 +273,65 @@ public:
 
             arm_vel_.velocities.push_back(joint_value);
           }
+
+          // Publish the arm velocity commands.
+          pub_arm_vel.publish( arm_vel_ );
         }
+        //------------------- END OF ARM ROTATION CONTROL ---------------------
 
+        //---------------------------------------------------------------------
+        //----------------------- arm angle control ---------------------------
+        //---------------------------------------------------------------------
+        if( y_offset != 0 )
+        {
+          double arm_movement_speed = 0.0; 
 
+          if( y_offset != 0 )
+          {
+            if( y_offset < -10 )
+            {
+              arm_movement_speed = 0.2; 
+            }
+            else if( y_offset > 10 )
+            {
+              arm_movement_speed = -0.2; 
+            }
+            else
+            {
+              // included so that if the location of the centroid is between -10
+              // the arm will not move. 
+              arm_movement_speed = 0.0; 
+            }
+          }
+
+          arm_vel_.velocities.clear();
+          for(unsigned int i=0; i < arm_joint_names_.size(); ++i)
+          {
+            brics_actuator::JointValue joint_value;
+
+            joint_value.timeStamp = ros::Time::now();
+            joint_value.joint_uri = arm_joint_names_[i];
+            joint_value.unit = to_string(boost::units::si::radian_per_second);
+            
+            if( i == 5 )
+            {
+              joint_value.value = arm_movement_speed;
+            }
+            else
+            {
+              joint_value.value = 0.0; 
+            }
+
+            arm_vel_.velocities.push_back(joint_value);
+          }
+        }
+        //------------------- END OF ARM ANGLE CONTROL ------------------------
 
         // make sure the last thing we do is paint one centroid for debugging.
         cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
       }
+
+      free( currentBlob );  
     }
 
     //-------------------------------------------------------------------------
@@ -296,12 +347,9 @@ public:
     CvFont font;
     cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 1.0, 1.0, 0, 1, CV_AA);
 
-
     cvLine( blob_image,   cvPoint( 0, (master_image_height/2) ), cvPoint( master_image_width, (master_image_height / 2) ), CV_RGB( 255, 0, 0 ), 2, 0 ); 
     cvLine( blob_image,   cvPoint( (master_image_width/2), 0 ), cvPoint( (master_image_width/2), master_image_height ), CV_RGB( 255, 0, 0 ), 2, 0 );
-    //cvPutText( gray, "Hello World!", cvPoint( 10, gray->height - 10 ), &font, cvScalar( 255, 1, 1 ) );
     cvRectangle( blob_image, cvPoint( 0, blob_image->height-40 ), cvPoint( blob_image->width, blob_image->height ), CV_RGB( 0, 0, 0 ), -1 );
-
 
     std::string x_str = "X: "; 
     x_str += boost::lexical_cast<std::string>( x_offset ); 
@@ -316,10 +364,7 @@ public:
     cvPutText( blob_image, y_str.c_str(),  cvPoint( 200, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
     cvPutText( blob_image, rot_str.c_str(), cvPoint( 350, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
 
-    //cvShowImage( "Original", cv_image ); 
-    //cvShowImage( "Thresholding", gray ); 
     cvShowImage( "Found Blobs", blob_image ); 
-    //cvShowImage( "Blob Detection", display_image ); 
 
     //-------------------------------------------------------------------------
     //----------------------- END OF VISUAL OUTPUT ----------------------------
@@ -329,6 +374,11 @@ public:
     cvWaitKey(3);
   }
 
+  //--------------------------------------------------------------------- Start
+  //---------------------------------------------------------------------------
+  //   Used to start up the processing of the web camera images once the node 
+  //  has been told to start.
+  //--------------------------------------------------------------------------- 
   bool Start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
      //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
@@ -339,7 +389,12 @@ public:
     return true;
   }
 
-
+  //---------------------------------------------------------------------- Stop
+  //---------------------------------------------------------------------------
+  //   Used to stop the processing of the web camera images once the node has
+  //  been asked to stop. Note this does not remove the nodes service it only
+  //  halts the processing.
+  //--------------------------------------------------------------------------- 
   bool Stop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
     image_sub_.shutdown(); 
