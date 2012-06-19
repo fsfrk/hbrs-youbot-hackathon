@@ -50,7 +50,7 @@ namespace raw_local_planner_omnidirectional {
       setup_ = true;
     }
     boost::mutex::scoped_lock l(configuration_mutex_);
- 
+    std::cout << "\nWe are in ReconfigureCB\n";
     max_vel_x_ = config.max_vel_x;
     min_vel_x_ = config.min_vel_x;
  
@@ -192,6 +192,8 @@ namespace raw_local_planner_omnidirectional {
     bool best_forward = best->xv_ >= 0.0;
     bool comp_valid = comp->cost_ >= 0.0;
     bool comp_forward = comp->xv_ >= 0.0;
+    bool best_starf = best->yv_ >= 0.0;
+    bool comp_starf = comp->yv_ >= 0.0;
 
     //if we don't have a valid trajecotry... then do nothing
     if(!comp_valid)
@@ -202,7 +204,7 @@ namespace raw_local_planner_omnidirectional {
       return;
 
 
-    if(comp_valid && ((comp->cost_ < best->cost_ || !best_valid) || (penalize_negative_x_ && comp_forward && !best_forward))){
+    if(comp_valid && ((comp->cost_ < best->cost_ || !best_valid) || (penalize_negative_x_ && comp_forward && !best_forward)/*(comp_starf && !best_starf)*/)){
       base_local_planner::Trajectory* swap = best;
       best = comp;
       comp = swap;
@@ -277,15 +279,21 @@ namespace raw_local_planner_omnidirectional {
 
     for(VelocityIterator x_it(min_vel[0], max_vel[0], dv[0]); !x_it.isFinished(); x_it++){
       vel_samp[0] = x_it.getVelocity();
+      
       for(VelocityIterator y_it(min_vel[1], max_vel[1], dv[1]); !y_it.isFinished(); y_it++){
         vel_samp[1] = y_it.getVelocity();
         for(VelocityIterator th_it(min_vel[2], max_vel[2], dv[2]); !th_it.isFinished(); th_it++){
           vel_samp[2] = th_it.getVelocity();
+          
           generateTrajectory(pos, vel_samp, *comp_traj, two_point_scoring);
           selectBestTrajectory(best_traj, comp_traj);
+if(vel_samp[0] == 0 && vel_samp[2] == 0){
+		printf("\n------ y = %f, cost = %f\n", vel_samp[1], best_traj->cost_);
+}
         }
       }
     }
+printf("\n------cost = %f\n\n", best_traj->cost_);
 
     ROS_DEBUG_NAMED("oscillation_flags", "forward_pos_only: %d, forward_neg_only: %d, strafe_pos_only: %d, strafe_neg_only: %d, rot_pos_only: %d, rot_neg_only: %d",
         forward_pos_only_, forward_neg_only_, strafe_pos_only_, strafe_neg_only_, rot_pos_only_, rot_neg_only_);
@@ -300,7 +308,10 @@ namespace raw_local_planner_omnidirectional {
       //if we've got restrictions... check if we can reset any oscillation flags
       if(forward_pos_only_ || forward_neg_only_ 
           || strafe_pos_only_ || strafe_neg_only_
-          || rot_pos_only_ || rot_neg_only_){
+          || rot_pos_only_ || rot_neg_only_ ){
+        printf("\nWe have got restriction, %d %d %d %d %d %d", forward_pos_only_,forward_neg_only_ 
+          ,strafe_pos_only_ ,strafe_neg_only_
+          ,rot_pos_only_ ,rot_neg_only_ );
         resetOscillationFlagsIfPossible(pos, prev_stationary_pos_);
       }
     }
