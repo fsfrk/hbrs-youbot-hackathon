@@ -69,18 +69,18 @@ public:
 
     }
 
-    //  TODO: Add publishing messages to the YouBot Arm controllers.
-    base_movement = n_.advertise<geometry_msgs::Twist>( "/cmd_vel", 1); 
+    // Velocity control for the YouBot base.
+    base_movement = n_.advertise<geometry_msgs::Twist>( "/cmd_vel", 1 ); 
 
-    // Rotational Control for the arm. 
-    pub_arm_vel = n_.advertise<brics_actuator::JointVelocities>("/arm_1/arm_controller/velocity_command", 1);
+    // Rotational Control for the YouBot arm. 
+    pub_arm_vel = n_.advertise<brics_actuator::JointVelocities>( "/arm_1/arm_controller/velocity_command", 1 );
 
     // Service commands to allow this node to be started and stopped externally
     _start_srv = n_.advertiseService("start", &ImageConverter::Start, this);
     _stop_srv = n_.advertiseService("stop", &ImageConverter::Stop, this);
-    ROS_INFO("Advertised 'start' and 'stop' service");
+    ROS_INFO( "Advertised 'start' and 'stop' service for raw_blob_detection" );
 
-    ROS_INFO("Blob Detection Started");
+    ROS_INFO( "Blob Detection Started" );
   }
 
   //----------------------------------------------------------- ~ImageConverter
@@ -94,7 +94,6 @@ public:
     cvDestroyWindow( "Original" );
     cvDestroyWindow( "Thresholding" ); 
     cvDestroyWindow( "Found Blobs" ); 
-    cvDestroyWindow( "Blob Detection" ); 
   }
 
   //------------------------------------------------------------- imageCallBack
@@ -104,7 +103,7 @@ public:
   //  this function will be called. It is responsible for all of the blob
   //  detection as well as any processing that is applied to the images.
   //---------------------------------------------------------------------------
-  void imageCallback(const sensor_msgs::ImageConstPtr& msg_ptr)
+  void imageCallback( const sensor_msgs::ImageConstPtr& msg_ptr )
   {
     int master_image_width = 0; 
     int master_image_height = 0; 
@@ -125,7 +124,7 @@ public:
     }
     catch (sensor_msgs::CvBridgeException error)
     {
-      ROS_ERROR("error");
+      ROS_ERROR( "Error converting from ROS image message to OpenCV IplImage" );
     }
 
     //  Obtain image properties that we require. 
@@ -236,7 +235,6 @@ public:
         //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
         //---------------------------------------------------------------------
-        
         if( rot_offset != 90 || rot_offset != 270 )
         {
           double rotational_speed = 0.0; 
@@ -274,6 +272,9 @@ public:
 
             arm_vel_.velocities.push_back(joint_value);
           }
+
+          // Publish the arm velocity commands.
+          pub_arm_vel.publish( arm_vel_ );
         }
 
         //---------------------------------------------------------------------
@@ -283,7 +284,6 @@ public:
         {
 
         }
-
 
         // make sure the last thing we do is paint one centroid for debugging.
         cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
@@ -303,12 +303,10 @@ public:
     CvFont font;
     cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 1.0, 1.0, 0, 1, CV_AA);
 
-
     cvLine( blob_image,   cvPoint( 0, (master_image_height/2) ), cvPoint( master_image_width, (master_image_height / 2) ), CV_RGB( 255, 0, 0 ), 2, 0 ); 
     cvLine( blob_image,   cvPoint( (master_image_width/2), 0 ), cvPoint( (master_image_width/2), master_image_height ), CV_RGB( 255, 0, 0 ), 2, 0 );
     //cvPutText( gray, "Hello World!", cvPoint( 10, gray->height - 10 ), &font, cvScalar( 255, 1, 1 ) );
     cvRectangle( blob_image, cvPoint( 0, blob_image->height-40 ), cvPoint( blob_image->width, blob_image->height ), CV_RGB( 0, 0, 0 ), -1 );
-
 
     std::string x_str = "X: "; 
     x_str += boost::lexical_cast<std::string>( x_offset ); 
@@ -326,7 +324,6 @@ public:
     //cvShowImage( "Original", cv_image ); 
     //cvShowImage( "Thresholding", gray ); 
     cvShowImage( "Found Blobs", blob_image ); 
-    //cvShowImage( "Blob Detection", display_image ); 
 
     //-------------------------------------------------------------------------
     //----------------------- END OF VISUAL OUTPUT ----------------------------
@@ -336,6 +333,11 @@ public:
     cvWaitKey(3);
   }
 
+  //--------------------------------------------------------------------- Start
+  //---------------------------------------------------------------------------
+  //   Used to start up the processing of the web camera images once the node 
+  //  has been told to start.
+  //--------------------------------------------------------------------------- 
   bool Start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
      //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
@@ -346,7 +348,12 @@ public:
     return true;
   }
 
-
+  //---------------------------------------------------------------------- Stop
+  //---------------------------------------------------------------------------
+  //   Used to stop the processing of the web camera images once the node has
+  //  been asked to stop. Note this does not remove the nodes service it only
+  //  halts the processing.
+  //--------------------------------------------------------------------------- 
   bool Stop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
     image_sub_.shutdown(); 
