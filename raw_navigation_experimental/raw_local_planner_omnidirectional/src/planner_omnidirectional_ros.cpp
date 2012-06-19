@@ -126,6 +126,10 @@ namespace raw_local_planner_omnidirectional {
   }
 
   bool RAWPlannerROS::rotateToGoal(const tf::Stamped<tf::Pose>& global_pose, const tf::Stamped<tf::Pose>& robot_vel, double goal_th, geometry_msgs::Twist& cmd_vel){
+    //just temporary .. do not forget to update
+	printf("not required\n");
+	return true;
+
     Eigen::Vector3f acc_lim = dp_->getAccLimits();
     double yaw = tf::getYaw(global_pose.getRotation());
     double vel_yaw = tf::getYaw(robot_vel.getRotation());
@@ -235,6 +239,8 @@ namespace raw_local_planner_omnidirectional {
 
     //check to see if we've reached the goal position
     if(base_local_planner::goalPositionReached(global_pose, goal_x, goal_y, xy_goal_tolerance_) || xy_tolerance_latch_){
+printf("\n--gola position reached:\n");
+
       //if the user wants to latch goal tolerance, if we ever reach the goal location, we'll
       //just rotate in place
       if(latch_xy_goal_tolerance_)
@@ -242,6 +248,7 @@ namespace raw_local_planner_omnidirectional {
 
       //check to see if the goal orientation has been reached
       if(base_local_planner::goalOrientationReached(global_pose, goal_th, yaw_goal_tolerance_)){
+printf("\n--- goal orientaiton reached\n");
         //set the velocity command to zero
         cmd_vel.linear.x = 0.0;
         cmd_vel.linear.y = 0.0;
@@ -250,6 +257,7 @@ namespace raw_local_planner_omnidirectional {
         xy_tolerance_latch_ = false;
       }
       else {
+printf("\n==goal orientation not reached\n");
         //we need to call the next two lines to make sure that the raw
         //planner updates its path distance and goal distance grids
         dp_->updatePlan(transformed_plan);
@@ -264,6 +272,7 @@ namespace raw_local_planner_omnidirectional {
 
         //if we're not stopped yet... we want to stop... taking into account the acceleration limits of the robot
         if(!rotating_to_goal_ && !base_local_planner::stopped(base_odom, rot_stopped_vel_, trans_stopped_vel_)){
+printf("\n!rotation to goal and not stopped\n");
           if(!stopWithAccLimits(global_pose, robot_vel, cmd_vel))
             return false;
         }
@@ -271,7 +280,9 @@ namespace raw_local_planner_omnidirectional {
         else{
           //set this so that we know its OK to be moving
           rotating_to_goal_ = true;
+	printf("\n else of !rotation to goal and not stopped, calling rotate to goal\n");
           if(!rotateToGoal(global_pose, robot_vel, goal_th, cmd_vel))
+		printf("\nrotateToGoal returned false\n");
             return false;
         }
       }
@@ -298,11 +309,11 @@ namespace raw_local_planner_omnidirectional {
     t_diff = end_t - start_t;
     ROS_INFO("Cycle time: %.9f", t_diff);
     */
-
     //pass along drive commands
     cmd_vel.linear.x = drive_cmds.getOrigin().getX();
     cmd_vel.linear.y = drive_cmds.getOrigin().getY();
     yaw = tf::getYaw(drive_cmds.getRotation());
+printf("\n--gola position not reached: updating command velocity,x=%f, y=%f, yaw=%f\n", cmd_vel.linear.x, cmd_vel.linear.y, yaw);
 
     cmd_vel.angular.z = yaw;
 
