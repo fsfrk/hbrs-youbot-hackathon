@@ -9,16 +9,16 @@
 int main (int argc, char** argv)
 {
   ros::init(argc, argv, "online_cluster_finder_test");
+  ros::NodeHandle nh;
 
   ros::Time::sleepUntil(ros::Time::now() + ros::Duration(5));
 
-  ros::NodeHandle nh;
   ros::ServiceClient client = nh.serviceClient<raw_srvs::GetClusters>("find_clusters");
   ros::Publisher clusters_publisher = nh.advertise<sensor_msgs::PointCloud2>("found_clusters", 1);
   raw_srvs::GetClusters srv;
   if (client.call(srv))
   {
-    ROS_INFO("Number of clusters: %li", srv.response.clusters.size());
+    ROS_INFO_STREAM("Number of clusters: " << srv.response.clusters.size());
     if (!srv.response.clusters.size()) return 0;
     PointCloud composite;
     for (const auto& cluster : srv.response.clusters)

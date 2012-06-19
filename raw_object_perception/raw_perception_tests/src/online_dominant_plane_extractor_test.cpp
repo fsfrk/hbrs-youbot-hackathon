@@ -39,7 +39,7 @@ protected:
       PlanarPolygon planar_polygon;
       dpe_->setInputCloud(cloud);
       dpe_->extract(planar_polygon);
-      ROS_INFO("Number of points in plane contour: %li.", planar_polygon.getContour().size());
+      ROS_INFO_STREAM("Number of points in plane contour: " << planar_polygon.getContour().size());
       ROS_INFO_STREAM("Plane coefficients:\n" << planar_polygon.getCoefficients());
 
       publishPlanarPolygon(planar_polygon, ros_cloud->header);

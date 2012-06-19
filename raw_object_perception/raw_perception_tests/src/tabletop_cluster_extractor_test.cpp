@@ -55,7 +55,7 @@ private:
     tce_->setTablePolygon(planar_polygon_);
     MEASURE_RUNTIME(tce_->extract(clusters), "Cluster extraction");
 
-    ROS_INFO("Number of clusters: %li.", clusters.size());
+    ROS_INFO_STREAM("Number of clusters: " << clusters.size());
 
     viewer_.removeAllPointClouds(0);
     viewer_.removeAllShapes(0);
@@ -67,7 +67,7 @@ private:
     int i = 0;
     for (const PointCloud::Ptr& cluster : clusters)
     {
-      ROS_INFO("Cluster %i: pts %li", i, cluster->points.size());
+      ROS_INFO("Cluster %i: pts %i", i, (int)cluster->points.size());
       std::string name = boost::str(boost::format("cluster_%02i") % i);
       pcl::visualization::PointCloudColorHandlerCustom<PointT> single_color(cluster, red[i % 6], grn[i % 6], blu[i % 6]);
       viewer_.addPointCloud<PointT>(cluster, single_color, name);
