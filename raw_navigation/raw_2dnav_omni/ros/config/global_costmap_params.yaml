@@ -2,8 +2,8 @@ global_costmap:
     publish_voxel_map: true
     global_frame: odom
     robot_base_frame: base_footprint
-    update_frequency: 2.5
-    publish_frequency: 1.0
+    update_frequency: 1
+    publish_frequency: 1
     static_map: true
     rolling_window: true
     width: 20.0
