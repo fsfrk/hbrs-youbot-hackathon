@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+	<node name="basescan_regression_service" pkg="basescan_regression" type="basescan_linregressionservice" respawn="false" output="screen" /> 
+	<node name="basescan_regression_as" pkg="basescan_regression" type="basescan_linregressionactionserver" respawn="false" output="screen" /> 
+
+
+</launch>

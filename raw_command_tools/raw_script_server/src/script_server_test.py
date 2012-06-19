@@ -20,7 +20,7 @@ if __name__ == '__main__':
 	#sss.move("base", "intro")
 	
 	sss.move("arm", "zeroposition")
-	
+ 	'''	
 	sss.move("gripper", "open")
 	
 	rospy.sleep(2)
@@ -38,4 +38,4 @@ if __name__ == '__main__':
 	rospy.sleep(2)
 	
 	sss.move("arm", "initposition")
-
+	'''
