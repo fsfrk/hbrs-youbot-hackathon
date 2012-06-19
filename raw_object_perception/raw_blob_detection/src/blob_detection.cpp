@@ -108,16 +108,13 @@ public:
   {
     int master_image_width = 0; 
     int master_image_height = 0; 
-    int master_image_center_x = 0;
-    int master_image_center_y = 0;  
 
     double x_offset = 0; 
     double y_offset = 0; 
     double rot_offset = 0; 
 
     IplImage* cv_image = NULL;
-    IplImage* blob_image = NULL;
-    IplImage* display_image = NULL; 
+    IplImage* blob_image = NULL; 
 
     CBlob* currentBlob; 
 
@@ -134,8 +131,6 @@ public:
     //  Obtain image properties that we require. 
     master_image_width = cv_image->width; 
     master_image_height = cv_image->height; 
-    master_image_center_x = ( master_image_width / 2 );
-    master_image_center_y = ( master_image_height / 2 );
 
     IplImage* gray = cvCreateImage( cvGetSize( cv_image ), 8, 1 );
     cvCvtColor( cv_image, gray, CV_BGR2GRAY );
@@ -241,16 +236,16 @@ public:
         //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
         //---------------------------------------------------------------------
-        /**
+        
         if( rot_offset != 90 || rot_offset != 270 )
         {
           double rotational_speed = 0.0; 
 
-          if( rot_offset < 90 && rot_offset >= 80 || rot_offset < 270 && rot_offset >= 260 )
+          if( rot_offset < 80 )
           {
             rotational_speed = 0.5; 
           }
-          else if( rot_offset > 90 && rot_offset <= 100 || rot_offset > 270 && rot_offset <= 280 )
+          else if( rot_offset > 100  )
           {
             rotational_speed = -0.5; 
           }
@@ -279,7 +274,7 @@ public:
 
             arm_vel_.velocities.push_back(joint_value);
           }
-        }*/
+        }
 
         //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
