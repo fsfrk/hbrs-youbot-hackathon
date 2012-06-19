@@ -231,6 +231,7 @@ public:
           base_velocity.linear.y = move_speed; 
           base_movement.publish( base_velocity ); 
         }
+        //------------------ END OF BASE MOVEMENT CONTROL ---------------------
 
         //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
@@ -276,6 +277,7 @@ public:
           // Publish the arm velocity commands.
           pub_arm_vel.publish( arm_vel_ );
         }
+        //------------------- END OF ARM ROTATION CONTROL ---------------------
 
         //---------------------------------------------------------------------
         //----------------------- arm angle control ---------------------------
@@ -323,10 +325,13 @@ public:
             arm_vel_.velocities.push_back(joint_value);
           }
         }
+        //------------------- END OF ARM ANGLE CONTROL ------------------------
 
         // make sure the last thing we do is paint one centroid for debugging.
         cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
       }
+
+      free( currentBlob );  
     }
 
     //-------------------------------------------------------------------------
@@ -344,7 +349,6 @@ public:
 
     cvLine( blob_image,   cvPoint( 0, (master_image_height/2) ), cvPoint( master_image_width, (master_image_height / 2) ), CV_RGB( 255, 0, 0 ), 2, 0 ); 
     cvLine( blob_image,   cvPoint( (master_image_width/2), 0 ), cvPoint( (master_image_width/2), master_image_height ), CV_RGB( 255, 0, 0 ), 2, 0 );
-    //cvPutText( gray, "Hello World!", cvPoint( 10, gray->height - 10 ), &font, cvScalar( 255, 1, 1 ) );
     cvRectangle( blob_image, cvPoint( 0, blob_image->height-40 ), cvPoint( blob_image->width, blob_image->height ), CV_RGB( 0, 0, 0 ), -1 );
 
     std::string x_str = "X: "; 
@@ -360,8 +364,6 @@ public:
     cvPutText( blob_image, y_str.c_str(),  cvPoint( 200, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
     cvPutText( blob_image, rot_str.c_str(), cvPoint( 350, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
 
-    //cvShowImage( "Original", cv_image ); 
-    //cvShowImage( "Thresholding", gray ); 
     cvShowImage( "Found Blobs", blob_image ); 
 
     //-------------------------------------------------------------------------
