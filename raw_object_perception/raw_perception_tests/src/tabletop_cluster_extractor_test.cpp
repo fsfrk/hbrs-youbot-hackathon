@@ -96,8 +96,9 @@ private:
 
   void reconfigure_callback(raw_perception_tests::TabletopClusterExtractorTestConfig &config, uint32_t level)
   {
-    tce_.reset(new TabletopClusterExtractor(config.object_min_height,
-                                            config.object_max_height,
+    tce_.reset(new TabletopClusterExtractor(config.point_min_height,
+                                            config.point_max_height,
+                                            config.object_min_height,
                                             config.object_cluster_tolerance,
                                             config.object_cluster_min_size,
                                             config.object_cluster_max_size));
