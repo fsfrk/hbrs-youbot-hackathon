@@ -20,30 +20,25 @@
 
 typedef OccupancyOctreeObject ObjectT;
 
-class FinderNode
+class ClusterFinderNode
 {
 
 public:
 
-  FinderNode(ros::NodeHandle& nh)
+  ClusterFinderNode(ros::NodeHandle& nh)
   : tce_(new TabletopClusterExtractor)
   , tracker_(new ObjectTracker<ObjectT>)
   {
     // Get topic names from the parameter server.
     ros::NodeHandle pn("~");
-    std::string input_cloud_topic, output_clusters_topic, bounding_boxes_topic;
+    std::string input_cloud_topic, extract_dominant_plane_service, find_bounding_boxes_service;
     pn.param("input_cloud_topic", input_cloud_topic, std::string("/camera/rgb/points"));
-    pn.param("output_clusters_topic", output_clusters_topic, std::string("clusters"));
-    pn.param("bounding_boxes_topic", bounding_boxes_topic, std::string("bounding_boxes"));
+    pn.param("extract_dominant_plane_service", extract_dominant_plane_service, std::string("extract_dominant_plane"));
+    pn.param("find_object_candidates_service", find_object_candidates_service, std::string("find_object_candidates"));
 
-    cloud_subscriber_ = nh.subscribe(input_cloud_topic, 5, &FinderNode::cloudCallback, this);
-    find_service_ = nh.advertiseService("find_object_candidates", &FinderNode::findCallback, this);
-    plane_extractor_client_ = nh.serviceClient<raw_srvs::GetDominantPlane>("extract_dominant_plane");
-
-    for (size_t i = 0; i < COLORS_NUM; ++i)
-    {
-      COLORS[i] = rand() % 10000;
-    }
+    cloud_subscriber_ = nh.subscribe(input_cloud_topic, 5, &ClusterFinderNode::cloudCallback, this);
+    plane_extractor_client_ = nh.serviceClient<raw_srvs::GetDominantPlane>(extract_dominant_plane_service);
+    find_service_ = nh.advertiseService(find_object_candidates_service, &ClusterFinderNode::findCallback, this);
   }
 
   void cloudCallback(const sensor_msgs::PointCloud2::ConstPtr &ros_cloud)
@@ -70,7 +65,7 @@ public:
     publishBoundingBoxes(ros_cloud->header);
   }
 
-  bool resetCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
+  bool findCallback(raw_srvs::GetD::Request& request, std_srvs::Empty::Response& response)
   {
     ROS_INFO("Tracker reset requested.");
     tracker_->reset();
@@ -177,7 +172,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "object_candidates_finder_node");
   ros::NodeHandle node;
 
-  FinderNode tn(node);
+  ClusterFinderNode tn(node);
 
   ros::spin();
   return 0;
