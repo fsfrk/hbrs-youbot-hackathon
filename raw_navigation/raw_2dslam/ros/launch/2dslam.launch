@@ -24,12 +24,12 @@
 		<param name="angularUpdate" value="${8/180*M_PI}"/>		<!-- Process a scan each time the robot rotates this far -->
 		<param name="temporalUpdate" value="-1.0"/>				<!-- Process a scan if the last scan proccessed is older than the update time in seconds. A value less than zero will turn time based updates off -->
 		<param name="resampleThreshold" value="0.5"/>			<!-- The neff based resampling threshold -->
-		<param name="particles" value="220"/>					<!-- Number of particles in the filter -->
-		<param name="xmin" value="-10.0"/>						<!-- Initial map size -->
-		<param name="ymin" value="-10.0"/>						<!-- Initial map size -->
-		<param name="xmax" value="10.0"/>						<!-- Initial map size -->
-		<param name="ymax" value="10.0"/>						<!-- Initial map size -->
-		<param name="delta" value="0.01"/>						<!-- Processing parameters (resolution of the map) -->
+		<param name="particles" value="100"/>					<!-- Number of particles in the filter -->
+		<param name="xmin" value="-3.0"/>						<!-- Initial map size -->
+		<param name="ymin" value="-3.0"/>						<!-- Initial map size -->
+		<param name="xmax" value="3.0"/>						<!-- Initial map size -->
+		<param name="ymax" value="3.0"/>						<!-- Initial map size -->
+		<param name="delta" value="0.04"/>						<!-- Processing parameters (resolution of the map) -->
 		<param name="llsamplerange" value="0.01"/>				<!-- Translational sampling range for the likelihood -->
 		<param name="llsamplestep" value="0.01"/>				<!-- Translational sampling step for the likelihood -->
 		<param name="lasamplerange" value="0.005"/>				<!-- Angular sampling range for the likelihood -->
