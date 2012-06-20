@@ -15,8 +15,14 @@ PlanarPolygon planar_polygon;
 bool waiting_for_cloud;
 ros::Time stamp;
 
+int skip_clouds;
+int extraction_retries;
+
 void cloudCallback(const sensor_msgs::PointCloud2::ConstPtr &ros_cloud)
 {
+  if (skip_clouds-- > 0)
+    return;
+
   // Get filtering bounds from the parameter server.
   ros::NodeHandle pn("~");
   double min_x_bound, max_x_bound;
@@ -47,6 +53,7 @@ void cloudCallback(const sensor_msgs::PointCloud2::ConstPtr &ros_cloud)
   pass_through.filter(*cloud_filtered);
 
   // Extract dominant plane.
+  planar_polygon = PlanarPolygon();
   dpe->setInputCloud(cloud_filtered);
   dpe->setShrinkPlanePolygonRatio(0.07);
   dpe->extract(planar_polygon);
@@ -54,6 +61,12 @@ void cloudCallback(const sensor_msgs::PointCloud2::ConstPtr &ros_cloud)
   // Log information.
   ROS_INFO_STREAM("Number of points in plane contour: " << planar_polygon.getContour().size());
   ROS_INFO_STREAM("Plane coefficients:\n" << planar_polygon.getCoefficients());
+
+  if (planar_polygon.getContour().size() == 0 && extraction_retries--)
+  {
+    ROS_INFO("Plane extraction failed, retrying...");
+    return;
+  }
 
   // Signal that the processing is done.
   waiting_for_cloud = false;
@@ -75,6 +88,10 @@ bool extractPlaneCallback(raw_srvs::GetDominantPlane::Request& request, raw_srvs
   ros::NodeHandle node;
   ros::Subscriber subscriber = node.subscribe(input_cloud_topic, 1, cloudCallback);
 
+  // Get settings for skip clouds and extraction retrial policies.
+  pn.param("skip_clouds", skip_clouds, 4);
+  pn.param("extraction_retries", extraction_retries, 1);
+
   // Wait until a message is received and processed.
   waiting_for_cloud = true;
   while (waiting_for_cloud && ros::ok())
@@ -83,6 +100,11 @@ bool extractPlaneCallback(raw_srvs::GetDominantPlane::Request& request, raw_srvs
   }
   subscriber.shutdown();
 
+  // If plane extraction failed return false
+  // TODO: change plane extractor interface to return the status as bool so that we do not need
+  // to analyze the numer of points in contour.
+  if (!planar_polygon.getContour().size())
+    return false;
   // Pack the response.
   response.stamp = stamp;
   for (int i = 0; i < 4; ++i)
