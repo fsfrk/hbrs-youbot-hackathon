@@ -19,18 +19,26 @@ public:
   {
     // Get service name from the parameter server.
     ros::NodeHandle pn("~");
-    std::string find_clusters_service;
+    std::string find_clusters_service, found_clusters_topic;
     pn.param("find_clusters_service", find_clusters_service, std::string("find_clusters"));
+    pn.param("found_clusters_topic", found_clusters_topic, std::string("found_clusters"));
     find_service_ = nh.advertiseService(find_clusters_service, &ClusterFinderNode::findClustersCallback, this);
+    clusters_publisher_ = nh.advertise<sensor_msgs::PointCloud2>(found_clusters_topic, 1);
     ROS_INFO("Cluster finder service started.");
     // Create TabletopClusterExtractor
     tce_ = std::unique_ptr<TabletopClusterExtractor>(new TabletopClusterExtractor(0.009,  // point min height
                                                                                   1.000,  // point max height
                                                                                   0.010,  // object min height
-                                                                                  0.100,  // object cluster tolerance
-                                                                                  15,     // min cluster size
+                                                                                  0.020,  // object cluster tolerance
+                                                                                  20,     // min cluster size
                                                                                   5000)); // max cluster size
-    accumulation_duration_ = ros::Duration(10);
+    accumulation_duration_ = ros::Duration(7);
+
+    srand(time(0));
+    for (size_t i = 0; i < COLORS_NUM; ++i)
+    {
+      COLORS[i] = 1.0 * rand() / RAND_MAX;
+    }
   }
 
   bool findClustersCallback(raw_srvs::GetClusters::Request& request, raw_srvs::GetClusters::Response& response)
@@ -48,7 +56,7 @@ public:
     ros::Subscriber subscriber = node.subscribe(input_cloud_topic, 1, &ClusterFinderNode::cloudCallback, this);
 
     // Wait some time while data is being accumulated.
-    ros::Time timeout = ros::Time::now() + ros::Duration(20);
+    ros::Time timeout = ros::Time::now() + accumulation_duration_;
     while (ros::Time::now() < timeout && ros::ok())
     {
       ros::spinOnce();
@@ -121,6 +129,37 @@ public:
 
     for (const PointCloud::Ptr& cluster : clusters)
       tracker_->addCluster(cluster);
+
+    // Just in case someone is interested, publish clusters.
+    if (clusters_publisher_.getNumSubscribers())
+      publishObjectClusters();
+  }
+
+  void publishObjectClusters()
+  {
+    pcl::PointCloud<pcl::PointXYZRGB> composite;
+    size_t color = 0;
+    for (const auto& object : tracker_->getObjects())
+    {
+      PointCloud::VectorType points;
+      object->getPoints(points);
+      color++;
+      for (const auto& point : points)
+      {
+        pcl::PointXYZRGB pt;
+        pt.x = point.x;
+        pt.y = point.y;
+        pt.z = point.z;
+        pt.rgb = COLORS[color];
+        composite.points.push_back(pt);
+      }
+    }
+    composite.header.frame_id = frame_id_;
+    composite.width = composite.points.size();
+    composite.height = 1;
+    sensor_msgs::PointCloud2 cloud_msg;
+    pcl::toROSMsg(composite, cloud_msg);
+    clusters_publisher_.publish(cloud_msg);
   }
 
 private:
@@ -128,11 +167,15 @@ private:
   std::unique_ptr<TabletopClusterExtractor> tce_;
   std::unique_ptr<ObjectTracker<OccupancyOctreeObject>> tracker_;
   ros::ServiceServer find_service_;
+  ros::Publisher clusters_publisher_;
 
   PlanarPolygonPtr planar_polygon_;
 
   std::string frame_id_;
   ros::Duration accumulation_duration_;
+
+  static const size_t COLORS_NUM = 32;
+  float COLORS[COLORS_NUM];
 
 };
 
