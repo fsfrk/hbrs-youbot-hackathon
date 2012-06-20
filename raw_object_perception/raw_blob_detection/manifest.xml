@@ -18,8 +18,6 @@
   <depend package="std_srvs"/>
   <depend package="arm_navigation_msgs"/>
   <depend package="brics_actuator"/>
-  <depend package="actionlib"/>
-  <depend package="raw_arm_navigation"/>
 
 </package>
 

@@ -18,7 +18,7 @@ ObjectTracker<ObjectT>::~ObjectTracker()
 template<typename ObjectT>
 void ObjectTracker<ObjectT>::addCluster(const PointCloud::ConstPtr& cluster)
 {
-  PCL_INFO("Add new cluster with %li points.\n", cluster->points.size());
+  PCL_INFO("[ObjectTracker::addCluster] Got a cluster with %6li points. ", cluster->points.size());
   Eigen::Vector4f centroid;
   pcl::compute3DCentroid(*cluster, centroid);
   double min_distance = std::numeric_limits<double>::max();
@@ -32,17 +32,17 @@ void ObjectTracker<ObjectT>::addCluster(const PointCloud::ConstPtr& cluster)
       min_distance_id = i;
     }
   }
+  PCL_INFO("Min distance: %2.3f.", min_distance);
   if (min_distance > merge_threshold_)
   {
-    PCL_INFO(" [  new  ] could not merge with existing objects (min distance: %.3f)\n", min_distance);
+    PCL_INFO("   >> new object <<\n");
     objects_.push_back(std::make_shared<Object>(cluster));
   }
   else
   {
-    PCL_INFO(" [ merge ] with object #%i (distance: %.3f)\n", min_distance_id, min_distance);
+    PCL_INFO("    merge with #%i\n", min_distance_id);
     objects_[min_distance_id]->mergeCluster(cluster);
   }
-  PCL_INFO("Total number of objects: %i.\n", objects_.size());
 }
 
 #endif
