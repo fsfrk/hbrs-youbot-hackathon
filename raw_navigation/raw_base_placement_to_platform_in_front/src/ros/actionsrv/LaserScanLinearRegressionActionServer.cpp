@@ -109,6 +109,7 @@ public:
 		srv.request.filter_minDistance = 0.05;
 		srv.request.filter_maxDistance = 0.50;
 
+		target_distance = goal->distance;
 
 		ros::Duration max_time(30.0);
 		ros::Time stamp = ros::Time::now();
