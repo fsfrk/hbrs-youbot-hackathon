@@ -127,12 +127,12 @@ public:
     tce_->setTablePolygon(planar_polygon_);
     tce_->extract(clusters);
 
-    ROS_INFO("Segmented %li clusters in the new point cloud.", clusters.size());
+    ROS_INFO("Segmented %zu clusters in the new point cloud.", clusters.size());
 
     for (const PointCloud::Ptr& cluster : clusters)
       tracker_->addCluster(cluster);
 
-    ROS_INFO("Object tracker has %li objects.", tracker_->getObjects().size());
+    ROS_INFO("Object tracker has %zu objects.", tracker_->getObjects().size());
 
     // Just in case someone is interested, publish clusters.
     if (clusters_publisher_.getNumSubscribers())
