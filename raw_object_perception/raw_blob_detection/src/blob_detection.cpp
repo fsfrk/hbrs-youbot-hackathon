@@ -35,7 +35,7 @@
 #include <brics_actuator/JointVelocities.h>
 #include <brics_actuator/JointPositions.h>
 
-class ImageConverter 
+class raw_blob_detection 
 {
 
 //-----------------------------------------------------------------------------
@@ -43,14 +43,14 @@ class ImageConverter
 //-----------------------------------------------------------------------------
 public:
 
-  //------------------------------------------------------------ ImageConverter
+  //------------------------------------------------------------ raw_blob_detection
   //---------------------------------------------------------------------------
   //    This function is used for all of the incoming and outgoing ROS messages
   //---------------------------------------------------------------------------
-  ImageConverter(ros::NodeHandle &n) : n_(n), it_(n_)
+  raw_blob_detection( ros::NodeHandle &n ) : node_handler( n ), image_transporter( node_handler )
   {
     XmlRpc::XmlRpcValue param_list;
-    n_.getParam("/arm_1/arm_controller/joints", param_list);
+    node_handler.getParam("/arm_1/arm_controller/joints", param_list);
     ROS_ASSERT(param_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
 
     for (int32_t i = 0; i < param_list.size(); ++i)
@@ -62,33 +62,27 @@ public:
     //read joint limits
     for(unsigned int i=0; i < arm_joint_names_.size(); ++i)
     {
-      arm_navigation_msgs::JointLimits limit;
-      limit.joint_name = arm_joint_names_[i];
-      n_.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/min", limit.min_position);
-      n_.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/max", limit.max_position);
-      arm_joint_limits_.push_back(limit);
+      arm_navigation_msgs::JointLimits joint_limits;
+      joint_limits.joint_name = arm_joint_names_[i];
+      node_handler.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/min", joint_limits.min_position);
+      node_handler.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/max", joint_limits.max_position);
+      arm_joint_limits_.push_back(joint_limits);
 
     }
 
-    // Velocity control for the YouBot base.
-    base_movement = n_.advertise<geometry_msgs::Twist>( "/cmd_vel", 1 ); 
-
-    // Rotational Control for the YouBot arm. 
-    pub_arm_vel = n_.advertise<brics_actuator::JointVelocities>( "/arm_1/arm_controller/velocity_command", 1 );
-
     // Service commands to allow this node to be started and stopped externally
-    _start_srv = n_.advertiseService("start", &ImageConverter::Start, this);
-    _stop_srv = n_.advertiseService("stop", &ImageConverter::Stop, this);
+    _start_srv = node_handler.advertiseService("start", &raw_blob_detection::Start, this);
+    _stop_srv = node_handler.advertiseService("stop", &raw_blob_detection::Stop, this);
     ROS_INFO( "Advertised 'start' and 'stop' service for raw_blob_detection" );
 
     ROS_INFO( "Blob Detection Started" );
   }
 
-  //----------------------------------------------------------- ~ImageConverter
+  //----------------------------------------------------------- ~raw_blob_detection
   //---------------------------------------------------------------------------
   //   Standard Destructor.
   //--------------------------------------------------------------------------- 
-  ~ImageConverter()
+  ~raw_blob_detection()
   {
     //  OpenCV calls to destroy any HighGUI windows that may have been opened using
     //  the provided names. 
@@ -236,7 +230,7 @@ public:
 
           // Prepare and then send the base movement commands.
           base_velocity.linear.y = move_speed; 
-          base_movement.publish( base_velocity ); 
+          base_velocities_publisher.publish( base_velocity ); 
         }
         //------------------ END OF BASE MOVEMENT CONTROL ---------------------
 
@@ -248,7 +242,6 @@ public:
         {
           double rotational_speed = 0.0; 
 
-	// TODO fix offsets to move in the proper directions.
           if( ( rot_offset < 87 && rot_offset >= 0 ) || ( rot_offset < 267 && rot_offset >= 235 ) )
           {
             rotational_speed = -0.2; 
@@ -285,7 +278,7 @@ public:
 
             arm_vel_.velocities.push_back(joint_value);
             // Publish the arm velocity commands.
-            pub_arm_vel.publish( arm_vel_ );
+            arm_velocities_publisher.publish( arm_vel_ );
           }
         }
         //------------------- END OF ARM ROTATION CONTROL ---------------------
@@ -343,7 +336,13 @@ public:
   bool Start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
      //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
-    image_sub_ = it_.subscribe( "/usb_cam/image_raw", 1, &ImageConverter::imageCallback, this );
+    image_subscriber = image_transporter.subscribe( "/usb_cam/image_raw", 1, &raw_blob_detection::imageCallback, this );
+
+    // Velocity control for the YouBot base.
+    base_velocities_publisher = node_handler.advertise<geometry_msgs::Twist>( "/cmd_vel", 1 ); 
+
+    // Velocity Control for the YouBot arm. 
+    arm_velocities_publisher = node_handler.advertise<brics_actuator::JointVelocities>( "/arm_1/arm_controller/velocity_command", 1 );
 
     ROS_INFO("Blob Detection Enabled");
 
@@ -358,9 +357,12 @@ public:
   //--------------------------------------------------------------------------- 
   bool Stop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
-    image_sub_.shutdown(); 
+    // Turn off the image subscriber for the web camera.
+    image_subscriber.shutdown(); 
 
-	// TODO Fix so that it stops movements.
+    // Turn off the velocity publishers for the YouBot Arm & Base.
+    arm_velocities_publisher.shutdown(); 
+    base_velocities_publisher.shutdown(); 
 
     ROS_INFO("Blob Detection Disabled");
 
@@ -372,16 +374,14 @@ public:
 //-----------------------------------------------------------------------------
 protected:
 
-  ros::NodeHandle n_;
-  image_transport::ImageTransport it_;
-  image_transport::Subscriber image_sub_;
+  ros::NodeHandle node_handler;
+  image_transport::ImageTransport image_transporter;
+  image_transport::Subscriber image_subscriber;
   sensor_msgs::CvBridge bridge_;
 
   // Topics that this node publishes to.
-  ros::Publisher base_movement; 
-  ros::Publisher arm_movement;
-
-  ros::Publisher pub_arm_vel;
+  ros::Publisher base_velocities_publisher;
+  ros::Publisher arm_velocities_publisher;
 
   // base movement topic.
   geometry_msgs::Twist base_velocity;
@@ -404,7 +404,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "image_converter");
   ros::NodeHandle n;
-  ImageConverter ic(n);
+  raw_blob_detection ic(n);
   ros::spin();
   return 0;
 }
