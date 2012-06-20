@@ -42,6 +42,12 @@ void TabletopClusterExtractor::extract(std::vector<PointCloud::Ptr>& clusters)
   eppd_.setInputPlanarHull(table_polygon_cloud);
   eppd_.segment(*tabletop_objects_indices);
 
+  if (!tabletop_objects_indices->indices.size())
+  {
+    PCL_WARN("[TabletopClusterExtractor::extract] There are no points above the plane.\n");
+    return;
+  }
+
   PointCloud::Ptr tabletop_objects(new PointCloud);
   pcl::copyPointCloud(*input_, *tabletop_objects_indices, *tabletop_objects);
   std::vector<pcl::PointIndices> clusters_indices;
