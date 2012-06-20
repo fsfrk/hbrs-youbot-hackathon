@@ -2,7 +2,7 @@
 import time
 
 import roslib
-roslib.load_manifest('raw_script_server')
+roslib.load_manifest('raw_arm_cmds')
 import rospy
 import actionlib
 

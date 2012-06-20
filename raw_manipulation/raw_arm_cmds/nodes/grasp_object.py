@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('raw_arm_navigation')
+import roslib; roslib.load_manifest('raw_arm_cmds')
 
 import rospy
 from simple_script_server import *
