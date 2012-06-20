@@ -35,12 +35,6 @@
 #include <brics_actuator/JointVelocities.h>
 #include <brics_actuator/JointPositions.h>
 
-// Action Client stuff
-#include <actionlib/client/simple_action_client.h>
-#include <actionlib/client/terminal_state.h>
-
-#include <raw_arm_navigation/MoveToJointConfigurationAction.h>
-
 class ImageConverter 
 {
 
@@ -217,16 +211,16 @@ public:
           double move_speed = 0.0; 
 
           // added a buffer for a "good enough" region of interest. [14.06.2012]
-          if( x_offset >= 20 )
+          if( x_offset >= 10 )
           {
             // move the robot base right
-            move_speed = -0.01; 
+            move_speed = -0.005; 
             done_base_movement_adjustment = false; 
           }
-          else if( x_offset <= -20 )
+          else if( x_offset <= -10 )
           {
             // move the robot left
-            move_speed = 0.01; 
+            move_speed = 0.005; 
             done_base_movement_adjustment = false; 
           }
           else if( x_offset > -10 && x_offset < 10 )
@@ -254,14 +248,15 @@ public:
         {
           double rotational_speed = 0.0; 
 
-          if( ( rot_offset < 80 && rot_offset >= 0 ) || ( rot_offset < 260 && rot_offset >= 235 ) )
+	// TODO fix offsets to move in the proper directions.
+          if( ( rot_offset < 87 && rot_offset >= 0 ) || ( rot_offset < 267 && rot_offset >= 235 ) )
           {
-            rotational_speed = -0.05; 
+            rotational_speed = -0.2; 
             done_rotational_adjustment = false; 
           }
-          else if( ( rot_offset > 100 && rot_offset < 235 ) || ( rot_offset > 280 && rot_offset <= 359 ) )
+          else if( rot_offset > 93 && rot_offset < 235 )
           {
-            rotational_speed = 0.05; 
+            rotational_speed = 0.1; 
             done_rotational_adjustment = false; 
           }
           else
@@ -364,6 +359,8 @@ public:
   bool Stop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
     image_sub_.shutdown(); 
+
+	// TODO Fix so that it stops movements.
 
     ROS_INFO("Blob Detection Disabled");
 
