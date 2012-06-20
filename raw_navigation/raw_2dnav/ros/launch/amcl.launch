@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <launch>
 	<!-- combine front and rear scanner -->
-	<node pkg="topic_tools" type="relay" name="scan_front_relay" args="scan_front scan_combined"/>
+<!--	<node pkg="topic_tools" type="relay" name="scan_front_relay" args="scan_front scan_combined"/>
 	<node pkg="topic_tools" type="relay" name="scan_rear_relay" args="scan_rear scan_combined"/>
-
+-->
 	<!--- Run AMCL -->
 	<node pkg="amcl" type="amcl" name="amcl">
-		<remap from="scan" to="scan_combined" />
+		<remap from="scan" to="scan_front" />
 
 		<!--- Odometery model parameters  -->
 		<param name="odom_model_type" value="diff"/>

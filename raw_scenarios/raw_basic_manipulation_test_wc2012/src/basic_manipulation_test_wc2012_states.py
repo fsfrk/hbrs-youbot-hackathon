@@ -6,7 +6,7 @@ import smach
 import smach_ros
 
 
-class select_pose(smach.State):
+class select_base_pose(smach.State):
     def __init__(self, pose):
         smach.State.__init__(self, 
             outcomes=['succeeded'],
@@ -44,4 +44,48 @@ class select_recognized_object(smach.State):
                 
         return 'succeeded'
 
+
+class get_obj_poses_for_goal_configuration(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, 
+            outcomes=['succeeded'],
+            input_keys=['task_spec'],
+            output_keys=['obj_goal_configuration_poses'])
+        
+    def execute(self, userdata):
+        
+        print userdata.task_spec.configuration 
+        
+        userdata.obj_goal_configuration_poses = []
+                
+        return 'succeeded'
+
+class select_obj_goal_pose(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, 
+            outcomes=['succeeded'],
+            input_keys=['obj_goal_configuration_poses'],
+            output_keys=['obj_goal_pose'])
+        
+    def execute(self, userdata):
+        
+        print userdata.obj_goal_configuration_poses.pop() 
+        
+        userdata.obj_goal_pose = []
+                
+        return 'succeeded'
+
+
+class place_obj_on_goal_pose(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, 
+            outcomes=['succeeded'],
+            input_keys=['obj_goal_pose'])
+        
+    def execute(self, userdata):
+        
+        print userdata.obj_goal_pose 
+    
+                
+        return 'succeeded'
 
