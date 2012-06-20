@@ -8,6 +8,7 @@ import smach_ros
 # generic states
 from generic_robocup_states import *
 from generic_navigation_states import *
+from generic_manipulation_states import *
 from basic_manipulation_test_wc2012_states import *
 
 # main
@@ -41,14 +42,14 @@ def main():
         '''
 
         smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM', adjust_pose_wrt_platform(),
-            transitions={'succeeded':'overall_success',
+            transitions={'succeeded':'MOVE_ARM_OUT_OF_VIEW',
                         'failed':'ADJUST_POSE_WRT_PLATFORM'})
 
-        '''
         smach.StateMachine.add('MOVE_ARM_OUT_OF_VIEW', move_arm_out_of_view(),
-            transitions={'succeeded':'SELECT_OBJ_TO_BE_RECOGNIZED'},
-                        {'failed':'MOVE_ARM_OUT_OF_VIEW'})
-        
+            transitions={'succeeded':'overall_success',
+                        'failed':'MOVE_ARM_OUT_OF_VIEW'})
+
+        '''        
         smach.StateMachine.add('SELECT_OBJ_TO_BE_RECOGNIZED', select_obj_to_be_recognized(),
             transitions={'object_selected':'RECOGNIZE_OBJECTS'},
                          'no_more_objects':'SELECT_DESTINATION_POSE')

@@ -18,7 +18,8 @@
   <depend package="raw_2dnav" />
   <depend package="raw_script_server" />
   <depend package="raw_base_placement_to_platform_in_front" />
-  
+  <depend package="raw_arm_navigation" />
+  <depend package="raw_bringup_sim" />
   
 </package>
 
