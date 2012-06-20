@@ -17,7 +17,9 @@
   <depend package="raw_bringup" />
   <depend package="raw_2dnav" />
   <depend package="raw_script_server" />
-  <depend package="smach" />
+  <depend package="raw_base_placement_to_platform_in_front" />
+  
+  
 </package>
 
 

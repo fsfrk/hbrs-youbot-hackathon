@@ -10,6 +10,9 @@
 		<!-- navigation -->
 		<include file="$(find raw_2dnav)/ros/launch/2dnav.launch" />
 
+		<!-- base placement -->
+		<include file="$(find raw_base_placement_to_platform_in_front)/launch/basescan_regression.launch" />
+		
 		<!-- script server -->
 		<include file="$(find raw_script_server)/launch/script_server.launch" />
 	</group>
