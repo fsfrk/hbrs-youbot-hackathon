@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('youbot_manipulation_examples')
+import roslib; roslib.load_manifest('raw_arm_cmds')
 import rospy
 import brics_actuator.msg
 
