@@ -33,6 +33,13 @@
 // Arm Movement Stuff
 #include <arm_navigation_msgs/JointLimits.h>
 #include <brics_actuator/JointVelocities.h>
+#include <brics_actuator/JointPositions.h>
+
+// Action Client stuff
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/terminal_state.h>
+
+#include <raw_arm_navigation/MoveToJointConfigurationAction.h>
 
 class ImageConverter 
 {
@@ -111,6 +118,9 @@ public:
     double x_offset = 0; 
     double y_offset = 0; 
     double rot_offset = 0; 
+
+    bool done_rotational_adjustment = false; 
+    bool done_base_movement_adjustment = false; 
 
     IplImage* cv_image = NULL;
     IplImage* blob_image = NULL; 
@@ -202,7 +212,7 @@ public:
         //---------------------------------------------------------------------
         //-------------------- base movement control --------------------------
         //---------------------------------------------------------------------
-        if( x_offset != 0 )
+        if( x_offset != 0 || !done_base_movement_adjustment )
         {
           double move_speed = 0.0; 
 
@@ -210,16 +220,19 @@ public:
           if( x_offset >= 20 )
           {
             // move the robot base right
-            move_speed = -0.05; 
+            move_speed = -0.01; 
+            done_base_movement_adjustment = false; 
           }
           else if( x_offset <= -20 )
           {
             // move the robot left
-            move_speed = 0.05; 
+            move_speed = 0.01; 
+            done_base_movement_adjustment = false; 
           }
           else if( x_offset > -10 && x_offset < 10 )
           {
-            move_speed = 0.0; 
+            move_speed = 0.0;
+            done_base_movement_adjustment = true;  
           }
           else
           {
@@ -237,21 +250,24 @@ public:
         //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
         //---------------------------------------------------------------------
-        if( rot_offset != 90 || rot_offset != 270 )
+        if( ( rot_offset != 90 || rot_offset != 270 ) || !done_rotational_adjustment )
         {
           double rotational_speed = 0.0; 
 
           if( ( rot_offset < 80 && rot_offset >= 0 ) || ( rot_offset < 260 && rot_offset >= 235 ) )
           {
             rotational_speed = -0.05; 
+            done_rotational_adjustment = false; 
           }
           else if( ( rot_offset > 100 && rot_offset < 235 ) || ( rot_offset > 280 && rot_offset <= 359 ) )
           {
             rotational_speed = 0.05; 
+            done_rotational_adjustment = false; 
           }
           else
           {
             rotational_speed = 0.0; 
+            done_rotational_adjustment = true; 
           }
 
           arm_vel_.velocities.clear();
@@ -283,8 +299,8 @@ public:
         //----------------------- arm angle control ---------------------------
         //---------------------------------------------------------------------
 
-	/**        
-	if( y_offset != 0 )
+      	/**        
+      	if( y_offset != 0 )
         {
           double arm_movement_speed = 0.0; 
 
@@ -331,6 +347,47 @@ public:
         }
         //------------------- END OF ARM ANGLE CONTROL ------------------------
         **/
+
+        //---------------------------------------------------------------------
+        //  Move arm to grasping position and grab the object.
+        //---------------------------------------------------------------------
+        if( done_rotational_adjustment && done_base_movement_adjustment )
+        {
+          actionlib::SimpleActionClient<raw_arm_navigation::MoveToJointConfigurationAction> ac( "/arm_1/arm_controller/MoveToJointConfigurationDirect", true );
+
+          ROS_INFO("Waiting for action server to start.");
+          // wait for the action server to start
+          ac.waitForServer(); //will wait for infinite time
+
+          raw_arm_navigation::MoveToJointConfigurationGoal joint_configuration_goal; 
+
+          for( int i = 0;  arm_joint_names_.size(); i++ )
+          {
+            brics_actuator::JointValue joint_value; 
+            joint_value.joint_uri = arm_joint_names_[i]; 
+            joint_value.value = 0.01;
+            if( i ==3 )
+            {
+              joint_value.value = -0.01; 
+            } 
+            joint_value.unit = to_string( boost::units::si::radian ); 
+            joint_configuration_goal.goal.positions.push_back( joint_value ); 
+          }
+          ac.sendGoal( joint_configuration_goal ); 
+
+          //wait for the action to return
+          bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
+
+          if (finished_before_timeout)
+          {
+            actionlib::SimpleClientGoalState state = ac.getState();
+            ROS_INFO("Action finished: %s",state.toString().c_str());
+          }
+          else
+          {
+            ROS_INFO("Action did not finish before the time out.");
+          }
+        }
 
         // make sure the last thing we do is paint one centroid for debugging.
         cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
