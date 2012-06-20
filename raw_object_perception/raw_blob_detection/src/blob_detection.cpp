@@ -212,7 +212,7 @@ public:
         //---------------------------------------------------------------------
         //-------------------- base movement control --------------------------
         //---------------------------------------------------------------------
-        if( x_offset != 0 || !done_base_movement_adjustment )
+        if( x_offset != 0 )
         {
           double move_speed = 0.0; 
 
@@ -250,7 +250,7 @@ public:
         //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
         //---------------------------------------------------------------------
-        if( ( rot_offset != 90 || rot_offset != 270 ) || !done_rotational_adjustment )
+        if( rot_offset != 90 || rot_offset != 270 )
         {
           double rotational_speed = 0.0; 
 
@@ -364,6 +364,7 @@ public:
           for( int i = 0;  arm_joint_names_.size(); i++ )
           {
             brics_actuator::JointValue joint_value; 
+            joint_value.timeStamp = ros::Time::now();
             joint_value.joint_uri = arm_joint_names_[i]; 
             joint_value.value = 0.01;
             if( i ==3 )
