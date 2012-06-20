@@ -38,7 +38,10 @@ public:
                                                                                   0.020,  // object cluster tolerance
                                                                                   20,     // min cluster size
                                                                                   5000)); // max cluster size
-    accumulation_duration_ = ros::Duration(7);
+                                                                                  
+    double accumulation_duration;
+    pn.param("accumulation_duration", accumulation_duration, 7.0);
+    accumulation_duration_ = ros::Duration(accumulation_duration);
 
     srand(time(0));
     for (size_t i = 0; i < COLORS_NUM; ++i)
