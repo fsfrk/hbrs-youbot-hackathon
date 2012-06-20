@@ -2,7 +2,7 @@
 import time
 
 import roslib
-roslib.load_manifest('raw_arm_navigation')
+roslib.load_manifest('raw_arm_cmds')
 import rospy
 import actionlib
 
@@ -13,7 +13,7 @@ sss = simple_script_server()
 
 def main():
     rospy.init_node('script_server_test')
-    sss.move("gripper", "open")
+    sss.move("gripper", "close")
     rospy.sleep(1)
 
 ## Main routine for running the script server
