@@ -10,6 +10,9 @@
     <param name="max_y" type="double" value="1.5" />
     <param name="min_z" type="double" value="0.7" />
     <param name="max_z" type="double" value="1.4" />
+    <param name="shrink_polygon_by" type="double" value="0.03" />
+    <param name="skip_clouds" type="int" value="4" />
+    <param name="extraction_retries" type="int" value="1" />
   </node>
 
 </launch>

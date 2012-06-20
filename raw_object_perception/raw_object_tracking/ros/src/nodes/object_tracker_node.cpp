@@ -104,7 +104,7 @@ public:
     pass_through.filter(*cloud_filtered);
     planar_polygon_.reset(new PlanarPolygon);
     dpe_->setInputCloud(cloud_filtered);
-    dpe_->setShrinkPlanePolygonRatio(0.07);
+    dpe_->setShrinkPlanePolygonBy(0.03);
     dpe_->extract(*planar_polygon_);
     ROS_INFO_STREAM("Number of points in plane contour: " << planar_polygon_->getContour().size());
     ROS_INFO_STREAM("Plane coefficients:\n" << planar_polygon_->getCoefficients());

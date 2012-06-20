@@ -6,11 +6,11 @@
 #include <geometry_msgs/Twist.h>
 
 #include "../../LaserScanLinearRegression.h"
-#include <basescan_regression/OrientToBaseAction.h>
-#include <basescan_regression/BaseScanLinearRegression.h>
+#include <raw_base_placement_to_platform_in_front/OrientToBaseAction.h>
+#include <raw_base_placement_to_platform_in_front/BaseScanLinearRegression.h>
 #include <iostream>
 
-using namespace basescan_regression;
+using namespace raw_base_placement_to_platform_in_front;
 
 
 
@@ -109,6 +109,7 @@ public:
 		srv.request.filter_minDistance = 0.05;
 		srv.request.filter_maxDistance = 0.50;
 
+		target_distance = goal->distance;
 
 		ros::Duration max_time(30.0);
 		ros::Time stamp = ros::Time::now();

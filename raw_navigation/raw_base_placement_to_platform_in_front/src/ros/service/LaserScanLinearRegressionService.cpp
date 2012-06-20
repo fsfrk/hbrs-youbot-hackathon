@@ -1,6 +1,6 @@
 
 #include "ros/ros.h"
-#include <basescan_regression/BaseScanLinearRegression.h>
+#include <raw_base_placement_to_platform_in_front/BaseScanLinearRegression.h>
 
 #include <math.h>
 
@@ -8,7 +8,7 @@
 #include "../util/LaserScanLinearRegressionUtil.h"
 #include <iostream>
 
-using namespace basescan_regression;
+using namespace raw_base_placement_to_platform_in_front;
 
 class LaserScanLinearRegressionService {
 protected:

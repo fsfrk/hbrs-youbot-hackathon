@@ -97,8 +97,8 @@ void RansacDominantPlaneExtractor::extract(PlanarPolygon& planar_polygon)
                   plane_coefficients_->values[1],
                   plane_coefficients_->values[2],
                   plane_coefficients_->values[3];
-  shrinkPointCloud(plane_hull, shrink_plane_polygon_ratio_);
   planar_polygon = PlanarPolygon(plane_hull->points, coefficients);
+  shrinkPlanarPolygon(planar_polygon, shrink_plane_polygon_by_);
 }
 
 void RansacDominantPlaneExtractor::setPlaneConstraints(const Eigen::Vector3f& normal, double angle_threshold)
