@@ -12,7 +12,7 @@ from simple_script_server import *
 sss = simple_script_server()
 
 def main():
-    rospy.init_node('script_server_test')
+    rospy.init_node('pregrasp_laying_mex')
     sss.move("arm", "pregrasp_laying_mex")
     #sss.move("gripper", "open")
     rospy.sleep(1)
