@@ -54,8 +54,8 @@ target_link_libraries(object_tracker_node trackers
 rosbuild_add_executable(bounding_box_visualizer_node ros/src/nodes/bounding_box_visualizer_node.cpp
 )
 
-#...: cluster_finder_node
-rosbuild_add_executable(cluster_finder_node ros/src/nodes/cluster_finder_node.cpp
+#...: object_finder_node
+rosbuild_add_executable(object_finder_node ros/src/nodes/object_finder_node.cpp
 )
-target_link_libraries(cluster_finder_node trackers
+target_link_libraries(object_finder_node trackers
 )

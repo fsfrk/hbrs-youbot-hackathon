@@ -6,30 +6,31 @@
 
 #include <raw_msgs/BoundingBox.h>
 #include <raw_msgs/BoundingBoxList.h>
+#include <raw_msgs/Object.h>
 #include <raw_srvs/GetDominantPlane.h>
-#include <raw_srvs/GetClusters.h>
+#include <raw_srvs/GetObjects.h>
 #include "bounding_box.h"
 #include "object_tracker.h"
 #include "occupancy_octree_object.h"
 #include "tabletop_cluster_extractor.h"
 
-class ClusterFinderNode
+class ObjectFinderNode
 {
 
 public:
 
-  ClusterFinderNode(ros::NodeHandle& nh)
+  ObjectFinderNode(ros::NodeHandle& nh)
   {
     // Get service name from the parameter server.
     ros::NodeHandle pn("~");
-    std::string find_clusters_service, found_clusters_topic, bounding_boxes_topic;
-    pn.param("find_clusters_service", find_clusters_service, std::string("find_clusters"));
+    std::string find_objects_service, found_clusters_topic, bounding_boxes_topic;
+    pn.param("find_objects_service", find_objects_service, std::string("find_objects"));
     pn.param("found_clusters_topic", found_clusters_topic, std::string("found_clusters"));
     pn.param("bounding_boxes_topic", bounding_boxes_topic, std::string("bounding_boxes"));
-    find_service_ = nh.advertiseService(find_clusters_service, &ClusterFinderNode::findClustersCallback, this);
+    find_service_ = nh.advertiseService(find_objects_service, &ObjectFinderNode::findObjectsCallback, this);
     clusters_publisher_ = nh.advertise<sensor_msgs::PointCloud2>(found_clusters_topic, 1);
     bounding_boxes_publisher_ = nh.advertise<raw_msgs::BoundingBoxList>(bounding_boxes_topic, 1);
-    ROS_INFO("Cluster finder service started.");
+    ROS_INFO("Object finder service started.");
     // Create TabletopClusterExtractor
     tce_ = std::unique_ptr<TabletopClusterExtractor>(new TabletopClusterExtractor(0.009,  // point min height
                                                                                   1.000,  // point max height
@@ -46,9 +47,9 @@ public:
     }
   }
 
-  bool findClustersCallback(raw_srvs::GetClusters::Request& request, raw_srvs::GetClusters::Response& response)
+  bool findObjectsCallback(raw_srvs::GetObjects::Request& request, raw_srvs::GetObjects::Response& response)
   {
-    ROS_INFO("Find clusters service requested.");
+    ROS_INFO("Find objects service requested.");
     // Get dominant plane to work with. This will block until server responds.
     if (!getDominantPlane()) return false;
     // Create new tracker.
@@ -58,7 +59,7 @@ public:
     std::string input_cloud_topic;
     pn.param("input_cloud_topic", input_cloud_topic, std::string("/camera/rgb/points"));
     ros::NodeHandle node;
-    ros::Subscriber subscriber = node.subscribe(input_cloud_topic, 1, &ClusterFinderNode::cloudCallback, this);
+    ros::Subscriber subscriber = node.subscribe(input_cloud_topic, 1, &ObjectFinderNode::cloudCallback, this);
 
     // Wait some time while data is being accumulated.
     ros::Time timeout = ros::Time::now() + accumulation_duration_;
@@ -69,17 +70,31 @@ public:
     subscriber.shutdown();
 
     // Pack the response
+    response.stamp = ros::Time::now();
     for (const auto& object : tracker_->getObjects())
     {
+      raw_msgs::Object object_msg;
       PointCloud cloud;
       object->getPoints(cloud.points);
       cloud.header.frame_id = frame_id_;
       cloud.header.stamp = ros::Time::now();
       cloud.width = cloud.points.size();
       cloud.height = 1;
-      sensor_msgs::PointCloud2 cloud_msg;
-      pcl::toROSMsg(cloud, cloud_msg);
-      response.clusters.push_back(cloud_msg);
+      pcl::toROSMsg(cloud, object_msg.cluster);
+      raw::BoundingBox box = raw::BoundingBox::create<PointT>(cloud.points, planar_polygon_->getCoefficients().head<3>());
+      geometry_msgs::Vector3 v;
+      v.x = box.getLength();
+      v.y = box.getWidth();
+      v.z = box.getHeight();
+      object_msg.dimensions.vector = v;
+      object_msg.pose.header.frame_id = frame_id_;
+      auto& pt = box.getCenter();
+      geometry_msgs::Point center;
+      center.x = pt[0];
+      center.y = pt[1];
+      center.z = pt[2];
+      object_msg.pose.pose.position = center;
+      response.objects.push_back(object_msg);
     }
     return true;
   }
@@ -222,7 +237,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "cluster_finder_node");
   ros::NodeHandle node;
 
-  ClusterFinderNode tn(node);
+  ObjectFinderNode tn(node);
 
   ros::spin();
   return 0;
