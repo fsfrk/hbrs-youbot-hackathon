@@ -49,14 +49,14 @@ public:
   //---------------------------------------------------------------------------
   raw_blob_detection( ros::NodeHandle &n ) : node_handler( n ), image_transporter( node_handler )
   {
-    XmlRpc::XmlRpcValue param_list;
-    node_handler.getParam("/arm_1/arm_controller/joints", param_list);
-    ROS_ASSERT(param_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+    XmlRpc::XmlRpcValue parameter_list;
+    node_handler.getParam("/arm_1/arm_controller/joints", parameter_list);
+    ROS_ASSERT(parameter_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
 
-    for (int32_t i = 0; i < param_list.size(); ++i)
+    for (int32_t i = 0; i < parameter_list.size(); ++i)
     {
-      ROS_ASSERT(param_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
-      arm_joint_names_.push_back(static_cast<std::string>(param_list[i]));
+      ROS_ASSERT(parameter_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
+      arm_joint_names_.push_back(static_cast<std::string>(parameter_list[i]));
     }
 
     //read joint limits
@@ -67,12 +67,11 @@ public:
       node_handler.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/min", joint_limits.min_position);
       node_handler.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/max", joint_limits.max_position);
       arm_joint_limits_.push_back(joint_limits);
-
     }
 
     // Service commands to allow this node to be started and stopped externally
-    _start_srv = node_handler.advertiseService("start", &raw_blob_detection::Start, this);
-    _stop_srv = node_handler.advertiseService("stop", &raw_blob_detection::Stop, this);
+    service_start = node_handler.advertiseService( "start", &raw_blob_detection::start, this );
+    service_stop = node_handler.advertiseService( "stop", &raw_blob_detection::stop, this );
     ROS_INFO( "Advertised 'start' and 'stop' service for raw_blob_detection" );
 
     ROS_INFO( "Blob Detection Started" );
@@ -176,15 +175,13 @@ public:
       rotation = get_orientation( *currentBlob );
 
       //  DEBUGGING
-      std::cout << "Blob #:\t\t\t" << i << std::endl; 
-      std::cout << "Blob Center x:\t\t" << blob_x << std::endl; 
-      std::cout << "Blob Center y:\t\t" << blob_y << std::endl; 
-      std::cout << "Distance to Center:\t" << distance << std::endl; 
-      std::cout << "Horizontal Offset:\t" << dist_x << std::endl; 
-      std::cout << "Vertical Offset:\t" << dist_y << std::endl; 
-      std::cout << "Rotational Offset:\t" << rotation << std::endl; 
-      std::cout << "\n" << std::endl; 
-
+      ROS_DEBUG( "Blob #:\t\t\t%d", i ); 
+      ROS_DEBUG( "Blob Center x:\t\t%d", blob_x );
+      ROS_DEBUG( "Blob Center y:\t\t%d", blob_y ); 
+      ROS_DEBUG( "Distance to Center:\t%d", distance ); 
+      ROS_DEBUG( "Horizontal Offset:\t%d", dist_x ); 
+      ROS_DEBUG( "Vertical Offset:\t%d", dist_y ); 
+      ROS_DEBUG( "Rotational Offset:\t%d",rotation );  
 
       // Base adjustment stuff. This code assumes that the largest blob is the one that you
       // want to work with. This being the case the arm/camera will need to be guided to the
@@ -328,12 +325,12 @@ public:
     cvWaitKey(3);
   }
 
-  //--------------------------------------------------------------------- Start
+  //--------------------------------------------------------------------- start
   //---------------------------------------------------------------------------
   //   Used to start up the processing of the web camera images once the node 
   //  has been told to start.
   //--------------------------------------------------------------------------- 
-  bool Start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+  bool start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
      //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
     image_subscriber = image_transporter.subscribe( "/usb_cam/image_raw", 1, &raw_blob_detection::imageCallback, this );
@@ -349,13 +346,13 @@ public:
     return true;
   }
 
-  //---------------------------------------------------------------------- Stop
+  //---------------------------------------------------------------------- stop
   //---------------------------------------------------------------------------
   //   Used to stop the processing of the web camera images once the node has
   //  been asked to stop. Note this does not remove the nodes service it only
   //  halts the processing.
   //--------------------------------------------------------------------------- 
-  bool Stop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+  bool stop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
     // Turn off the image subscriber for the web camera.
     image_subscriber.shutdown(); 
@@ -392,8 +389,8 @@ protected:
   brics_actuator::JointVelocities arm_vel_;
 
   // Stop and start services for this ROS node.
-  ros::ServiceServer _start_srv; 
-  ros::ServiceServer _stop_srv;
+  ros::ServiceServer service_start; 
+  ros::ServiceServer service_stop;
 };
 
 //------------------------------------------------------------------------ main
