@@ -42,16 +42,16 @@ class Grasper():
                 if (msg.name[i] == self.joint_names[k]):
                     #rospy.loginfo("%s: %f", msg.name[i], msg.position[i])
                     self.current_joint_configuration[k] = msg.position[i]
-        print 'joint states received'
+        #print 'joint states received'
         self.received_state = True
     
     def graspobject(self, grasp_name):
         if self.received_state == True:
             grasp_pose = []
-            if not len(self.current_joint_configuration) == len(self.joint_names):
-                print "not the same number of joints"
-            else: 
-                print "there are ",len(self.joint_names)," joints"
+            #if not len(self.current_joint_configuration) == len(self.joint_names):
+                #print "not the same number of joints"
+            #else: 
+                #print "there are ",len(self.joint_names)," joints"
             for i in range(len(self.joint_names)):
                 grasp_pose.append(self.current_joint_configuration[i])
                 if grasp_name == "laying":
@@ -60,7 +60,7 @@ class Grasper():
                 else: 
                     rospy.logerr("undefined grasp")
                     grasp_pose[i] = self.current_joint_configuration[i]
-            print "the grasp pose is", grasp_pose
+            #print "the grasp pose is", grasp_pose
             rospy.set_param("/script_server/arm/grasp_laying_mex", grasp_pose)
         else:
             rospy.logerr("no joint values recieved")
@@ -74,7 +74,7 @@ class Grasper():
 def main():
     rospy.init_node('grasp_object')
     grasper = Grasper()
-    print("waiting 3 for arm joint values")
+    print("waiting 0.02 for arm joint values")
     rospy.sleep(0.05)
     grasper.graspobject("laying")
     print("did it work?")
