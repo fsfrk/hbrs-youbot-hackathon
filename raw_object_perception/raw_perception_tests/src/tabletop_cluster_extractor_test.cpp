@@ -42,7 +42,7 @@ private:
   {
     planar_polygon_.reset(new PlanarPolygon);
     dpe_->setInputCloud(cloud_);
-    dpe_->setShrinkPlanePolygonRatio(0.10);
+    dpe_->setShrinkPlanePolygonBy(0.03);
     MEASURE_RUNTIME(dpe_->extract(*planar_polygon_), "Plane extraction");
     std::cout << "Number of points in plane contour: " << planar_polygon_->getContour().size() << std::endl;
     std::cout << "Plane coefficients:\n" << planar_polygon_->getCoefficients() << std::endl;

@@ -23,7 +23,7 @@ void cloudCallback(const sensor_msgs::PointCloud2::ConstPtr &ros_cloud)
   if (skip_clouds-- > 0)
     return;
 
-  // Get filtering bounds from the parameter server.
+  // Get filtering bounds and shrinking from the parameter server.
   ros::NodeHandle pn("~");
   double min_x_bound, max_x_bound;
   double min_y_bound, max_y_bound;
@@ -34,6 +34,8 @@ void cloudCallback(const sensor_msgs::PointCloud2::ConstPtr &ros_cloud)
   pn.param("max_y", max_y_bound,  1.5);
   pn.param("min_z", min_z_bound,  0.4);
   pn.param("max_z", max_z_bound,  1.5);
+  double shrink_polygon_by;
+  pn.param("shrink_polygon_by", shrink_polygon_by,  0.03);
 
   // Prepare point clouds.
   PointCloud::Ptr cloud(new PointCloud);
@@ -55,7 +57,7 @@ void cloudCallback(const sensor_msgs::PointCloud2::ConstPtr &ros_cloud)
   // Extract dominant plane.
   planar_polygon = PlanarPolygon();
   dpe->setInputCloud(cloud_filtered);
-  dpe->setShrinkPlanePolygonRatio(0.07);
+  dpe->setShrinkPlanePolygonBy(shrink_polygon_by);
   dpe->extract(planar_polygon);
 
   // Log information.
