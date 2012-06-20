@@ -95,7 +95,7 @@ public:
         contour.push_back(pt);
       }
       Eigen::Vector4f coefficients(srv.response.coefficients.elems);
-      planar_polygon_ = boost::make_shared<PlanarPolygon>(contour, coefficients);
+      planar_polygon_ = PlanarPolygonPtr(new PlanarPolygon(contour, coefficients));
       return true;
     }
     else
