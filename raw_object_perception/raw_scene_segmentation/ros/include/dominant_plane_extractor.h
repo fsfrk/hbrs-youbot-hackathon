@@ -13,7 +13,7 @@ public:
   typedef std::unique_ptr<DominantPlaneExtractor> UPtr;
 
   DominantPlaneExtractor()
-  : shrink_plane_polygon_ratio_(0.0)
+  : shrink_plane_polygon_by_(0.0)
   { }
 
   virtual void extract(PlanarPolygon& planar_polygon) = 0;
@@ -32,14 +32,14 @@ public:
     return input_;
   }
 
-  inline void setShrinkPlanePolygonRatio(double ratio)
+  inline void setShrinkPlanePolygonBy(double meters)
   {
-    shrink_plane_polygon_ratio_ = ratio;
+    shrink_plane_polygon_by_ = meters;
   }
 
-  inline double getShrinkPlanePolygonRatio() const
+  inline double getShrinkPlanePolygonBy() const
   {
-    return shrink_plane_polygon_ratio_;
+    return shrink_plane_polygon_by_;
   }
 
   virtual ~DominantPlaneExtractor()
@@ -49,14 +49,11 @@ public:
 
 protected:
 
-  /** Move each point of the point cloud towards its centroid by @arg shrink_ratio percents of its original distance
-    * to the centroid.
-    * @param shrink_ratio : value in [0..1] range. */
-  static void shrinkPointCloud(PointCloud::Ptr& cloud, double shrink_ratio);
+  static void shrinkPlanarPolygon(PlanarPolygon& planar_polygon, double shrink_by);
 
   PointCloud::ConstPtr input_;
 
-  double shrink_plane_polygon_ratio_;
+  double shrink_plane_polygon_by_;
 
 };
 

@@ -20,7 +20,7 @@ public:
       ros::NodeHandle nh;
       cloud_subscriber_ = nh.subscribe("/camera/rgb/points", 5, &TestNode::cloudCallback, this);
       marker_publisher_ = nh.advertise<visualization_msgs::Marker>("dominant_plane", 1);
-      dpe_->setShrinkPlanePolygonRatio(0.08);
+      dpe_->setShrinkPlanePolygonBy(0.03);
       pass_through_.setFilterFieldName("z");
       pass_through_.setFilterLimits(min_z, max_z);
       pass_through_.setKeepOrganized(true);
