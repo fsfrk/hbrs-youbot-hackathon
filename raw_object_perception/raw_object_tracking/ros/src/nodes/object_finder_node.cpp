@@ -33,7 +33,7 @@ public:
     ROS_INFO("Object finder service started.");
     // Create TabletopClusterExtractor
     tce_ = std::unique_ptr<TabletopClusterExtractor>(new TabletopClusterExtractor(0.009,  // point min height
-                                                                                  1.000,  // point max height
+                                                                                  0.200,  // point max height
                                                                                   0.010,  // object min height
                                                                                   0.020,  // object cluster tolerance
                                                                                   20,     // min cluster size
@@ -74,17 +74,23 @@ public:
 
     // Pack the response
     response.stamp = ros::Time::now();
+    size_t rejected = 0;
     for (const auto& object : tracker_->getObjects())
     {
       raw_msgs::Object object_msg;
       PointCloud cloud;
       object->getPoints(cloud.points);
+      raw::BoundingBox box = raw::BoundingBox::create<PointT>(cloud.points, planar_polygon_->getCoefficients().head<3>());
+      if (!isValid(cloud.points, box))
+      {
+        rejected++;
+        continue;
+      }
       cloud.header.frame_id = frame_id_;
       cloud.header.stamp = ros::Time::now();
       cloud.width = cloud.points.size();
       cloud.height = 1;
       pcl::toROSMsg(cloud, object_msg.cluster);
-      raw::BoundingBox box = raw::BoundingBox::create<PointT>(cloud.points, planar_polygon_->getCoefficients().head<3>());
       geometry_msgs::Vector3 v;
       v.x = box.getLength();
       v.y = box.getWidth();
@@ -99,6 +105,7 @@ public:
       object_msg.pose.pose.position = center;
       response.objects.push_back(object_msg);
     }
+    ROS_INFO("Rejected %zu object candidates.", rejected);
     return true;
   }
 
@@ -134,6 +141,17 @@ public:
       ROS_WARN("Call to dominant plane extractor failed.");
       return false;
     }
+  }
+
+  bool isValid(PointCloud::VectorType& points, raw::BoundingBox& box)
+  {
+    ros::NodeHandle pn("~");
+    int filter_min_points;
+    pn.param("filter_min_points", filter_min_points, 150);
+    
+    if (points.size() < (unsigned int)filter_min_points)
+      return false;
+    return true;
   }
 
   /// Cluster incoming point cloud and merge with existing clusters.
