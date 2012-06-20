@@ -48,13 +48,13 @@ bool RegressionAnalysis::calculateCoefficient(std::vector<ScanItem> items, doubl
 	if (items.size() == 0) {
 		return false;
 	}
-	std::cout << "Items: " << items.size() << std::endl;
+	//std::cout << "Items: " << items.size() << std::endl;
 
 	for (unsigned int i = 0; i < items.size(); i++) {
 		ScanItem it = items[i];
 		xm += it.x();
 		ym += it.y();
-		std::cout << "Item : " << it.x() << ", " << it.y() << " - " << it.angle << " - " << it.distance << std::endl;
+		//std::cout << "Item : " << it.x() << ", " << it.y() << " - " << it.angle << " - " << it.distance << std::endl;
 	}
 
 	xm /=  items.size();
@@ -68,17 +68,17 @@ bool RegressionAnalysis::calculateCoefficient(std::vector<ScanItem> items, doubl
 		Sxy += (it.x() - xm) * (it.y() - ym);
 
 	}
-	std::cout << "Sxx: " << Sxx << std::endl;
-	std::cout << "Sxy: " << Sxy << std::endl;
+	//std::cout << "Sxx: " << Sxx << std::endl;
+	//std::cout << "Sxy: " << Sxy << std::endl;
 
 
 	b = Sxx / Sxy;
 	a = xm - b * ym;
 	center = ym;
 
-	std::cout << "a: " << a << std::endl;
-	std::cout << "b: " << b << std::endl;
-	std::cout << "center: " << ym << std::endl;
+	//std::cout << "a: " << a << std::endl;
+	//std::cout << "b: " << b << std::endl;
+	//std::cout << "center: " << ym << std::endl;
 
 	return true;
 }
