@@ -1,13 +1,13 @@
 #include <ros/ros.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
-#include <basescan_regression/OrientToBaseAction.h>
+#include <raw_base_placement_to_platform_in_front/OrientToBaseAction.h>
 
 int main (int argc, char **argv)
 {
   ros::init(argc, argv, "BaseOrientation_Test");
 
-  actionlib::SimpleActionClient<basescan_regression::OrientToBaseAction> ac("/scan_front_orientation", true);
+  actionlib::SimpleActionClient<raw_base_placement_to_platform_in_front::OrientToBaseAction> ac("/scan_front_orientation", true);
 
   ROS_INFO("Waiting for action server to start.");
   // wait for the action server to start
@@ -15,7 +15,7 @@ int main (int argc, char **argv)
 
   ROS_INFO("Action server started, sending goal.");
 
-  basescan_regression::OrientToBaseActionGoal goal;
+  raw_base_placement_to_platform_in_front::OrientToBaseActionGoal goal;
 
   goal.goal.distance = 0.1;
 
