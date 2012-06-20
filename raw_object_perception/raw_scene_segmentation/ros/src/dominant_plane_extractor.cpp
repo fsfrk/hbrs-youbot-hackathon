@@ -28,7 +28,7 @@ void DominantPlaneExtractor::shrinkPlanarPolygon(PlanarPolygon& planar_polygon, 
   // Step 3: offset polygon.
   Polygons polygons;
   polygons.push_back(polygon);
-  OffsetPolygons(polygons, polygons, -1.0 * shrink_by);
+  OffsetPolygons(polygons, polygons, -SCALE * shrink_by);
 
   // Step 4: create a new planar polygon based on the produced shrinked polygon.
   PointCloud::VectorType points;
