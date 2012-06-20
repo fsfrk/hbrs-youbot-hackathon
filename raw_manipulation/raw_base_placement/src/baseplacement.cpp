@@ -7,6 +7,7 @@
 #include <raw_srvs/GetPoseStamped.h>
 #include <tf/transform_datatypes.h>
 #include <LinearMath/btMatrix3x3.h>
+#include <XmlRpcValue.h>
 //#include <LinearMath/btQuaternion.h>
 
 using namespace std;
@@ -23,6 +24,12 @@ bool calculateOptimalBasePose(raw_srvs::GetPoseStamped::Request  &req,
 	  KinematicSolver youBot;
 	  Pose Goal;
 	  JointParameter prefConfig(1,8);
+      bool isValid = true;
+      
+      ros::NodeHandle n;
+      XmlRpc::XmlRpcValue joint_values;
+      n.getParam("/script_server/arm/pregrasp_laying_mex",joint_values);
+      prefConfig << 0,0,0,(double) joint_values[1],(double) joint_values[2],(double) joint_values[3],(double) joint_values[4],(double) joint_values[5];
 
 	  // Request Processing
 	  float x_obj = req.object_pose.pose.position.x;
@@ -32,10 +39,11 @@ bool calculateOptimalBasePose(raw_srvs::GetPoseStamped::Request  &req,
 	  btMatrix3x3(q).getRPY(roll_obj, pitch_obj, yaw_obj);  
 
 	  Goal << x_obj,y_obj,z_obj,roll_obj, pitch_obj, yaw_obj;
+
 	  
 	  
 	  // Response 
-	  youBot.solveIK(Goal,prefConfig);
+	  youBot.solveIK(Goal,prefConfig,isValid);
 	  res.base_pose.pose.position.x = prefConfig(0);
 	  res.base_pose.pose.position.y = prefConfig(1);
 	  res.base_pose.pose.position.z = 0;
