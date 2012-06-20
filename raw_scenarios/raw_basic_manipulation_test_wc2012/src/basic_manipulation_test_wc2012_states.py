@@ -27,3 +27,21 @@ class select_pose(smach.State):
                 
         return 'succeeded'
 
+
+class select_recognized_object(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, 
+            outcomes=['succeeded','no_more_objects'],
+            input_keys=['recognized_objects'],
+            output_keys=['recognized_objects', 'object_to_grasp'])
+        
+    def execute(self, userdata):
+        
+        if(len(userdata.recognized_objects) == 0):
+            return 'no_more_objects'
+        
+        userdata.object_to_grasp = userdata.recognized_objects.pop() 
+                
+        return 'succeeded'
+
+
