@@ -226,8 +226,8 @@ public:
           }
 
           // Prepare and then send the base movement commands.
-          base_velocity.linear.y = move_speed; 
-          base_velocities_publisher.publish( base_velocity ); 
+          youbot_base_velocities.linear.y = move_speed; 
+          base_velocities_publisher.publish( youbot_base_velocities ); 
         }
         //------------------ END OF BASE MOVEMENT CONTROL ---------------------
 
@@ -255,7 +255,7 @@ public:
             done_rotational_adjustment = true; 
           }
 
-          arm_vel_.velocities.clear();
+          youbot_arm_velocities.velocities.clear();
           for(unsigned int i=0; i < arm_joint_names_.size(); ++i)
           {
             brics_actuator::JointValue joint_value;
@@ -273,12 +273,16 @@ public:
               joint_value.value = 0.0; 
             }
 
-            arm_vel_.velocities.push_back(joint_value);
-            // Publish the arm velocity commands.
-            arm_velocities_publisher.publish( arm_vel_ );
+            youbot_arm_velocities.velocities.push_back(joint_value);
+            arm_velocities_publisher.publish( youbot_arm_velocities );
           }
         }
         //------------------- END OF ARM ROTATION CONTROL ---------------------
+
+        if( done_rotational_adjustment == false && done_base_movement_adjustment == false )
+        {
+          ROS_DEBUG( "Graping position has been reached." ); 
+        }
 
         // make sure the last thing we do is paint one centroid for debugging.
         cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
@@ -381,12 +385,12 @@ protected:
   ros::Publisher arm_velocities_publisher;
 
   // base movement topic.
-  geometry_msgs::Twist base_velocity;
+  geometry_msgs::Twist youbot_base_velocities;
 
   // Arm Joint Names.
   std::vector<std::string> arm_joint_names_;
   std::vector<arm_navigation_msgs::JointLimits> arm_joint_limits_;
-  brics_actuator::JointVelocities arm_vel_;
+  brics_actuator::JointVelocities youbot_arm_velocities;
 
   // Stop and start services for this ROS node.
   ros::ServiceServer service_start; 
