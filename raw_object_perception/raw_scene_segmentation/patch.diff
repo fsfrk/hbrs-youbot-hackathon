@@ -1,0 +1,82 @@
+Index: geometry/include/pcl/geometry/planar_polygon.h
+===================================================================
+--- geometry/include/pcl/geometry/planar_polygon.h	(revision 5669)
++++ geometry/include/pcl/geometry/planar_polygon.h	(working copy)
+@@ -102,6 +102,9 @@
+       
+       /** \brief A list of model coefficients (a,b,c,d). */
+       Eigen::Vector4f coefficients_;
++      
++    public:
++      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+   };
+ }
+ 
+Index: segmentation/include/pcl/segmentation/impl/organized_multi_plane_segmentation.hpp
+===================================================================
+--- segmentation/include/pcl/segmentation/impl/organized_multi_plane_segmentation.hpp	(revision 5669)
++++ segmentation/include/pcl/segmentation/impl/organized_multi_plane_segmentation.hpp	(working copy)
+@@ -272,7 +272,7 @@
+ 
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ template<typename PointT, typename PointNT, typename PointLT> void
+-pcl::OrganizedMultiPlaneSegmentation<PointT, PointNT, PointLT>::segmentAndRefine (std::vector<PlanarRegion<PointT> >& regions,
++pcl::OrganizedMultiPlaneSegmentation<PointT, PointNT, PointLT>::segmentAndRefine (std::vector<PlanarRegion<PointT>, Eigen::aligned_allocator<PlanarRegion<PointT> > >& regions,
+                                                                                   std::vector<ModelCoefficients>& model_coefficients,
+                                                                                   std::vector<PointIndices>& inlier_indices,
+                                                                                   PointCloudLPtr& labels,
+@@ -284,7 +284,8 @@
+   std::vector <Eigen::Matrix3f, Eigen::aligned_allocator<Eigen::Matrix3f> > covariances;
+   segment (model_coefficients, inlier_indices, centroids, covariances, *labels, label_indices);
+   refine (model_coefficients, inlier_indices, centroids, covariances, labels, label_indices);
+-  regions.resize (model_coefficients.size ());
++  //regions.resize (model_coefficients.size ());
++  regions.clear();
+   boundary_indices.resize (model_coefficients.size ());
+   
+   for (size_t i = 0; i < model_coefficients.size (); i++)
+@@ -305,12 +306,14 @@
+     Eigen::Vector3f vp (0.0, 0.0, 0.0);
+     if (project_points_ && boundary_cloud.points.size () > 0)
+       boundary_cloud = projectToPlaneFromViewpoint (boundary_cloud, model, centroid, vp);
+-
+-    regions[i] = PlanarRegion<PointT> (centroid,
++    
++    // regions[i] = PlanarRegion<PointT> (centroid,
++    regions.push_back(PlanarRegion<PointT> (centroid,
+                                        covariances[i], 
+                                        static_cast<unsigned int> (inlier_indices[i].indices.size ()),
+                                        boundary_cloud.points,
+-                                       model);
++                                       model));
++                                       //model);
+   }
+ }
+ 
+Index: segmentation/include/pcl/segmentation/planar_region.h
+===================================================================
+--- segmentation/include/pcl/segmentation/planar_region.h	(revision 5669)
++++ segmentation/include/pcl/segmentation/planar_region.h	(working copy)
+@@ -102,6 +102,9 @@
+         * or was due to edge of frame / occlusion boundary. 
+         */
+       std::vector<bool> contour_labels_;
++    
++    public:
++      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ 
+   };
+ }
+Index: segmentation/include/pcl/segmentation/organized_multi_plane_segmentation.h
+===================================================================
+--- segmentation/include/pcl/segmentation/organized_multi_plane_segmentation.h	(revision 5669)
++++ segmentation/include/pcl/segmentation/organized_multi_plane_segmentation.h	(working copy)
+@@ -258,7 +258,7 @@
+         * \param[out] boundary_indices A vector of PointIndices corresponding to the outer boundary / contour of each label
+         */
+       void
+-      segmentAndRefine (std::vector<PlanarRegion<PointT> >& regions,
++      segmentAndRefine (std::vector<PlanarRegion<PointT>, Eigen::aligned_allocator<PlanarRegion<PointT> > >& regions,
+                         std::vector<ModelCoefficients>& model_coefficients,
+                         std::vector<PointIndices>& inlier_indices,
+                         PointCloudLPtr& labels,
