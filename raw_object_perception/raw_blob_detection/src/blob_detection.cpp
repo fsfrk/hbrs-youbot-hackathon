@@ -279,8 +279,9 @@ public:
         }
         //------------------- END OF ARM ROTATION CONTROL ---------------------
 
-        if( done_rotational_adjustment == false && done_base_movement_adjustment == false )
+        if( done_rotational_adjustment == true && done_base_movement_adjustment == true )
         {
+          blob_detection_completed = true; 
           ROS_DEBUG( "Graping position has been reached." ); 
         }
 
@@ -336,6 +337,8 @@ public:
   //--------------------------------------------------------------------------- 
   bool start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
+    blob_detection_completed = false; 
+
      //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
     image_subscriber = image_transporter.subscribe( "/usb_cam/image_raw", 1, &raw_blob_detection::imageCallback, this );
 
@@ -346,6 +349,23 @@ public:
     arm_velocities_publisher = node_handler.advertise<brics_actuator::JointVelocities>( "/arm_1/arm_controller/velocity_command", 1 );
 
     ROS_INFO("Blob Detection Enabled");
+
+    while( blob_detection_completed == false && ros::ok() )
+    {
+      ros::spinOnce();
+    }
+
+     // Turn off the image subscriber for the web camera.
+    image_subscriber.shutdown(); 
+
+    // Turn off the velocity publishers for the YouBot Arm & Base.
+    arm_velocities_publisher.shutdown(); 
+    base_velocities_publisher.shutdown(); 
+
+    // Shut down any open windows.
+    cvDestroyAllWindows(); 
+
+    ROS_INFO("Blob Detection Disabled");
 
     return true;
   }
@@ -398,6 +418,9 @@ protected:
   // Stop and start services for this ROS node.
   ros::ServiceServer service_start; 
   ros::ServiceServer service_stop;
+
+  // Node status variable;
+  bool blob_detection_completed; 
 };
 
 //------------------------------------------------------------------------ main
