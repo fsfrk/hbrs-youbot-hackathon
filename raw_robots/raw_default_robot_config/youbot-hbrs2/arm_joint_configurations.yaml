@@ -5,10 +5,12 @@ zeroposition:       [2.9496, 1.13446, -2.54818, 1.78896, 2.93075]
 pregrasp_laying_mex: [2.94962, 2.36984, -2.26538, 2.75548, 2.48112]
 pregrasp_standing_mex: [3.02221, 2.48996, -1.53309, 1.17502, 2.92980]
 
-grasp_laying_mex: [] # Will be set by grasp
+arm_out_of_view:  [2.96930, 0.05919, -2.74733, 0.18922, 2.48745]
+
+# grasp will be set by grasper
+grasp_laying_mex: [] 
 
 #PLATFORM POSES
-
 
 platform_intermediate: [2.95012, 0.36436, -3.31624, 0.45019, 2.95181]
 platform_left: [3.20691, 0.32942, -3.29642, 0.57904, 2.60902]

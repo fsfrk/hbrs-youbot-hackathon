@@ -43,12 +43,18 @@ class raw_blob_detection
 //-----------------------------------------------------------------------------
 public:
 
-  //------------------------------------------------------------ raw_blob_detection
+  //-------------------------------------------------------- raw_blob_detection
   //---------------------------------------------------------------------------
   //    This function is used for all of the incoming and outgoing ROS messages
   //---------------------------------------------------------------------------
   raw_blob_detection( ros::NodeHandle &n ) : node_handler( n ), image_transporter( node_handler )
   {
+    background_image = cvLoadImage( "/home/bad-robot/ros/RoboCupAtWork/raw_object_perception/raw_blob_detection/src/background.png" );
+
+    //-------------------------------------------------------------------------
+    //  Get all of the joint names for the YouBot arm as well as their limits.
+    //-------------------------------------------------------------------------
+    /**
     XmlRpc::XmlRpcValue parameter_list;
     node_handler.getParam("/arm_1/arm_controller/joints", parameter_list);
     ROS_ASSERT(parameter_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
@@ -68,6 +74,8 @@ public:
       node_handler.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/max", joint_limits.max_position);
       arm_joint_limits_.push_back(joint_limits);
     }
+    */
+    //------------------- END OF ARM INITILIZATION ----------------------------
 
     // Service commands to allow this node to be started and stopped externally
     service_start = node_handler.advertiseService( "start", &raw_blob_detection::start, this );
@@ -77,7 +85,7 @@ public:
     ROS_INFO( "Blob Detection Started" );
   }
 
-  //----------------------------------------------------------- ~raw_blob_detection
+  //------------------------------------------------------- ~raw_blob_detection
   //---------------------------------------------------------------------------
   //   Standard Destructor.
   //--------------------------------------------------------------------------- 
@@ -109,7 +117,7 @@ public:
     bool done_rotational_adjustment = false; 
     bool done_base_movement_adjustment = false; 
 
-    IplImage* cv_image = NULL;
+    IplImage* cv_image = NULL; 
     IplImage* blob_image = NULL; 
 
     CBlob* currentBlob; 
@@ -123,6 +131,12 @@ public:
     {
       ROS_ERROR( "Error converting from ROS image message to OpenCV IplImage" );
     }
+
+    IplImage* temp_img = cvCreateImage( cvGetSize( background_image ), IPL_DEPTH_8U, 3); 
+
+    //    This takes a background image (the gripper on a white background) and removes
+    //  it from the current image (cv_image). The results are stored again in cv_image.
+    cvSub( cv_image, background_image, temp_img, NULL ); 
 
     //  Obtain image properties that we require. 
     master_image_width = cv_image->width; 
@@ -279,8 +293,9 @@ public:
         }
         //------------------- END OF ARM ROTATION CONTROL ---------------------
 
-        if( done_rotational_adjustment == false && done_base_movement_adjustment == false )
+        if( done_rotational_adjustment == true && done_base_movement_adjustment == true )
         {
+          blob_detection_completed = true; 
           ROS_DEBUG( "Graping position has been reached." ); 
         }
 
@@ -319,7 +334,9 @@ public:
     cvPutText( blob_image, y_str.c_str(),  cvPoint( 200, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
     cvPutText( blob_image, rot_str.c_str(), cvPoint( 350, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
 
-    cvShowImage( "Found Blobs", blob_image ); 
+    cvShowImage( "Found Blobs", blob_image );
+    //cvShowImage( "Background", background_image );  
+    //cvShowImage( "Background Removed", temp_img );                                
 
     //-------------------------------------------------------------------------
     //----------------------- END OF VISUAL OUTPUT ----------------------------
@@ -336,6 +353,8 @@ public:
   //--------------------------------------------------------------------------- 
   bool start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
+    blob_detection_completed = false; 
+
      //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
     image_subscriber = image_transporter.subscribe( "/usb_cam/image_raw", 1, &raw_blob_detection::imageCallback, this );
 
@@ -346,6 +365,23 @@ public:
     arm_velocities_publisher = node_handler.advertise<brics_actuator::JointVelocities>( "/arm_1/arm_controller/velocity_command", 1 );
 
     ROS_INFO("Blob Detection Enabled");
+
+    while( blob_detection_completed == false && ros::ok() )
+    {
+      ros::spinOnce();
+    }
+
+     // Turn off the image subscriber for the web camera.
+    image_subscriber.shutdown(); 
+
+    // Turn off the velocity publishers for the YouBot Arm & Base.
+    arm_velocities_publisher.shutdown(); 
+    base_velocities_publisher.shutdown(); 
+
+    // Shut down any open windows.
+    cvDestroyAllWindows(); 
+
+    ROS_INFO("Blob Detection Disabled");
 
     return true;
   }
@@ -364,6 +400,9 @@ public:
     // Turn off the velocity publishers for the YouBot Arm & Base.
     arm_velocities_publisher.shutdown(); 
     base_velocities_publisher.shutdown(); 
+
+    // Shut down any open windows.
+    cvDestroyAllWindows(); 
 
     ROS_INFO("Blob Detection Disabled");
 
@@ -395,6 +434,12 @@ protected:
   // Stop and start services for this ROS node.
   ros::ServiceServer service_start; 
   ros::ServiceServer service_stop;
+
+  // Node status variable;
+  bool blob_detection_completed; 
+
+  // background Image.
+  IplImage* background_image; 
 };
 
 //------------------------------------------------------------------------ main

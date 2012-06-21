@@ -35,7 +35,7 @@ def main():
     # open the container
     with SM:
         # add states to the container
-        
+        '''
         # move to the source pose, recognize objects, grasp them and put them on the rear platform
         smach.StateMachine.add('GET_TASK', get_basic_manipulation_task(),
             transitions={'task_received':'SELECT_SOURCE_POSE', 
@@ -44,43 +44,40 @@ def main():
         smach.StateMachine.add('SELECT_SOURCE_POSE', select_base_pose("source_pose"),
             transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM'})
         
-        '''
         smach.StateMachine.add('APPROACH_SOURCE_POSE', approach_pose(),
             transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM'},
                         {'failed':'APPROACH_SOURCE_POSE'})
-        '''
+
 
         smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM', adjust_pose_wrt_platform(),
             transitions={'succeeded':'MOVE_ARM_OUT_OF_VIEW',
                         'failed':'ADJUST_POSE_WRT_PLATFORM'})
+        '''
 
+        '''
         smach.StateMachine.add('MOVE_ARM_OUT_OF_VIEW', move_arm_out_of_view(),
-            transitions={'succeeded':'ENABLE_PERCEPTION',
-                        'failed':'MOVE_ARM_OUT_OF_VIEW'})
-        
-        smach.StateMachine.add('ENABLE_PERCEPTION', enable_object_finder(),
-                transitions={'succeeded':'RECOGNIZE_OBJECTS',  
-                             'failed':'ENABLE_PERCEPTION'})
-        
-        #ToDo: implement state
+            transitions={'succeeded':'RECOGNIZE_OBJECTS'})
+                
         smach.StateMachine.add('RECOGNIZE_OBJECTS', recognize_objects(),
             transitions={'succeeded':'SELECT_RECOGNIZED_OBJECT',
-                        'failed':'RECOGNIZE_OBJECTS'})
+                        'failed':'overall_failed'})
         
         #ToDo: change to sergey's stuff
         smach.StateMachine.add('SELECT_RECOGNIZED_OBJECT', select_recognized_object(),
             transitions={'succeeded':'PLACE_BASE_IN_FRONT_OF_OBJECT',
-                        'no_more_objects':'SELECT_DESTINATION_POSE'})
+                        'no_more_objects':'overall_failed'})
+#                        'no_more_objects':'SELECT_DESTINATION_POSE'})
         
         #ToDo: implement state
         smach.StateMachine.add('PLACE_BASE_IN_FRONT_OF_OBJECT', adjust_pose_wrt_recognized_obj(),
             transitions={'succeeded':'GRASP_OBJ_WITH_VISUAL_SERVERING',
                         'failed':'PLACE_BASE_IN_FRONT_OF_OBJECT'})
-
+        '''
         #ToDo: implement state
         smach.StateMachine.add('GRASP_OBJ_WITH_VISUAL_SERVERING', grasp_obj_with_visual_servering(),
-            transitions={'succeeded':'PLACE_OBJ_ON_REAR_PLATFORM',
-                        'failed':'GRASP_OBJ_WITH_VISUAL_SERVERING'})
+            transitions={'succeeded':'overall_success',
+                        'failed':'overall_failed'})
+        '''
         
         smach.StateMachine.add('PLACE_OBJ_ON_REAR_PLATFORM', place_obj_on_rear_platform(),
             transitions={'succeeded':'SELECT_RECOGNIZED_OBJECT',
@@ -90,12 +87,13 @@ def main():
         
         # go to the destination pose and place the objects in the desired configuration on the platform
         smach.StateMachine.add('SELECT_DESTINATION_POSE', select_base_pose("destination_pose"),
-            transitions={'succeeded':'MOVE_TO_DESTINATION_POSE'})
-        
+            transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATOIN'})
+
+       
         smach.StateMachine.add('MOVE_TO_DESTINATION_POSE', approach_pose(),
             transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATOIN',
                         'failed':'MOVE_TO_DESTINATION_POSE'})
-        
+       
         #ToDo: implement state
         smach.StateMachine.add('GET_OBJ_POSES_FOR_CONFIGURATOIN', get_obj_poses_for_goal_configuration(),
             transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF'})
@@ -121,7 +119,7 @@ def main():
             transitions={'succeeded':'overall_success',
                         'failed':'MOVE_TO_FINAL_POSE'})
         
-            
+       '''     
     # Start SMACH viewer
     smach_viewer = smach_ros.IntrospectionServer('BASIC_MANIPULATION_TEST', SM, 'BASIC_MANIPULATION_TEST')
     smach_viewer.start()
