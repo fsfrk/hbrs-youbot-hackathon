@@ -65,8 +65,10 @@ public:
     ros::Subscriber subscriber = node.subscribe(input_cloud_topic, 1, &ObjectFinderNode::cloudCallback, this);
 
     // Wait some time while data is being accumulated.
-    ros::Time timeout = ros::Time::now() + accumulation_duration_;
-    while (ros::Time::now() < timeout && ros::ok())
+    //ros::Time timeout = ros::Time::now() + accumulation_duration_;
+    ros::Time timeout = ros::Time::now() + ros::Duration(30);//accumulation_duration_;
+    pn.param("number_of_merges", merges_left_, 20);
+    while (merges_left_ > 0 && ros::Time::now() < timeout && ros::ok())
     {
       ros::spinOnce();
     }
@@ -173,6 +175,7 @@ public:
     for (const PointCloud::Ptr& cluster : clusters)
       tracker_->addCluster(cluster);
 
+    merges_left_--;
     ROS_INFO("Object tracker has %zu objects.", tracker_->getObjects().size());
 
     // Just in case someone is interested, publish clusters and bounding boxes..
@@ -247,6 +250,7 @@ private:
 
   std::string frame_id_;
   ros::Duration accumulation_duration_;
+  int merges_left_;
 
   static const size_t COLORS_NUM = 32;
   float COLORS[COLORS_NUM];
