@@ -48,21 +48,20 @@ class Grasper():
         self.received_state = True
     
     def simple_grasp(self, grasp_name):
-        if self.received_state == True:
-            grasp_pose = []
-            for i in range(len(self.joint_names)):
-                grasp_pose.append(self.current_joint_configuration[i])
-                if grasp_name == "laying":
-                    if i == 1:
-                        grasp_pose[i] = self.JOINT_TWO_LAYING_GRASP
-                else: 
-                    rospy.logerr("undefined grasp")
-                    grasp_pose[i] = self.current_joint_configuration[i]
+        while self.received_state == False:
+            print( "no joint values")
+        
+        grasp_pose = []
+        for i in range(len(self.joint_names)):
+            grasp_pose.append(self.current_joint_configuration[i])
+            if grasp_name == "laying":
+                if i == 1:
+                    grasp_pose[i] = self.JOINT_TWO_LAYING_GRASP
+            else: 
+                rospy.logerr("undefined grasp")
+                grasp_pose[i] = self.current_joint_configuration[i]
             #print "the grasp pose is", grasp_pose
-            rospy.set_param("/script_server/arm/grasp_laying_mex", grasp_pose)
-        else:
-            rospy.logerr("no joint values recieved")
-            return
+        rospy.set_param("/script_server/arm/grasp_laying_mex", grasp_pose)
         '''        
         if rospy.has_param("/script_server/arm/grasp_laying_mex"):
             #sss.move("arm","grasp_laying_mex")
