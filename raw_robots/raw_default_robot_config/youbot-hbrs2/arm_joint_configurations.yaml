@@ -12,7 +12,7 @@ grasp_laying_mex: []
 
 #PLATFORM POSES
 
-platform_intermediate: [2.95012, 0.36436, -3.31624, 0.45019, 2.95181]
+platform_intermediate: [2.95008, 1.17834, -3.30993, 0.44033, 2.95170]
 platform_left: [3.20691, 0.32942, -3.29642, 0.57904, 2.60902]
 platform_right: [2.64898, 0.33072, -3.29658, 0.57911, 2.95179]
 platform_centre: [2.95012, 0.36436, -3.31624, 0.45019, 2.95181]
