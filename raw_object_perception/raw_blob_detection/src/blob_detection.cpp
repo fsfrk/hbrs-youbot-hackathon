@@ -335,8 +335,8 @@ public:
     cvPutText( blob_image, rot_str.c_str(), cvPoint( 350, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
 
     cvShowImage( "Found Blobs", blob_image );
-    cvShowImage( "Background", background_image );  
-    cvShowImage( "Background Removed", temp_img );                                
+    //cvShowImage( "Background", background_image );  
+    //cvShowImage( "Background Removed", temp_img );                                
 
     //-------------------------------------------------------------------------
     //----------------------- END OF VISUAL OUTPUT ----------------------------
