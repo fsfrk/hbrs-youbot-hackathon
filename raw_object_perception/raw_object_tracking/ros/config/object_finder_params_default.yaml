@@ -1,0 +1,11 @@
+# Topics and services names
+find_objects_service: find_objects
+input_cloud_topic: /camera/rgb/points
+extract_dominant_plane_service: extract_dominant_plane
+
+# Topics for optional output
+found_clusters_topic: found_clusters
+bounding_boxes_topic: bounding_boxes
+
+# How long to accumulate point clouds
+accumulation_duration: 7.0

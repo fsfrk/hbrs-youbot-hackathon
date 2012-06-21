@@ -2,17 +2,8 @@
 <launch>
   
   <!-- Dominant plane extractor node -->
-  <node pkg="raw_scene_segmentation" type="dominant_plane_extractor_node" name="dominant_plane_extractor_node" ns="raw_perception" output="screen">
-    <param name="input_cloud_topic" type="string" value="/camera/rgb/points" />
-    <param name="min_x" type="double" value="-1.2" />
-    <param name="max_x" type="double" value="1.5" />
-    <param name="min_y" type="double" value="-1.5" />
-    <param name="max_y" type="double" value="1.5" />
-    <param name="min_z" type="double" value="0.7" />
-    <param name="max_z" type="double" value="1.4" />
-    <param name="shrink_polygon_by" type="double" value="0.03" />
-    <param name="skip_clouds" type="int" value="4" />
-    <param name="extraction_retries" type="int" value="1" />
+  <node pkg="raw_scene_segmentation" type="dominant_plane_extractor_node" name="dominant_plane_extractor_node" output="screen">
+    <rosparam file="$(find raw_scene_segmentation)/ros/config/dominant_plane_extractor_params_default.yaml" command="load" />
   </node>
 
 </launch>
