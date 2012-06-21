@@ -49,8 +49,12 @@ public:
   //---------------------------------------------------------------------------
   raw_blob_detection( ros::NodeHandle &n ) : node_handler( n ), image_transporter( node_handler )
   {
-    background_image = cvLoadImage( "background.png" ); 
+    background_image = cvLoadImage( "/home/bad-robot/ros/RoboCupAtWork/raw_object_perception/raw_blob_detection/src/background.png" );
 
+    //-------------------------------------------------------------------------
+    //  Get all of the joint names for the YouBot arm as well as their limits.
+    //-------------------------------------------------------------------------
+    /**
     XmlRpc::XmlRpcValue parameter_list;
     node_handler.getParam("/arm_1/arm_controller/joints", parameter_list);
     ROS_ASSERT(parameter_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
@@ -70,6 +74,8 @@ public:
       node_handler.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/max", joint_limits.max_position);
       arm_joint_limits_.push_back(joint_limits);
     }
+    */
+    //------------------- END OF ARM INITILIZATION ----------------------------
 
     // Service commands to allow this node to be started and stopped externally
     service_start = node_handler.advertiseService( "start", &raw_blob_detection::start, this );
@@ -111,7 +117,7 @@ public:
     bool done_rotational_adjustment = false; 
     bool done_base_movement_adjustment = false; 
 
-    IplImage* cv_image = NULL;
+    IplImage* cv_image = NULL; 
     IplImage* blob_image = NULL; 
 
     CBlob* currentBlob; 
@@ -126,7 +132,11 @@ public:
       ROS_ERROR( "Error converting from ROS image message to OpenCV IplImage" );
     }
 
-    cvSub( cv_image, background_image, cv_image, NULL ); 
+    IplImage* temp_img = cvCreateImage( cvGetSize( background_image ), IPL_DEPTH_8U, 3); 
+
+    //    This takes a background image (the gripper on a white background) and removes
+    //  it from the current image (cv_image). The results are stored again in cv_image.
+    cvSub( cv_image, background_image, temp_img, NULL ); 
 
     //  Obtain image properties that we require. 
     master_image_width = cv_image->width; 
@@ -324,7 +334,9 @@ public:
     cvPutText( blob_image, y_str.c_str(),  cvPoint( 200, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
     cvPutText( blob_image, rot_str.c_str(), cvPoint( 350, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
 
-    cvShowImage( "Found Blobs", blob_image ); 
+    cvShowImage( "Found Blobs", blob_image );
+    //cvShowImage( "Background", background_image );  
+    //cvShowImage( "Background Removed", temp_img );                                
 
     //-------------------------------------------------------------------------
     //----------------------- END OF VISUAL OUTPUT ----------------------------
