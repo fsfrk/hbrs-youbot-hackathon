@@ -1,11 +1,11 @@
 # Robot Configuration Parameters
-acc_lim_x: 0.7
-acc_lim_y: 0.7
-acc_lim_th: 0.7
-max_vel_x: 0.3
-min_vel_x: 0.05
-max_rotational_vel: 0.5
-min_in_place_rotational_vel: 0.04
+acc_lim_x: 1.25
+acc_lim_y: 1.25
+acc_lim_th: 1.6
+max_vel_x: 0.4
+min_vel_x: 0.1
+max_rotational_vel: 0.7
+min_in_place_rotational_vel: 0.1
 escape_vel: -0.1
 holonomic_robot: true
 
@@ -24,8 +24,7 @@ goal_distance_bias: 0.8
 path_distance_bias: 1.6
 occdist_scale: 0.01
 heading_lookahead: 0.325
-dwa: false
+dwa: true
 
 # Oscillation Prevention Parameters
 oscillation_reset_dist: 0.01
-

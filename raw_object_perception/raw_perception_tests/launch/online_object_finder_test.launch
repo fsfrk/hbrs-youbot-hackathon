@@ -15,13 +15,15 @@
     <param name="max_z" type="double" value="1.5" />
   </node>
 
-  <!-- Cluster finder node -->
-  <node name="cluster_finder_node" pkg="raw_object_tracking" type="cluster_finder_node" output="screen" required="true" >
+  <!-- Object finder node -->
+  <node name="object_finder_node" pkg="raw_object_tracking" type="object_finder_node" output="screen" required="true" >
     <param name="input_cloud_topic" type="string" value="/camera/rgb/points" />
   </node>
 
-  <!-- Online cluster finder test -->
-  <node name="online_cluster_finder_test" pkg="raw_perception_tests" type="online_cluster_finder_test" output="screen" />
+  <!-- Online object finder test -->
+  <node name="online_object_finder_test" pkg="raw_perception_tests" type="online_object_finder_test" output="screen" />
+
+  <node name="bounding_box_visualizer_node" pkg="raw_object_tracking" type="bounding_box_visualizer_node" output="screen" />
 
   <!-- RViz -->
   <node name="rviz" pkg="rviz" type="rviz" required="true" />

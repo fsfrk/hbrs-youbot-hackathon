@@ -25,11 +25,8 @@ def main():
         # add states to the container
         
         smach.StateMachine.add('GET_TASK', get_basic_navigation_task(),
-            transitions={'task_received':'WAIT_FOR_OPEN_DOOR', 
+            transitions={'task_received':'SELECT_POSE_TO_APPROACH', 
                          'wront_task_format':'GET_TASK'})
-        
-        smach.StateMachine.add('WAIT_FOR_OPEN_DOOR', wait_for_open_door(),
-            transitions={'succeeded':'SELECT_POSE_TO_APPROACH'})       
         
         smach.StateMachine.add('SELECT_POSE_TO_APPROACH', select_pose_to_approach(),
             transitions={'pose_selected':'MOVE_TO_LOCATION',

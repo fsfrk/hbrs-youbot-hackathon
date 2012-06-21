@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <ros/assert.h>
 #include <polyclipping/clipper.hpp>
 
@@ -22,6 +24,12 @@ void DominantPlaneExtractor::shrinkPlanarPolygon(PlanarPolygon& planar_polygon, 
     Eigen::Vector3f p = transform * point.getVector3fMap();
     polygon.push_back(IntPoint(p[0] * SCALE, p[1] * SCALE));
     z = p[2];
+  }
+  // Check the orientation of the polygon and reverse if it is wrong.
+  if (!ClipperLib::Orientation(polygon))
+  {
+    PCL_WARN("[DominantPlaneExtractor::shrinkPlanarPolygon] Polygon has %zu points and its orientation is wrong, will reverse.\n", polygon.size());
+    std::reverse(polygon.begin(), polygon.end());
   }
   ROS_ASSERT_MSG(ClipperLib::Orientation(polygon) == true, "Polygon orientation is wrong.");
 

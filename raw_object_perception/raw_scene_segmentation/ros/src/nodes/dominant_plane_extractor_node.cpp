@@ -130,8 +130,12 @@ int main(int argc, char **argv)
 
   dpe = DominantPlaneExtractor::UPtr(new OrganizedDominantPlaneExtractor);
 
+  // Get service name from the parameter server.
+  ros::NodeHandle pn("~");
+  std::string service_name;
+  pn.param("extract_dominant_plane_service", service_name, std::string("extract_dominant_plane"));
   ros::NodeHandle node;
-  ros::ServiceServer extract_plane_service = node.advertiseService("extract_dominant_plane", extractPlaneCallback);
+  ros::ServiceServer extract_plane_service = node.advertiseService(service_name, extractPlaneCallback);
 
   ROS_INFO("Dominant plane extractor service started.");
 

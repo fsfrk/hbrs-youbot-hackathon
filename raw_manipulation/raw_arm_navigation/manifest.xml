@@ -23,9 +23,6 @@
   
   <depend package="control_msgs"/>
   <depend package="trajectory_msgs"/>
-  
-  <depend package="raw_script_server"/>
-    
 </package>
 
 

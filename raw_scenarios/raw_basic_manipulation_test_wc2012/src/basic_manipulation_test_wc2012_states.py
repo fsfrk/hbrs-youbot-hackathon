@@ -6,7 +6,7 @@ import smach
 import smach_ros
 
 
-class select_pose(smach.State):
+class select_base_pose(smach.State):
     def __init__(self, pose):
         smach.State.__init__(self, 
             outcomes=['succeeded'],
@@ -43,5 +43,39 @@ class select_recognized_object(smach.State):
         userdata.object_to_grasp = userdata.recognized_objects.pop() 
                 
         return 'succeeded'
+
+
+class get_obj_poses_for_goal_configuration(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, 
+            outcomes=['succeeded', 'configuration_poses_not_available'],
+            input_keys=['task_spec','obj_goal_configuration_poses'],
+            output_keys=['obj_goal_configuration_poses'])
+        
+    def execute(self, userdata):
+        
+        print userdata.task_spec.object_config 
+        
+        if (not rospy.has_param("/script_server/arm/" + userdata.task_spec.object_config)):
+            rospy.logerr("configuration <<" + userdata.task_spec.object_config + ">> NOT available on parameter server")
+            return 'configuration_poses_not_available'
+            
+        pose_names = rospy.get_param("/script_server/arm/" + userdata.task_spec.object_config)
+
+        print pose_names
+        
+        for pose_name in pose_names:
+            print "cfg pose: ", pose_name
+            userdata.obj_goal_configuration_poses.append(pose_name)
+    
+
+        userdata.obj_goal_configuration_poses.sort()
+        
+                
+        return 'succeeded'
+
+
+
+
 
 

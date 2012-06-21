@@ -60,7 +60,7 @@ target_link_libraries(online_dominant_plane_extractor_test scene_segmentation
 )
 
 #...: online_cluster_finder_test
-rosbuild_add_executable(online_cluster_finder_test src/online_cluster_finder_test.cpp
+rosbuild_add_executable(online_object_finder_test src/online_object_finder_test.cpp
 )
 
 #...: tabletop_cluster_extractor_test

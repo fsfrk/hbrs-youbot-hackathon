@@ -33,12 +33,11 @@ public:
     ROS_INFO("Object finder service started.");
     // Create TabletopClusterExtractor
     tce_ = std::unique_ptr<TabletopClusterExtractor>(new TabletopClusterExtractor(0.009,  // point min height
-                                                                                  1.000,  // point max height
+                                                                                  0.200,  // point max height
                                                                                   0.010,  // object min height
                                                                                   0.020,  // object cluster tolerance
                                                                                   20,     // min cluster size
                                                                                   5000)); // max cluster size
-    accumulation_duration_ = ros::Duration(7);
 
     srand(time(0));
     for (size_t i = 0; i < COLORS_NUM; ++i)
@@ -62,8 +61,11 @@ public:
     ros::Subscriber subscriber = node.subscribe(input_cloud_topic, 1, &ObjectFinderNode::cloudCallback, this);
 
     // Wait some time while data is being accumulated.
-    ros::Time timeout = ros::Time::now() + accumulation_duration_;
-    while (ros::Time::now() < timeout && ros::ok())
+    int accumulation_timeout;
+    pn.param("number_of_merges", merges_left_, 25);
+    pn.param("accumulation_timeout", accumulation_timeout, 40);
+    ros::Time timeout = ros::Time::now() + ros::Duration(accumulation_timeout);
+    while (merges_left_ > 0 && ros::Time::now() < timeout && ros::ok())
     {
       ros::spinOnce();
     }
@@ -71,17 +73,23 @@ public:
 
     // Pack the response
     response.stamp = ros::Time::now();
+    size_t rejected = 0;
     for (const auto& object : tracker_->getObjects())
     {
       raw_msgs::Object object_msg;
       PointCloud cloud;
       object->getPoints(cloud.points);
+      raw::BoundingBox box = raw::BoundingBox::create<PointT>(cloud.points, planar_polygon_->getCoefficients().head<3>());
+      if (!isValid(cloud.points, box))
+      {
+        rejected++;
+        continue;
+      }
       cloud.header.frame_id = frame_id_;
       cloud.header.stamp = ros::Time::now();
       cloud.width = cloud.points.size();
       cloud.height = 1;
       pcl::toROSMsg(cloud, object_msg.cluster);
-      raw::BoundingBox box = raw::BoundingBox::create<PointT>(cloud.points, planar_polygon_->getCoefficients().head<3>());
       geometry_msgs::Vector3 v;
       v.x = box.getLength();
       v.y = box.getWidth();
@@ -96,6 +104,7 @@ public:
       object_msg.pose.pose.position = center;
       response.objects.push_back(object_msg);
     }
+    ROS_INFO("Rejected %zu object candidates.", rejected);
     return true;
   }
 
@@ -133,6 +142,20 @@ public:
     }
   }
 
+  bool isValid(PointCloud::VectorType& points, raw::BoundingBox& box)
+  {
+    ros::NodeHandle pn("~");
+    int filter_min_points;
+    double filter_min_height;
+    pn.param("filter_min_points", filter_min_points, 140);
+    pn.param("filter_min_height", filter_min_height, 0.01);
+    if (points.size() < (unsigned int)filter_min_points)
+      return false;
+    if (box.getHeight() < filter_min_height)
+      return false;
+    return true;
+  }
+
   /// Cluster incoming point cloud and merge with existing clusters.
   void cloudCallback(const sensor_msgs::PointCloud2::ConstPtr &ros_cloud)
   {
@@ -147,12 +170,13 @@ public:
     tce_->setTablePolygon(planar_polygon_);
     tce_->extract(clusters);
 
-    ROS_INFO("Segmented %li clusters in the new point cloud.", clusters.size());
+    ROS_INFO("Segmented %zu clusters in the new point cloud.", clusters.size());
 
     for (const PointCloud::Ptr& cluster : clusters)
       tracker_->addCluster(cluster);
 
-    ROS_INFO("Object tracker has %li objects.", tracker_->getObjects().size());
+    merges_left_--;
+    ROS_INFO("Object tracker has %zu objects.", tracker_->getObjects().size());
 
     // Just in case someone is interested, publish clusters and bounding boxes..
     if (clusters_publisher_.getNumSubscribers())
@@ -225,7 +249,7 @@ private:
   PlanarPolygonPtr planar_polygon_;
 
   std::string frame_id_;
-  ros::Duration accumulation_duration_;
+  int merges_left_;
 
   static const size_t COLORS_NUM = 32;
   float COLORS[COLORS_NUM];
