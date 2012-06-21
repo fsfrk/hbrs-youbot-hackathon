@@ -49,12 +49,11 @@ public:
   //---------------------------------------------------------------------------
   raw_blob_detection( ros::NodeHandle &n ) : node_handler( n ), image_transporter( node_handler )
   {
-    background_image = cvLoadImage( "/home/bad-robot/ros/RoboCupAtWork/raw_object_perception/raw_blob_detection/src/background.png" );
+    background_image = cvLoadImage( "/home/atwork/RoboCupAtWork/raw_object_perception/raw_blob_detection/src/background.png" );
 
     //-------------------------------------------------------------------------
     //  Get all of the joint names for the YouBot arm as well as their limits.
     //-------------------------------------------------------------------------
-    /**
     XmlRpc::XmlRpcValue parameter_list;
     node_handler.getParam("/arm_1/arm_controller/joints", parameter_list);
     ROS_ASSERT(parameter_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
@@ -74,7 +73,6 @@ public:
       node_handler.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/max", joint_limits.max_position);
       arm_joint_limits_.push_back(joint_limits);
     }
-    */
     //------------------- END OF ARM INITILIZATION ----------------------------
 
     // Service commands to allow this node to be started and stopped externally
@@ -246,6 +244,42 @@ public:
           youbot_base_velocities.linear.y = move_speed; 
           base_velocities_publisher.publish( youbot_base_velocities ); 
         }
+
+        //---------------------------------------------------------------------
+        //-------------------- base movement control --------------------------
+        //---------------------------------------------------------------------
+        if( y_offset != 0 )
+        {
+          double move_speed = 0.0; 
+
+          if( y_offset >= 10 )
+          {
+            // move the robot base right
+            move_speed = -0.005; 
+            done_base_movement_adjustment = false; 
+          }
+          else if( y_offset <= -10 )
+          {
+            // move the robot left
+            move_speed = 0.005; 
+            done_base_movement_adjustment = false; 
+          }
+          else if( y_offset > -10 && y_offset < 10 )
+          {
+            move_speed = 0.0;
+            done_base_movement_adjustment = true;  
+          }
+          else
+          {
+            // should never happen but just in case.
+            move_speed = 0.0; 
+          }
+
+          // Prepare and then send the base movement commands.
+          youbot_base_velocities.linear.x = move_speed; 
+          base_velocities_publisher.publish( youbot_base_velocities ); 
+        }
+
         //------------------ END OF BASE MOVEMENT CONTROL ---------------------
 
         
