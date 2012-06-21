@@ -2,13 +2,13 @@
 <launch>
   
   <!-- Dominant plane extractor node -->
-  <node pkg="raw_scene_segmentation" type="dominant_plane_extractor_node" name="dominant_plane_extractor_node" output="screen" respawn="true" >
+  <node pkg="raw_scene_segmentation" type="dominant_plane_extractor_node" name="dominant_plane_extractor_node" output="screen" respawn="true" ns="raw_object_perception">
     <param name="min_z" type="double" value="0.7" />
     <param name="max_z" type="double" value="1.5" />
   </node>
 
   <!-- Object finder node -->
-  <node pkg="raw_object_tracking" name="object_finder_node" type="object_finder_node" output="screen" respawn="true" >
+  <node pkg="raw_object_tracking" name="object_finder_node" type="object_finder_node" output="screen" respawn="true"  ns="raw_object_perception">
     <param name="accumulation_duration" type="double" value="7.0" />
   </node>
 
