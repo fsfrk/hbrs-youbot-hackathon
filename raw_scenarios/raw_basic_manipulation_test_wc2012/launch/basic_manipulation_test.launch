@@ -13,7 +13,6 @@
 		<!-- manipulation -->
 		<include file="$(find raw_arm_navigation)/ros/launch/simple_manipulation.launch" />	
 	
-		
 		<!-- base placement -->
 		<include file="$(find raw_base_placement_to_platform_in_front)/launch/basescan_regression.launch" />
 		
@@ -25,8 +24,11 @@
 		<machine name="pc2" address="youbot-hbrs2-pc2" default="true"/>
 
 	    <include file="$(find raw_bringup)/components/cam3d.launch" />
+  	    <include file="$(find raw_usb_cam)/ros/launch/usb_cam.launch" />
 
 	    <include file="$(find raw_object_tracking)/ros/launch/perception.launch" />
-     
+	    <include file="$(find raw_blob_detection)/launch/raw_blob_detection.launch" />
+        
+         
    	</group>
 </launch>
