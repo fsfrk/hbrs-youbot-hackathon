@@ -31,7 +31,7 @@ if __name__ == '__main__':
     sss.move("arm","platform_intermediate")
     sss.move("arm","platform_right")
     
-    raw_input("Press Enter...")
+    raw_input("Press Enter to return to zero pose")
 
     sss.move("arm","platform_intermediate")
     sss.move("arm","zeroposition")
