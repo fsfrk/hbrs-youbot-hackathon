@@ -126,6 +126,8 @@ public:
       ROS_ERROR( "Error converting from ROS image message to OpenCV IplImage" );
     }
 
+    //    This takes a background image (the gripper on a white background) and removes
+    //  it from the current image (cv_image). The results are stored again in cv_image.
     cvSub( cv_image, background_image, cv_image, NULL ); 
 
     //  Obtain image properties that we require. 
