@@ -49,6 +49,8 @@ public:
   //---------------------------------------------------------------------------
   raw_blob_detection( ros::NodeHandle &n ) : node_handler( n ), image_transporter( node_handler )
   {
+    background_image = cvLoadImage( "background.png" ); 
+
     XmlRpc::XmlRpcValue parameter_list;
     node_handler.getParam("/arm_1/arm_controller/joints", parameter_list);
     ROS_ASSERT(parameter_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
@@ -123,6 +125,8 @@ public:
     {
       ROS_ERROR( "Error converting from ROS image message to OpenCV IplImage" );
     }
+
+    cvSub( cv_image, background_image, cv_image, NULL ); 
 
     //  Obtain image properties that we require. 
     master_image_width = cv_image->width; 
@@ -421,6 +425,9 @@ protected:
 
   // Node status variable;
   bool blob_detection_completed; 
+
+  // background Image.
+  IplImage* background_image; 
 };
 
 //------------------------------------------------------------------------ main
