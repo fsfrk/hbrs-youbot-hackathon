@@ -26,7 +26,7 @@
 
 	    <include file="$(find raw_bringup)/components/cam3d.launch" />
 
-	    <include file="$(find raw_object_tracking/ros/launch/perception.launch" />
+	    <include file="$(find raw_object_tracking)/ros/launch/perception.launch" />
      
    	</group>
 </launch>
