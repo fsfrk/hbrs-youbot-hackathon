@@ -48,7 +48,7 @@ class select_recognized_object(smach.State):
 class get_obj_poses_for_goal_configuration(smach.State):
     def __init__(self):
         smach.State.__init__(self, 
-            outcomes=['succeeded'],
+            outcomes=['succeeded', 'configuration_poses_not_available'],
             input_keys=['task_spec'],
             output_keys=['obj_goal_configuration_poses'])
         
@@ -56,36 +56,19 @@ class get_obj_poses_for_goal_configuration(smach.State):
         
         print userdata.task_spec.configuration 
         
-        userdata.obj_goal_configuration_poses = []
-                
-        return 'succeeded'
-
-class select_obj_goal_pose(smach.State):
-    def __init__(self):
-        smach.State.__init__(self, 
-            outcomes=['succeeded'],
-            input_keys=['obj_goal_configuration_poses'],
-            output_keys=['obj_goal_pose'])
+        if (not rospy.has_param("/script_server/arm/ + " userdata.task_spec.configuration):
+            rospy.logerr("configuration <<" + userdata.task_spec.configuration + ">> NOT available on parameter server")
+            return 'configuration_poses_not_available'
+            
+        pose_names = rospy.get_param(/script_server/arm/ + " userdata.task_spec.configuration)
         
-    def execute(self, userdata):
-        
-        print userdata.obj_goal_configuration_poses.pop() 
-        
-        userdata.obj_goal_pose = []
+        for pose in pose_names
+            userdata.obj_goal_configuration_poses.append(pose)
                 
         return 'succeeded'
 
 
-class place_obj_on_goal_pose(smach.State):
-    def __init__(self):
-        smach.State.__init__(self, 
-            outcomes=['succeeded'],
-            input_keys=['obj_goal_pose'])
-        
-    def execute(self, userdata):
-        
-        print userdata.obj_goal_pose 
-    
-                
-        return 'succeeded'
+
+
+
 

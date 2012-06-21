@@ -27,7 +27,7 @@ def main():
     SM.userdata.recognized_objects = []
     SM.userdata.object_to_grasp = 0
     
-    SM.userdata.rear_platform_free_poses = ['pltf_pose_1', 'pltf_pose_2', 'pltf_pose_3']
+    SM.userdata.rear_platform_free_poses = ['platform_right', 'platform_centre', 'platform_left']
     SM.userdata.rear_platform_occupied_poses = []
     
     SM.userdata.obj_goal_configuration_poses = []
@@ -72,7 +72,7 @@ def main():
         smach.StateMachine.add('PLACE_BASE_IN_FRONT_OF_OBJECT', adjust_pose_wrt_recognized_obj(),
             transitions={'succeeded':'GRASP_OBJ_WITH_VISUAL_SERVERING',
                         'failed':'PLACE_BASE_IN_FRONT_OF_OBJECT'})
-        '''
+        
         #ToDo: implement state
         smach.StateMachine.add('GRASP_OBJ_WITH_VISUAL_SERVERING', grasp_obj_with_visual_servering(),
             transitions={'succeeded':'overall_success',
@@ -83,34 +83,31 @@ def main():
             transitions={'succeeded':'SELECT_RECOGNIZED_OBJECT',
                         'failed':'PLACE_OBJ_ON_REAR_PLATFORM'})
         
-        
-        
         # go to the destination pose and place the objects in the desired configuration on the platform
         smach.StateMachine.add('SELECT_DESTINATION_POSE', select_base_pose("destination_pose"),
             transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATOIN'})
-
-       
+        
+        '''
         smach.StateMachine.add('MOVE_TO_DESTINATION_POSE', approach_pose(),
             transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATOIN',
                         'failed':'MOVE_TO_DESTINATION_POSE'})
+        '''                
        
         #ToDo: implement state
-        smach.StateMachine.add('GET_OBJ_POSES_FOR_CONFIGURATOIN', get_obj_poses_for_goal_configuration(),
-            transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF'})
+        smach.StateMachine.add('GET_OBJ_POSES_FOR_CONFIGURATION', get_obj_poses_for_goal_configuration(),
+            transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF',
+                         'configuration_poses_not_available:overall_failed'})
         
         #ToDo: implement state
         smach.StateMachine.add('GRASP_OBJECT_FROM_PLTF', grasp_obj_from_pltf(),
             transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATOIN',
                         'no_more_obj_on_pltf':'SELECT_FINAL_POSE'})
         
-        #ToDo: implement state
-        smach.StateMachine.add('SELECT_OBJ_GOAL_POSE', select_obj_goal_pose(),
-            transitions={'succeeded':'PLACE_OBJ_ON_GOAL_POSE'})
-        
-        smach.StateMachine.add('PLACE_OBJ_ON_GOAL_POSE', place_obj_on_goal_pose(),
-            transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF'})
-        
-        
+        smach.StateMachine.add('PLACE_OBJ_IN_CONFIGURATION', place_object_in_configuration(),
+            transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATOIN',
+                        'no_more_cfg_poses':'SELECT_FINAL_POSE'})
+               
+        '''
         # if everything is done move to final pose
         smach.StateMachine.add('SELECT_FINAL_POSE', select_base_pose("final_pose"),
             transitions={'succeeded':'MOVE_TO_FINAL_POSE'})
