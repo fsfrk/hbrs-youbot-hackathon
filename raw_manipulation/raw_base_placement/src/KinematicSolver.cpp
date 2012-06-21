@@ -7,7 +7,9 @@
 #include <iostream>
 using namespace std;
 
+#include "ros/ros.h"
 #include "KinematicSolver.h"
+
 
 
 KinematicSolver::KinematicSolver()
@@ -117,11 +119,11 @@ float t,t1,t2,tempt2,t3,t4,t5;
 
 if(isValid == true)
     {
-        tempt2=deg2rad(180)+prefConfig(1);
-        t2 = tempt2>deg2rad(180)?deg2rad(360)-tempt2:tempt2;
-        t2 = 0;
-        t3 = prefConfig(2);
-        t4 = prefConfig(3);
+        tempt2=deg2rad(180)+prefConfig(3);
+        t2 = tempt2>deg2rad(180)?(deg2rad(360)-tempt2):tempt2;
+        ROS_INFO("t2 = %f",t2);
+        t3 = prefConfig(5);
+        t4 = prefConfig(6);
         t = atan2(GoalTR(1,2),GoalTR(0,2));
     }
 else

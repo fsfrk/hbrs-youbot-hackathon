@@ -60,7 +60,19 @@ int main(int argc, char **argv)
 
   ros::ServiceServer service = n.advertiseService("calculateOptimalBasePose", calculateOptimalBasePose);  
 
-  /*
+/*
+  JointParameter prefConfig(1,8);
+    
+      XmlRpc::XmlRpcValue joint_values;
+      n.getParam("/script_server/arm/pregrasp_laying_mex",joint_values);
+      cout << "The j value is "<<joint_values[1]<<endl;
+      prefConfig << 0,0,0,(double) joint_values[1],(double) joint_values[2],(double) joint_values[3],(double) joint_values[4],(double) joint_values[5];
+
+        ROS_INFO("prefConfig(4) = %f",prefConfig(3));   
+        float tempt2=deg2rad(180)+prefConfig(3);
+        float t2 = tempt2>deg2rad(180)?(deg2rad(360)-tempt2):tempt2;
+        ROS_INFO("t2 = %f",t2);
+  
   HomogenousTransform A = ht_from_xyzrpy(0.5,0.5,0.5,0.5,0.5,0.5);
   //cout << A.rotation().transpose();
   Pose Goal;
