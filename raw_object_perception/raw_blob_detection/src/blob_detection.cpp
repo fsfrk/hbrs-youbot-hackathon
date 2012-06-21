@@ -54,7 +54,6 @@ public:
     //-------------------------------------------------------------------------
     //  Get all of the joint names for the YouBot arm as well as their limits.
     //-------------------------------------------------------------------------
-    /**
     XmlRpc::XmlRpcValue parameter_list;
     node_handler.getParam("/arm_1/arm_controller/joints", parameter_list);
     ROS_ASSERT(parameter_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
@@ -74,7 +73,6 @@ public:
       node_handler.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/max", joint_limits.max_position);
       arm_joint_limits_.push_back(joint_limits);
     }
-    */
     //------------------- END OF ARM INITILIZATION ----------------------------
 
     // Service commands to allow this node to be started and stopped externally
