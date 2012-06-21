@@ -14,6 +14,11 @@ position: [2.9501266782436075, 0.36436433257307771, -3.3162494971661176, 0.45019
 PLATFORM POSE INTERMEDIATE
 name: ['arm_joint_1', 'arm_joint_2', 'arm_joint_3', 'arm_joint_4', 'arm_joint_5', 'gripper_finger_joint_l', 'gripper_finger_joint_r']
 position: [2.9501266782436075, 0.36436433257307771, -3.3162494971661176, 0.45019907681618804, 2.9518139086426576, 0.0, 0.0]
+NEW INTERMEDIATE PLATFORM POSE
+name: ['arm_joint_1', 'arm_joint_2', 'arm_joint_3', 'arm_joint_4', 'arm_joint_5', 'gripper_finger_joint_l', 'gripper_finger_joint_r']
+position: [2.950086401414715, 1.1783489752767484, -3.3099348959324022, 0.44033182101688489, 2.9517032891830244, 0.0, 0.0]
+
+
 
 NEW ZERO POSE
 name: ['arm_joint_1', 'arm_joint_2', 'arm_joint_3', 'arm_joint_4', 'arm_joint_5', 'gripper_finger_joint_l', 'gripper_finger_joint_r']
