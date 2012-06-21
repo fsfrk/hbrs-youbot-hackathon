@@ -43,7 +43,7 @@ class raw_blob_detection
 //-----------------------------------------------------------------------------
 public:
 
-  //------------------------------------------------------------ raw_blob_detection
+  //-------------------------------------------------------- raw_blob_detection
   //---------------------------------------------------------------------------
   //    This function is used for all of the incoming and outgoing ROS messages
   //---------------------------------------------------------------------------
@@ -77,7 +77,7 @@ public:
     ROS_INFO( "Blob Detection Started" );
   }
 
-  //----------------------------------------------------------- ~raw_blob_detection
+  //------------------------------------------------------- ~raw_blob_detection
   //---------------------------------------------------------------------------
   //   Standard Destructor.
   //--------------------------------------------------------------------------- 
@@ -364,6 +364,9 @@ public:
     // Turn off the velocity publishers for the YouBot Arm & Base.
     arm_velocities_publisher.shutdown(); 
     base_velocities_publisher.shutdown(); 
+
+    // Shut down any open windows.
+    cvDestroyAllWindows(); 
 
     ROS_INFO("Blob Detection Disabled");
 
