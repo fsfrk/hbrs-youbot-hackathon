@@ -132,31 +132,34 @@ public:
       ROS_ERROR( "Error converting from ROS image message to OpenCV IplImage" );
     }
 
-    IplImage* temp_img = cvCreateImage( cvGetSize( background_image ), IPL_DEPTH_8U, 3); 
-
-    //    This takes a background image (the gripper on a white background) and removes
-    //  it from the current image (cv_image). The results are stored again in cv_image.
-    cvSub( cv_image, background_image, temp_img, NULL ); 
+    IplImage* background_threshold = cvCreateImage( cvGetSize( background_image ), 8, 1 ); 
+    cvCvtColor( background_image, background_threshold, CV_BGR2GRAY ); 
+    cvSmooth( background_threshold, background_threshold, CV_GAUSSIAN, 7, 7 );
+    cvThreshold( background_threshold, background_threshold, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU );   
 
     //  Obtain image properties that we require. 
     master_image_width = cv_image->width; 
     master_image_height = cv_image->height; 
 
-    IplImage* gray = cvCreateImage( cvGetSize( cv_image ), 8, 1 );
-    cvCvtColor( cv_image, gray, CV_BGR2GRAY );
-
-    cvSmooth( cv_image, cv_image, CV_GAUSSIAN, 7, 7 );
-
     blob_image = cvCreateImage( cvGetSize( cv_image ), 8, 3 ); 
 
+    IplImage* gray = cvCreateImage( cvGetSize( cv_image ), 8, 1 );
+    cvCvtColor( cv_image, gray, CV_BGR2GRAY );
+    cvSmooth( gray, gray, CV_GAUSSIAN, 7, 7 );
     cvThreshold( gray, gray, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU );
+    
+    IplImage* temp_img = cvCreateImage( cvGetSize( background_image ), 8, 1); 
+
+    //    This takes a background image (the gripper on a white background) and removes
+    //  it from the current image (cv_image). The results are stored again in cv_image.
+    cvSub( gray, background_threshold, gray, NULL );
 
     // Find any blobs that are not white. 
     CBlobResult blobs = CBlobResult( gray, NULL, 0 );
 
     //  Make sure they are big enough to really be considered.
     //  In this case we will use an area of AT LEAST 100 px. 
-    int minimum_blob_area = 100; 
+    int minimum_blob_area = 300; 
     blobs.Filter( blobs, B_EXCLUDE, CBlobGetArea(), B_LESS, minimum_blob_area ); 
 
     int blob_number = blobs.GetNumBlobs(); 
@@ -330,13 +333,11 @@ public:
     std::string rot_str = "Rotation: "; 
     rot_str += boost::lexical_cast<std::string>( rot_offset ); 
 
-    cvPutText( blob_image, x_str.c_str(), cvPoint( 50, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
-    cvPutText( blob_image, y_str.c_str(),  cvPoint( 200, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
+    cvPutText( blob_image, x_str.c_str(), cvPoint( 10, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
+    cvPutText( blob_image, y_str.c_str(),  cvPoint( 185, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
     cvPutText( blob_image, rot_str.c_str(), cvPoint( 350, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
 
-    cvShowImage( "Found Blobs", blob_image );
-    //cvShowImage( "Background", background_image );  
-    //cvShowImage( "Background Removed", temp_img );                                
+    cvShowImage( "Found Blobs", blob_image );                             
 
     //-------------------------------------------------------------------------
     //----------------------- END OF VISUAL OUTPUT ----------------------------
