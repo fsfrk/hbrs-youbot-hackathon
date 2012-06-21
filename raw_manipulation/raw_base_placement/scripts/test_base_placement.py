@@ -8,7 +8,7 @@ import std_srvs.srv
 import tf
 
 from simple_script_server import *
-sss = simple_script_server()
+##sss = simple_script_server()
         
 # main
 def main():
@@ -44,7 +44,7 @@ def main():
 
     ## DO MOVEMENT TO CALCULATED BASE POSE
     (roll, pitch, yaw) = tf.transformations.euler_from_quaternion([base_pose.base_pose.pose.orientation.x, base_pose.base_pose.pose.orientation.y, base_pose.base_pose.pose.orientation.z, base_pose.base_pose.pose.orientation.w])
-    sss.move("base", [base_pose.base_pose.pose.position.x, base_pose.base_pose.pose.position.y, yaw])
+    ##sss.move("base", [base_pose.base_pose.pose.position.x, base_pose.base_pose.pose.position.y, yaw])
     ##sss.move("base", [1.24,0,0])
 
 
