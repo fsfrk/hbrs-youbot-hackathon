@@ -38,10 +38,6 @@ public:
                                                                                   0.020,  // object cluster tolerance
                                                                                   20,     // min cluster size
                                                                                   5000)); // max cluster size
-                                                                                  
-    double accumulation_duration;
-    pn.param("accumulation_duration", accumulation_duration, 7.0);
-    accumulation_duration_ = ros::Duration(accumulation_duration);
 
     srand(time(0));
     for (size_t i = 0; i < COLORS_NUM; ++i)
@@ -65,9 +61,10 @@ public:
     ros::Subscriber subscriber = node.subscribe(input_cloud_topic, 1, &ObjectFinderNode::cloudCallback, this);
 
     // Wait some time while data is being accumulated.
-    //ros::Time timeout = ros::Time::now() + accumulation_duration_;
-    ros::Time timeout = ros::Time::now() + ros::Duration(30);//accumulation_duration_;
-    pn.param("number_of_merges", merges_left_, 20);
+    int accumulation_timeout;
+    pn.param("number_of_merges", merges_left_, 25);
+    pn.param("accumulation_timeout", accumulation_timeout, 40);
+    ros::Time timeout = ros::Time::now() + ros::Duration(accumulation_timeout);
     while (merges_left_ > 0 && ros::Time::now() < timeout && ros::ok())
     {
       ros::spinOnce();
@@ -149,9 +146,12 @@ public:
   {
     ros::NodeHandle pn("~");
     int filter_min_points;
-    pn.param("filter_min_points", filter_min_points, 150);
-    
+    double filter_min_height;
+    pn.param("filter_min_points", filter_min_points, 140);
+    pn.param("filter_min_height", filter_min_height, 0.01);
     if (points.size() < (unsigned int)filter_min_points)
+      return false;
+    if (box.getHeight() < filter_min_height)
       return false;
     return true;
   }
@@ -249,7 +249,6 @@ private:
   PlanarPolygonPtr planar_polygon_;
 
   std::string frame_id_;
-  ros::Duration accumulation_duration_;
   int merges_left_;
 
   static const size_t COLORS_NUM = 32;

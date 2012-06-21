@@ -7,5 +7,12 @@ extract_dominant_plane_service: extract_dominant_plane
 found_clusters_topic: found_clusters
 bounding_boxes_topic: bounding_boxes
 
-# How long to accumulate point clouds
-accumulation_duration: 7.0
+# How many clouds to accumulate
+number_of_merges: 25
+
+# Spend at most this many seconds accumulating clouds
+accumulation_timeout: 40
+
+# Filtering parameters
+filter_min_points: 140
+filter_min_height: 0.01
