@@ -12,8 +12,8 @@ from simple_script_server import *
 sss = simple_script_server()
 
 def main():
-    rospy.init_node('script_server_test')
-    sss.move("gripper", "close")
+    rospy.init_node('open_gripper')
+    sss.move("gripper", "open")
     rospy.sleep(1)
 
 ## Main routine for running the script server

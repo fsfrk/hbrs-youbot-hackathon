@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
 <launch>
 	<!-- cluster bounding box finder-->
-	<node pkg="raw_blob_detection" type="raw_blob_detection" name="raw_blob_detection" ns="raw_blob_detection" respawn="false"/>
+	<node pkg="raw_blob_detection" type="raw_blob_detection" name="raw_blob_detection" ns="raw_blob_detection" respawn="true"/>
 </launch>
