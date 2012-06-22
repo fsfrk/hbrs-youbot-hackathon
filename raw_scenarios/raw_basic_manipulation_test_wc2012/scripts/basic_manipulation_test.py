@@ -79,7 +79,7 @@ def main():
         
         
         smach.StateMachine.add('PLACE_OBJ_ON_REAR_PLATFORM', place_obj_on_rear_platform(),
-            transitions={'succeeded':'GRASP_OBJ_WITH_VISUAL_SERVERING',
+            transitions={'succeeded':'SELECT_RECOGNIZED_OBJECT',
                         'no_more_free_poses':'SELECT_DESTINATION_POSE',
                         'failed':'PLACE_OBJ_ON_REAR_PLATFORM'})
         
@@ -88,8 +88,12 @@ def main():
             transitions={'succeeded':'MOVE_TO_DESTINATION_POSE'})
         
         smach.StateMachine.add('MOVE_TO_DESTINATION_POSE', approach_pose(),
-            transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATION',
+            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM',
                         'failed':'MOVE_TO_DESTINATION_POSE'})
+
+        smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM', adjust_pose_wrt_platform(),
+            transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATION',
+                        'failed':'ADJUST_POSE_WRT_PLATFORM'})
         
        
         #ToDo: implement state
@@ -115,7 +119,7 @@ def main():
             transitions={'succeeded':'MOVE_ARM_TO_INIT'})
 
         smach.StateMachine.add('MOVE_ARM_TO_INIT', move_arm("initposition"),
-            transitions={'succeeded':'overall_success'})
+            transitions={'succeeded':'MOVE_TO_FINAL_POSE'})
                 
         smach.StateMachine.add('MOVE_TO_FINAL_POSE', approach_pose(),
             transitions={'succeeded':'overall_success',
