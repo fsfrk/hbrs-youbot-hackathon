@@ -9,8 +9,8 @@ from raw_srvs.srv import *
 SERVICE_NAME = '/find_objects'
 
 class Dataset:
-    def __init__(self):
-        self.file = open('dataset.txt', 'a')
+    def __init__(self, id):
+        self.file = open('data%i.txt' % id, 'a')
     def __del__(self):
         self.file.close()
     def store(self, dim, pts, object_type):
@@ -19,11 +19,14 @@ class Dataset:
 def get_one_sample():
     rospy.loginfo('Sending request...')
     response = get_objects()
-    if not len(response.objects) == 1:
+    if not len(response.objects) == 2:
         rospy.loginfo('Found more than one object.')
         return None
     else:
-        return response.objects[0]
+        if response.objects[0].cluster.width < 5000:
+            return response.objects[0]
+        else:
+            return response.objects[1]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='''
@@ -33,7 +36,7 @@ if __name__ == '__main__':
     parser.add_argument('object_type', help='type of the object we will learn')
     args = parser.parse_args()
 
-    dataset = Dataset()
+    dataset = Dataset(int(args.object_type))
     rospy.loginfo('Waiting for find_objects service...')
     rospy.wait_for_service(SERVICE_NAME)
     get_objects = rospy.ServiceProxy(SERVICE_NAME, GetObjects)
