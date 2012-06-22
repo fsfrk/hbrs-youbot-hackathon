@@ -5,6 +5,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <geometry_msgs/Point32.h>
 #include <pcl/filters/passthrough.h>
+#include <visualization_msgs/Marker.h>
 
 #include <raw_srvs/GetDominantPlane.h>
 #include "dominant_plane_extractor.h"
@@ -14,9 +15,51 @@ DominantPlaneExtractor::UPtr dpe;
 PlanarPolygon planar_polygon;
 bool waiting_for_cloud;
 ros::Time stamp;
+ros::Publisher marker_publisher;
 
 int skip_clouds;
 int extraction_retries;
+
+/** For the given PlanarPolygon draw a polyline through it points and also display the points themselves. */
+void publishPlanarPolygon(const PlanarPolygon& polygon, const std_msgs::Header& header)
+{
+  const auto& contour = polygon.getContour();
+  if (!contour.size())
+    return;
+
+  visualization_msgs::Marker lines;
+  lines.header = header;
+  lines.type = visualization_msgs::Marker::LINE_LIST;
+  lines.action = visualization_msgs::Marker::ADD;
+  lines.scale.x = 0.015;
+  lines.scale.y = 0.015;
+  lines.color.a = 1.0;
+  lines.ns = "planar_polygon";
+  lines.id = 1;
+  lines.color.r = 0.2f;
+  lines.color.g = 1.0f;
+  lines.color.b = 0.1f;
+
+  geometry_msgs::Point first_point;
+  first_point.x = contour[0].x;
+  first_point.y = contour[0].y;
+  first_point.z = contour[0].z;
+  lines.points.push_back(first_point);
+
+  for (size_t i = 1; i < contour.size(); i++)
+  {
+    const auto& point = contour[i];
+    geometry_msgs::Point pt;
+    pt.x = point.x;
+    pt.y = point.y;
+    pt.z = point.z;
+    lines.points.push_back(pt);
+    lines.points.push_back(pt);
+  }
+
+  lines.points.push_back(first_point);
+  marker_publisher.publish(lines);
+}
 
 void cloudCallback(const sensor_msgs::PointCloud2::ConstPtr &ros_cloud)
 {
@@ -70,6 +113,7 @@ void cloudCallback(const sensor_msgs::PointCloud2::ConstPtr &ros_cloud)
     return;
   }
 
+  publishPlanarPolygon(planar_polygon, cloud->header);
   // Signal that the processing is done.
   waiting_for_cloud = false;
   stamp = cloud->header.stamp;
@@ -136,6 +180,7 @@ int main(int argc, char **argv)
   pn.param("extract_dominant_plane_service", service_name, std::string("extract_dominant_plane"));
   ros::NodeHandle node;
   ros::ServiceServer extract_plane_service = node.advertiseService(service_name, extractPlaneCallback);
+  marker_publisher = node.advertise<visualization_msgs::Marker>("dominant_plane", 1);
 
   ROS_INFO("Dominant plane extractor service started.");
 
