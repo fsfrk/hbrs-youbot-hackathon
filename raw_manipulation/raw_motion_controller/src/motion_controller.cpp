@@ -3,7 +3,6 @@
 #include <iostream>
 #include <sstream>
 #include <raw_srvs/SetPoseStamped.h>
-#include <raw_srvs/MoveOptimalBase.h>
 #include <tf/transform_datatypes.h>
 #include <LinearMath/btMatrix3x3.h>
 #include <XmlRpcValue.h>

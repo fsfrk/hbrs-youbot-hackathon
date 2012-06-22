@@ -6,6 +6,7 @@ import smach
 import smach_ros
 import actionlib
 import raw_base_placement_to_platform_in_front.msg
+import raw_srvs.srv
 
 from simple_script_server import *
 sss = simple_script_server()
@@ -70,13 +71,36 @@ class adjust_pose_wrt_recognized_obj(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded', 'failed'], 
-                             input_keys=['object_to_grasp'])
-
+                             input_keys=['object_to_grasp'], 
+                             output_keys=['object_base_pose'])
+        
+        self.base_placement_srv = rospy.ServiceProxy('/raw_base_placement/calculateOptimalBasePose', raw_srvs.srv.GetPoseStamped) 
+    
     def execute(self, userdata):
         
-        print userdata.object_to_grasp
+        rospy.loginfo("wait for service: /raw_base_placement/calculateOptimalBasePose")   
+        rospy.wait_for_service('/raw_base_placement/calculateOptimalBasePose', 30)
+
+    
+        print "OBJ POSE: ", userdata.object_to_grasp
+        # call base placement service
+
+        try:
+            userdata.object_base_pose = self.base_placement_srv(userdata.object_to_grasp.pose)
+        except:
+            rospy.logerr("could not execute service <</raw_base_placement/calculateOptimalBasePose>>")
+            return 'failed'
+
+        print "BASE_POSE", userdata.object_base_pose
+
+        x = userdata.object_base_pose.pose.pose.position.x
+        y = userdata.object_base_pose.pose.pose.position.y
+        (roll, pitch, yaw) = tf.transformations.euler_from_quaternions([userdata.object_base_pose.pose.pose.quaternions.x, userdata.object_base_pose.pose.pose.quaternions.y, userdata.object_base_pose.pose.pose.quaternions.z, userdata.object_base_pose.pose.pose.quaternions.w])        
+
+        sss.move("base", [x, y, yaw])
+        
+        
+
+
         
         return 'succeeded'
-        
-                
-        
