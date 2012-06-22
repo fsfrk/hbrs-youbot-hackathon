@@ -9,21 +9,21 @@
 		<machine name="pc1" address="youbot-hbrs2-pc1" default="true"/>
 
 		<!-- navigation -->
-		<include file="$(find raw_2dnav)/ros/launch/2dnav_omni.launch" />
+		<include file="$(find raw_2dnav_omni)/ros/launch/2dnav.launch" />
 
 		<!-- manipulation -->
 		<include file="$(find raw_arm_navigation)/ros/launch/simple_manipulation.launch" />	
 	
 		<!-- base placement -->
 		<include file="$(find raw_base_placement_to_platform_in_front)/launch/basescan_regression.launch" />
-	        <!--include file="$(find raw_base_placement)/launch/baseplacement.launch" /-->
+        <!--include file="$(find raw_base_placement)/launch/baseplacement.launch" /-->
 		
 		<!-- script server -->
 		<include file="$(find raw_script_server)/launch/script_server.launch" />
 	</group>
 
 	<group>
-		<machine name="pc2" address="youbot-hbrs2-pc2" default="true"/>
+	    <machine name="pc2" address="youbot-hbrs2-pc2" default="true"/>
 
 	    <include file="$(find raw_bringup)/components/cam3d.launch" />
   	    <include file="$(find raw_usb_cam)/ros/launch/usb_cam.launch" />
