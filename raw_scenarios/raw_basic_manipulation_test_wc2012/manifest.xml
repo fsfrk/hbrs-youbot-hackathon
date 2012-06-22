@@ -24,7 +24,7 @@
   <depend package="raw_usb_cam" />
   <depend package="raw_blob_detection" />
   <depend package="raw_base_placement" />
-
+  <depend package="raw_2dnav_omni"/>
 
   
 </package>
