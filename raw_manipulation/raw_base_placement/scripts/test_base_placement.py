@@ -26,8 +26,8 @@ def main():
     rospy.wait_for_service('/raw_base_placement/calculateOptimalBasePose', 30)
 
     obj_pose = geometry_msgs.msg.PoseStamped()
-    obj_pose.pose.position.x = 1.7
-    obj_pose.pose.position.y = 0.5
+    obj_pose.pose.position.x = 6.59999
+    obj_pose.pose.position.y = 0.732
     obj_pose.pose.position.z = 0.2
     quat = tf.transformations.quaternion_from_euler(0,0,0)
     obj_pose.pose.orientation.x = quat[0]

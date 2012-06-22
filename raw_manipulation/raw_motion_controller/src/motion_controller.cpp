@@ -17,7 +17,7 @@
 
 using namespace std;
 
-const double Velocity = 0.5;
+const double Velocity = 0.1;
 
 
 class BaseMotionController
@@ -84,7 +84,7 @@ class BaseMotionController
    void movebase()
    {
       bool xstatus = moveX();
-      //bool ystatus = moveY();
+      bool ystatus = moveY();
 
    } 
    bool moveX()
@@ -104,7 +104,7 @@ ROS_INFO("here");
         {
 ROS_INFO("run");
             float valuediff = (x_currentodom-x_initodom);
-            if( abs(valuediff) >= xval) 
+            if( abs(valuediff) >= abs(xval)) 
             {
                isReached =true; 
             }
@@ -138,7 +138,7 @@ ROS_INFO("run");
         {
          ROS_INFO("Run");  
             float valuediff = (y_currentodom-y_initodom);
-            if( abs(valuediff) >= yval) 
+            if( abs(valuediff) >= abs(yval)) 
             {
                isReached =true; 
             }
