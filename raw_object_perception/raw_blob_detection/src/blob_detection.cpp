@@ -114,6 +114,7 @@ public:
 
     bool done_rotational_adjustment = false; 
     bool done_base_movement_adjustment = false; 
+    bool done_y_base_movement_adjustment = false; 
 
     IplImage* cv_image = NULL; 
     IplImage* blob_image = NULL; 
@@ -212,7 +213,7 @@ public:
         //---------------------------------------------------------------------
         //-------------------- base movement control --------------------------
         //---------------------------------------------------------------------
-        if( x_offset != 0 )
+        if( done_base_movement_adjustment == false )
         {
           double move_speed = 0.0; 
 
@@ -223,7 +224,7 @@ public:
             move_speed = -0.005; 
             done_base_movement_adjustment = false; 
           }
-          else if( x_offset <= -105 )
+          else if( x_offset <= -15 )
           {
             // move the robot left
             move_speed = 0.005; 
@@ -248,26 +249,26 @@ public:
         //---------------------------------------------------------------------
         //-------------------- base movement control --------------------------
         //---------------------------------------------------------------------
-        if( y_offset != 0 )
+        if( done_y_base_movement_adjustment == false )
         {
           double move_speed = 0.0; 
 
-          if( y_offset >= 95 )
+          if( y_offset >= 85 )
           {
             // move the robot base right
             move_speed = -0.005; 
-            done_base_movement_adjustment = false; 
+            done_y_base_movement_adjustment = false; 
           }
-          else if( y_offset <= 75 )
+          else if( y_offset <= 65 )
           {
             // move the robot left
             move_speed = 0.005; 
-            done_base_movement_adjustment = false; 
+            done_y_base_movement_adjustment = false; 
           }
           else if( y_offset > -10 && y_offset < 10 )
           {
             move_speed = 0.0;
-            done_base_movement_adjustment = true;  
+            done_y_base_movement_adjustment = true;  
           }
           else
           {
@@ -286,7 +287,7 @@ public:
         //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
         //---------------------------------------------------------------------
-        if( rot_offset != 90 || rot_offset != 270 )
+        if( done_rotational_adjustment == false )
         {
           double rotational_speed = 0.0; 
 
@@ -330,7 +331,7 @@ public:
         }
         //------------------- END OF ARM ROTATION CONTROL ---------------------
 
-        if( done_rotational_adjustment == true && done_base_movement_adjustment == true )
+        if( done_rotational_adjustment == true && done_base_movement_adjustment == true && done_y_base_movement_adjustment == true )
         {
           blob_detection_completed = true; 
           ROS_DEBUG( "Graping position has been reached." ); 
