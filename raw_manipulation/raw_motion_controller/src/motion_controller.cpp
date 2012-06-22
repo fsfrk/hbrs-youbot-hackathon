@@ -72,7 +72,7 @@ class BaseMotionController
         yawval = yaw;
         // Velocity control for the YouBot base.
         base_velocities_publisher = node_handler.advertise<geometry_msgs::Twist>( "/cmd_vel", 1 );
-        base_odom = node_handler.subscribe("/odom", 1000, &BaseMotionController::OdomCallback, this);
+        base_odom = node_handler.subscribe("/odom", 1, &BaseMotionController::OdomCallback, this);
 
    }
    ~BaseMotionController()

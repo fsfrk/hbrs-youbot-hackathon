@@ -27,7 +27,7 @@ def main():
 
     obj_pose = geometry_msgs.msg.PoseStamped()
     obj_pose.pose.position.x = 1.7
-    obj_pose.pose.position.y = 0.0
+    obj_pose.pose.position.y = 0.5
     obj_pose.pose.position.z = 0.2
     quat = tf.transformations.quaternion_from_euler(0,0,0)
     obj_pose.pose.orientation.x = quat[0]
