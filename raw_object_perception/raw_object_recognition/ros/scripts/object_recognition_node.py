@@ -5,14 +5,14 @@ import argparse
 import numpy as np
 import mlpy
 import roslib; roslib.load_manifest('raw_object_recognition')
-
+import sys
 from raw_srvs.srv import *
 import rospy
 
 pca = None
 svm = None
 
-NAMES = ['Big nut', 'Big profile', 'Small profile', 'Small screw', 'Tube', 'Small nut']
+NAMES = ['Big nut', 'Big profile', 'Small profile', 'Small screw', 'Tube', 'Small nut', 'Big screw']
 
 def recognize(request):
     global pca
@@ -31,8 +31,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='''
     Object recognition node. Provides a service.
     ''')
-    parser.add_argument('pca_svm', help='path to a file where PCA and SVM are stored')
-    args = parser.parse_args()
+    #parser.add_argument('pca_svm', help='path to a file where PCA and SVM are stored')
+    #args = parser.parse_args()
 
     rospy.init_node('object_recognition_node')
     s = rospy.Service('recognize_object', RecognizeObject, recognize)
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     '''
     global pca
     global svm
-    data = np.loadtxt('alldata.txt', delimiter=' ')
+    data = np.loadtxt(sys.argv[1], delimiter=' ')
     x, y = data[:, :4], data[:, 4].astype(np.int)
     pca = mlpy.PCA(whiten=True)
     pca.learn(x)
