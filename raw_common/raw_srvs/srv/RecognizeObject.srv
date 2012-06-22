@@ -1,0 +1,6 @@
+# Dimensions of the bounding box, sorted in descending order
+geometry_msgs/Vector3Stamped dimensions
+# Number of points in cluster
+uint32 points
+---
+string name

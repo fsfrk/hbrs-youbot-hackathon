@@ -1,0 +1,16 @@
+<package>
+  <description brief="raw_object_recognition">
+
+     raw_object_recognition
+
+  </description>
+  <author>Sergey</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_object_recognition</url>
+  <depend package="rospy"/>
+  <depend package="raw_srvs"/>
+
+</package>
+
+
