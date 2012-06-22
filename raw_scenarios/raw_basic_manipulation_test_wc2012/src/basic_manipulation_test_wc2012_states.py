@@ -5,6 +5,8 @@ import rospy
 import smach
 import smach_ros
 
+from simple_script_server import *
+sss = simple_script_server()
 
 class select_base_pose(smach.State):
     def __init__(self, pose):
@@ -54,6 +56,7 @@ class get_obj_poses_for_goal_configuration(smach.State):
         
     def execute(self, userdata):
         
+        sss.move("gripper","open")
         print userdata.task_spec.object_config 
         
         if (not rospy.has_param("/script_server/arm/" + userdata.task_spec.object_config)):
@@ -66,7 +69,7 @@ class get_obj_poses_for_goal_configuration(smach.State):
         
         for pose_name in pose_names:
             print "cfg pose: ", pose_name
-            userdata.obj_goal_configuration_poses.append(pose_name)
+            userdata.obj_goal_configuration_poses.append((userdata.task_spec.object_config + "/" + pose_name))
     
 
         userdata.obj_goal_configuration_poses.sort()

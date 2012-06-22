@@ -19,6 +19,7 @@
   <depend package="roscpp"/>
   <depend package="sensor_msgs"/>
   <depend package="pcl_ros"/>
+  <depend package="visualization_msgs"/>
   <depend package="raw_srvs"/>
   
   <export>

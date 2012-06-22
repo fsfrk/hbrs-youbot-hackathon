@@ -11,7 +11,9 @@ import sensor_msgs.msg
 
 class Grasper():
     def __init__(self):
-        self.JOINT_TWO_LAYING_GRASP = 2.47758
+        self.JOINT_TWO_LAYING_GRASP = 2.44389
+        self.JOINT_FOUR_LAYING_GRASP = 3.10522
+        #2.47758 old value
         self.received_state = False
         self.joint_namespace = "/arm_1/arm_controller/"
         if (not rospy.has_param(self.joint_namespace+"joints")):
@@ -55,8 +57,10 @@ class Grasper():
         for i in range(len(self.joint_names)):
             grasp_pose.append(self.current_joint_configuration[i])
             if grasp_name == "laying":
-                if i == 1:
+                if i == 2 - 1:
                     grasp_pose[i] = self.JOINT_TWO_LAYING_GRASP
+                if i == 4 - 1:
+                    grasp_pose[i] = self.JOINT_FOUR_LAYING_GRASP
             else: 
                 rospy.logerr("undefined grasp")
                 grasp_pose[i] = self.current_joint_configuration[i]
