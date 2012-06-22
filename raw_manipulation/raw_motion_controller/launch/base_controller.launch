@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+        
+  <node pkg="raw_motion_controller" type="base_controller" name="raw_motion_controller" ns="raw_motion_controller"/>
+
+
+</launch>

@@ -49,21 +49,29 @@ class get_obj_poses_for_goal_configuration(smach.State):
     def __init__(self):
         smach.State.__init__(self, 
             outcomes=['succeeded', 'configuration_poses_not_available'],
-            input_keys=['task_spec'],
+            input_keys=['task_spec','obj_goal_configuration_poses'],
             output_keys=['obj_goal_configuration_poses'])
         
     def execute(self, userdata):
         
-        print userdata.task_spec.configuration 
+        sss.move("gripper","open")
+        print userdata.task_spec.object_config 
         
-        if (not rospy.has_param("/script_server/arm/ + " userdata.task_spec.configuration):
-            rospy.logerr("configuration <<" + userdata.task_spec.configuration + ">> NOT available on parameter server")
+        if (not rospy.has_param("/script_server/arm/" + userdata.task_spec.object_config)):
+            rospy.logerr("configuration <<" + userdata.task_spec.object_config + ">> NOT available on parameter server")
             return 'configuration_poses_not_available'
             
-        pose_names = rospy.get_param(/script_server/arm/ + " userdata.task_spec.configuration)
+        pose_names = rospy.get_param("/script_server/arm/" + userdata.task_spec.object_config)
+
+        print pose_names
         
-        for pose in pose_names
-            userdata.obj_goal_configuration_poses.append(pose)
+        for pose_name in pose_names:
+            print "cfg pose: ", pose_name
+            userdata.obj_goal_configuration_poses.append((userdata.task_spec.object_config + "/" + pose_name))
+    
+
+        userdata.obj_goal_configuration_poses.sort()
+        
                 
         return 'succeeded'
 
