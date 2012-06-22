@@ -16,7 +16,7 @@
 
 using namespace std;
 
-const double Velocity = 0.1;
+const double Velocity = 0.005;
 
 
 class BaseMotionController
