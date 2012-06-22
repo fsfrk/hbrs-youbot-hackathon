@@ -9,6 +9,7 @@
 #include <raw_msgs/Object.h>
 #include <raw_srvs/GetDominantPlane.h>
 #include <raw_srvs/GetObjects.h>
+#include <raw_srvs/RecognizeObject.h>
 #include "bounding_box.h"
 #include "object_tracker.h"
 #include "occupancy_octree_object.h"
@@ -30,12 +31,13 @@ public:
     find_service_ = nh.advertiseService(find_objects_service, &ObjectFinderNode::findObjectsCallback, this);
     clusters_publisher_ = nh.advertise<sensor_msgs::PointCloud2>(found_clusters_topic, 1);
     bounding_boxes_publisher_ = nh.advertise<raw_msgs::BoundingBoxList>(bounding_boxes_topic, 1);
+    object_labels_publisher_ = nh.advertise<visualization_msgs::Marker>("object_labels", 1);
     ROS_INFO("Object finder service started.");
     // Create TabletopClusterExtractor
     tce_ = std::unique_ptr<TabletopClusterExtractor>(new TabletopClusterExtractor(0.009,  // point min height
                                                                                   0.200,  // point max height
                                                                                   0.010,  // object min height
-                                                                                  0.020,  // object cluster tolerance
+                                                                                  0.015,  // object cluster tolerance
                                                                                   20,     // min cluster size
                                                                                   5000)); // max cluster size
 
@@ -72,6 +74,9 @@ public:
     subscriber.shutdown();
 
     // Pack the response
+    ros::NodeHandle nh;
+    ros::ServiceClient object_recoginition_client = nh.serviceClient<raw_srvs::RecognizeObject>("recognize_object");
+
     response.stamp = ros::Time::now();
     size_t rejected = 0;
     for (const auto& object : tracker_->getObjects())
@@ -96,6 +101,22 @@ public:
       v.z = box.getHeight();
       object_msg.dimensions.vector = v;
       object_msg.pose.header.frame_id = frame_id_;
+
+      // UGLY HACK
+      raw_srvs::RecognizeObject srv;
+      srv.request.points = cloud.points.size();
+      srv.request.dimensions.vector = v;
+      if (object_recoginition_client.call(srv))
+      {
+        object_msg.name = srv.response.name;
+      }
+      else
+      {
+        ROS_WARN("Call to object recognition service failed.");
+        object_msg.name = "?";
+      }
+      // UGLY HACK
+
       auto& pt = box.getCenter();
       geometry_msgs::Point center;
       center.x = pt[0];
@@ -104,6 +125,7 @@ public:
       object_msg.pose.pose.position = center;
       response.objects.push_back(object_msg);
     }
+    publishObjectLabels(response);
     ROS_INFO("Rejected %zu object candidates.", rejected);
     return true;
   }
@@ -212,6 +234,26 @@ public:
     clusters_publisher_.publish(cloud_msg);
   }
 
+  void publishObjectLabels(const raw_srvs::GetObjects::Response& response)
+  {
+    for (const auto& object : response.objects)
+    {
+      visualization_msgs::Marker lines;
+      lines.header.frame_id = "openni_rgb_optical_frame";
+      lines.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
+      lines.action = visualization_msgs::Marker::ADD;
+      lines.scale.z = 0.01;
+      lines.color.a = 1.0;
+      lines.ns = "labels";
+      lines.id = 1;
+      lines.color.r = 1.0f;
+      lines.color.g = 0.5f;
+      lines.color.b = 0.5f;
+      lines.pose = object.pose.pose;
+      object_labels_publisher_.publish(lines);
+    }
+  }
+
   void publishBoundingBoxes(const std_msgs::Header& header)
   {
     raw_msgs::BoundingBoxList list_msg;
@@ -245,6 +287,7 @@ private:
   ros::ServiceServer find_service_;
   ros::Publisher clusters_publisher_;
   ros::Publisher bounding_boxes_publisher_;
+  ros::Publisher object_labels_publisher_;
 
   PlanarPolygonPtr planar_polygon_;
 

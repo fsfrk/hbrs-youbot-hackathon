@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
 <launch>
 	<!-- combine front and rear scanner -->
-	
+	<node pkg="topic_tools" type="relay" name="scan_front_relay" args="scan_front scan_combined"/>
+	<node pkg="topic_tools" type="relay" name="scan_rear_relay" args="scan_rear scan_combined"/>
 
 	<!--- Run AMCL -->
 	<node pkg="amcl" type="amcl" name="amcl">
-		<remap from="scan" to="scan_front" />
+		<remap from="scan" to="scan_combined" />
 
 		<!--- Odometery model parameters  -->
 		<param name="odom_model_type" value="omni"/>
@@ -14,7 +15,7 @@
 		<param name="odom_alpha3" value="0.2"/>
 		<param name="odom_alpha4" value="0.2"/>
 		<param name="odom_alpha5" value="0.2"/>
-		<param name="odom_frame_id" value="/odom"/>
+		<param name="odom_frame_id" value="/odom_combined"/>
 		<param name="base_frame_id" value="base_footprint"/>
 		<param name="global_frame_id" value="map"/>
 

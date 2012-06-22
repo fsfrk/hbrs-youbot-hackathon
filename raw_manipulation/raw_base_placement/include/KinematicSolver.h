@@ -22,7 +22,7 @@ typedef Eigen::Matrix<float, 6, Eigen::Dynamic> Jacobian;
 //const float abase   = 0.156;
 //const float dbase   = 0.130;
 const float dbase   = 0.188;
-const float abase   = 0.143+0.167+0.150;
+const float abase   = 0.143+0.167+0.250;
 const float L_Prior = 0.161;
 const float L1 = 0.033;
 const float L2 = 0.155;
