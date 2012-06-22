@@ -6,6 +6,9 @@ import smach
 import smach_ros
 import math
 import arm_navigation_msgs.msg
+import std_srvs.srv
+
+from grasp_object import *
 
 from simple_script_server import *
 sss = simple_script_server()
@@ -42,9 +45,46 @@ class grasp_obj_with_visual_servering(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['object_to_grasp'])
         
+        self.visual_serv_srv = rospy.ServiceProxy('/raw_blob_detection/start', std_srvs.srv.Empty)
     def execute(self, userdata):
-        
+
+        sss.move("gripper", "open")
+        sss.move("arm", "pregrasp_laying_mex")
+    
+        print "wait for service: /raw_blob_detection/start "
+        rospy.wait_for_service('/raw_blob_detection/start', 30)
+    
+        print "do visual serv"
+        resp = self.visual_serv_srv()
+        print "done"
+
+
+        '''
         print userdata.object_to_grasp
+        sss.move("arm", [float(userdata.object_to_grasp.pose.position.x), float(userdata.object_to_grasp.pose.position.y), (float(userdata.object_to_grasp.pose.position.z) + 0.02),"/base_link"])
+
+        sss.move("gripper", "close")
+        rospy.sleep(3)
+        sss.move("arm", "zeroposition")
+        '''
+
+        grasper = Grasper()
+        print("waiting 0.02 for arm joint values")
+        rospy.sleep(0.05)
+        grasper.simple_grasp("laying")
+        print("did it work?")
+
+        sss.move("arm","grasp_laying_mex")
+
+    
+        print "do visual serv"
+        resp = self.visual_serv_srv()
+        print "done"
+
+        sss.move("gripper", "close")
+        rospy.sleep(3)
+
+        sss.move("arm", "zeroposition")
         
         return 'succeeded'
 
@@ -119,8 +159,39 @@ class grasp_obj_from_pltf(smach.State):
 
     def execute(self, userdata):   
         
-        print userdata.rear_platform_occupied_poses.pop()
+        pltf_obj_pose = userdata.rear_platform_occupied_poses.pop()
         
+        sss.move("arm", pltf_obj_pose)
+        
+        sss.move("gripper", "close")
+        rospy.sleep(3)
+        
+        sss.move("arm", "initposition")
            
         return 'succeeded'
 
+
+class place_object_in_configuration(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, 
+            outcomes=['succeeded', 'no_more_cfg_poses'],
+            input_keys=['obj_goal_configuration_poses'],
+            output_keys=['obj_goal_configuration_poses'])
+        
+    def execute(self, userdata):
+        
+        if len(userdata.obj_goal_configuration_poses.pop() == 0)
+            rospy.logerr("no more configuration poses")
+            return 'no_more_cfg_poses'
+        
+        cfg_goal_pose = userdata.obj_goal_configuration_poses.pop()
+        
+        sss.move("arm", cfg_goal_pose)
+        
+        sss.move("gripper","open")
+        rospy.sleep(2)
+                
+        return 'succeeded'
+    
+    
+    
