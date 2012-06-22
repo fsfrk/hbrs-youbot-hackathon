@@ -11,7 +11,8 @@ import sensor_msgs.msg
 
 class Grasper():
     def __init__(self):
-        self.JOINT_TWO_LAYING_GRASP = 2.47758
+        self.JOINT_TWO_LAYING_GRASP = 2.324526 
+        #2.47758 old value
         self.received_state = False
         self.joint_namespace = "/arm_1/arm_controller/"
         if (not rospy.has_param(self.joint_namespace+"joints")):
