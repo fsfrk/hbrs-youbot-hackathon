@@ -223,7 +223,7 @@ public:
             move_speed = -0.005; 
             done_base_movement_adjustment = false; 
           }
-          else if( x_offset <= -105 )
+          else if( x_offset <= -15 )
           {
             // move the robot left
             move_speed = 0.005; 
