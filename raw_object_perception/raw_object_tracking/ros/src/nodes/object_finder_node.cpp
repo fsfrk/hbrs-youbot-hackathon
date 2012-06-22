@@ -35,7 +35,7 @@ public:
     tce_ = std::unique_ptr<TabletopClusterExtractor>(new TabletopClusterExtractor(0.009,  // point min height
                                                                                   0.200,  // point max height
                                                                                   0.010,  // object min height
-                                                                                  0.020,  // object cluster tolerance
+                                                                                  0.015,  // object cluster tolerance
                                                                                   20,     // min cluster size
                                                                                   5000)); // max cluster size
 
