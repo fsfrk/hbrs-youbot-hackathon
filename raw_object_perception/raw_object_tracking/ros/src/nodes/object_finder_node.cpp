@@ -9,6 +9,7 @@
 #include <raw_msgs/Object.h>
 #include <raw_srvs/GetDominantPlane.h>
 #include <raw_srvs/GetObjects.h>
+#include <raw_srvs/RecognizeObject.h>
 #include "bounding_box.h"
 #include "object_tracker.h"
 #include "occupancy_octree_object.h"
@@ -72,6 +73,9 @@ public:
     subscriber.shutdown();
 
     // Pack the response
+    ros::NodeHandle nh;
+    ros::ServiceClient object_recoginition_client = nh.serviceClient<raw_srvs::RecognizeObject>("recognize_object");
+
     response.stamp = ros::Time::now();
     size_t rejected = 0;
     for (const auto& object : tracker_->getObjects())
@@ -96,6 +100,22 @@ public:
       v.z = box.getHeight();
       object_msg.dimensions.vector = v;
       object_msg.pose.header.frame_id = frame_id_;
+
+      // UGLY HACK
+      raw_srvs::RecognizeObject srv;
+      srv.request.points = cloud.points.size();
+      srv.request.dimensions.vector = v;
+      if (object_recoginition_client.call(srv))
+      {
+        object_msg.name = srv.response.name;
+      }
+      else
+      {
+        ROS_WARN("Call to object recognition service failed.");
+        object_msg.name = "?";
+      }
+      // UGLY HACK
+
       auto& pt = box.getCenter();
       geometry_msgs::Point center;
       center.x = pt[0];
