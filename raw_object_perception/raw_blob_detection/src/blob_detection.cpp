@@ -223,7 +223,7 @@ public:
             move_speed = -0.005; 
             done_base_movement_adjustment = false; 
           }
-          else if( x_offset <= -15 )
+          else if( x_offset <= -105 )
           {
             // move the robot left
             move_speed = 0.005; 
@@ -252,13 +252,13 @@ public:
         {
           double move_speed = 0.0; 
 
-          if( y_offset >= 105 )
+          if( y_offset >= 95 )
           {
             // move the robot base right
             move_speed = -0.005; 
             done_base_movement_adjustment = false; 
           }
-          else if( y_offset <= 85 )
+          else if( y_offset <= 75 )
           {
             // move the robot left
             move_speed = 0.005; 
@@ -354,7 +354,7 @@ public:
     CvFont font;
     cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 1.0, 1.0, 0, 1, CV_AA);
 
-    cvLine( blob_image,   cvPoint( 0, (master_image_height/2) + 95 ), cvPoint( master_image_width, (master_image_height/2) + 100 ), CV_RGB( 255, 0, 0 ), 2, 0 ); 
+    cvLine( blob_image,   cvPoint( 0, (master_image_height/2) + 85 ), cvPoint( master_image_width, (master_image_height/2) + 85 ), CV_RGB( 255, 0, 0 ), 2, 0 ); 
     cvLine( blob_image,   cvPoint( (master_image_width/2), 0 ), cvPoint( (master_image_width/2), master_image_height ), CV_RGB( 255, 0, 0 ), 2, 0 );
     cvRectangle( blob_image, cvPoint( 0, blob_image->height-40 ), cvPoint( blob_image->width, blob_image->height ), CV_RGB( 0, 0, 0 ), -1 );
 
