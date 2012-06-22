@@ -21,15 +21,15 @@ def main():
     ##sss.move("arm", "pregrasp_front_init")
     
     # BASE PLACEMENT
-    shiftbase_srv = rospy.ServiceProxy('/shiftbase', raw_srvs.srv.SetPoseStamped) 
+    shiftbase_srv = rospy.ServiceProxy('/raw_motion_controller/shiftbase', raw_srvs.srv.SetPoseStamped) 
     ##moveoptimalbase_srv = rospy.ServiceProxy('/raw_base_placement/moveoptimalbase', raw_srvs.srv.SetPoseStamped) 
 
     print "wait for service: /raw_motion_controller/shiftbase"   
-    rospy.wait_for_service('/shiftbase', 30)
+    rospy.wait_for_service('/raw_motion_controller/shiftbase', 30)
 
     goalpose = geometry_msgs.msg.PoseStamped()
-    goalpose.pose.position.x = 1.0
-    goalpose.pose.position.y = 0.0
+    goalpose.pose.position.x = -0.3
+    goalpose.pose.position.y = 0.1
     goalpose.pose.position.z = 0.0
     quat = tf.transformations.quaternion_from_euler(0,0,0)
     goalpose.pose.orientation.x = quat[0]
