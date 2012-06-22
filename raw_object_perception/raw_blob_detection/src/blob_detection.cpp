@@ -273,6 +273,7 @@ public:
           else
           {
             // should never happen but just in case.
+            done_y_base_movement_adjustment = true; 
             move_speed = 0.0; 
           }
 
