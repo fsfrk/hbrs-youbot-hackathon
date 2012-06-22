@@ -252,13 +252,13 @@ public:
         {
           double move_speed = 0.0; 
 
-          if( y_offset >= 10 )
+          if( y_offset >= 120 )
           {
             // move the robot base right
             move_speed = -0.005; 
             done_base_movement_adjustment = false; 
           }
-          else if( y_offset <= -10 )
+          else if( y_offset <= 100 )
           {
             // move the robot left
             move_speed = 0.005; 
