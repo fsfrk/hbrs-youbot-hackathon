@@ -80,7 +80,7 @@ def main():
         
         smach.StateMachine.add('PLACE_OBJ_ON_REAR_PLATFORM', place_obj_on_rear_platform(),
             transitions={'succeeded':'GRASP_OBJ_WITH_VISUAL_SERVERING',
-                        'no_more_free_poses':'SELECT_DESTINATION_POSE'
+                        'no_more_free_poses':'SELECT_DESTINATION_POSE',
                         'failed':'PLACE_OBJ_ON_REAR_PLATFORM'})
         
         # go to the destination pose and place the objects in the desired configuration on the platform
