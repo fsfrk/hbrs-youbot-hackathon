@@ -12,4 +12,3 @@ controller_frequency: 10.0
 controller_patience: 15.0
 clearing_radius: 0.3
 footprint_padding: 0.03
-

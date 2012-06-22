@@ -11,7 +11,7 @@ min_vel_y: -0.2
 max_trans_vel: 0.2
 min_trans_vel: 0.01
 
-max_rot_vel: 0.4
+max_rot_vel: 0.1
 min_rot_vel: 0.0
 
 sim_time: 1.3
