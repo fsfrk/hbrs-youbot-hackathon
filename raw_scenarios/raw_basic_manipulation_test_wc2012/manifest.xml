@@ -23,6 +23,9 @@
   <depend package="raw_object_tracking" />
   <depend package="raw_usb_cam" />
   <depend package="raw_blob_detection" />
+  <depend package="raw_base_placement" />
+
+
   
 </package>
 
