@@ -24,7 +24,7 @@ bool calculateOptimalBasePose(raw_srvs::GetPoseStamped::Request  &req,
 	  KinematicSolver youBot;
 	  Pose Goal;
 	  JointParameter prefConfig(1,8);
-      bool isValid = true;
+      bool isValid = false;
       
       ros::NodeHandle n;
       XmlRpc::XmlRpcValue joint_values;
