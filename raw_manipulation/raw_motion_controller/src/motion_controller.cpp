@@ -118,6 +118,8 @@ ROS_INFO("run");
             theta_currentodom = theta_tempodom;
   
         }   
+        geometry_msgs::Twist zero_vel;
+        base_velocities_publisher.publish(zero_vel);  
         cout<<x_currentodom<<endl;
         return true;
    }
@@ -154,6 +156,8 @@ ROS_INFO("run");
             theta_currentodom = theta_tempodom;
   
         }  
+        geometry_msgs::Twist zero_vel;
+        base_velocities_publisher.publish(zero_vel);  
         return true; 
 
    }
