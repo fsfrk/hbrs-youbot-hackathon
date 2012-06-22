@@ -5,6 +5,8 @@ import rospy
 import smach
 import smach_ros
 
+from simple_script_server import *
+sss = simple_script_server()
 
 class select_base_pose(smach.State):
     def __init__(self, pose):
