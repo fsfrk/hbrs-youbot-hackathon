@@ -45,8 +45,8 @@ def confirm(prompt=None, resp=False):
             return False
 
 if __name__ == '__main__':
-    data = np.loadtxt('alldata.txt', delimiter=' ')
-    x, y = data[:, :4], data[:, 4].astype(np.int)
+    data = np.loadtxt('dataset.txt', delimiter=' ')
+    x, y = data[:, :5], data[:, 5].astype(np.int)
     print 'Dataset dimensions:', x.shape
 
     # Learn PCA and visualize

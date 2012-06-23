@@ -12,14 +12,14 @@ import rospy
 pca = None
 svm = None
 
-NAMES = ['Big nut', 'Big profile', 'Small profile', 'Small screw', 'Tube', 'Small nut', 'Big screw']
+NAMES = ['Big nut', 'Big profile', 'Small profile', 'Small screw', 'Tube', 'Small nut', 'Big screw', 'Small profile silver', 'Big profile silver']
 
 def recognize(request):
     global pca
     global svm
     rospy.loginfo('Received request to recognize object.')
     v = request.dimensions.vector
-    x = [v.x, v.y, v.z, request.points]
+    x = [v.x, v.y, v.z, request.points, request.color]
     z = pca.transform(x, k=2)
     print 'Principal components:', z
     klass = svm.pred(z)
@@ -28,17 +28,11 @@ def recognize(request):
     return RecognizeObjectResponse(NAMES[int(klass)])
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='''
-    Object recognition node. Provides a service.
-    ''')
-    #parser.add_argument('pca_svm', help='path to a file where PCA and SVM are stored')
-    #args = parser.parse_args()
-
     rospy.init_node('object_recognition_node')
     s = rospy.Service('recognize_object', RecognizeObject, recognize)
     '''
     try:
-        with open(args.pca_svm, 'rb') as input:
+        with open(sys.argv[1], 'rb') as input:
             global pca
             global svm
             pca = pickle.load(input)
@@ -50,7 +44,7 @@ if __name__ == '__main__':
     global pca
     global svm
     data = np.loadtxt(sys.argv[1], delimiter=' ')
-    x, y = data[:, :4], data[:, 4].astype(np.int)
+    x, y = data[:, :5], data[:, 5].astype(np.int)
     pca = mlpy.PCA(whiten=True)
     pca.learn(x)
     z = pca.transform(x, k=2)
