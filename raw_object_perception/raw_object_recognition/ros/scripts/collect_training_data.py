@@ -13,8 +13,8 @@ class Dataset:
         self.file = open('data%i.txt' % id, 'a')
     def __del__(self):
         self.file.close()
-    def store(self, dim, pts, object_type):
-        self.file.write('%.4f %.4f %.4f %i %s\n' % (dim[2], dim[1], dim[0], pts, object_type))
+    def store(self, dim, pts, color, object_type):
+        self.file.write('%.4f %.4f %.4f %i %.6f %s\n' % (dim[2], dim[1], dim[0], pts, color, object_type))
 
 def get_one_sample():
     rospy.loginfo('Sending request...')
@@ -45,9 +45,10 @@ if __name__ == '__main__':
             vector = object.dimensions.vector
             dim = sorted([vector.x, vector.y, vector.z])
             pts = object.cluster.width
-            rospy.loginfo('Found object: %.1f x %.1f x %.1f --- %i points. Store?' % (dim[2] * 100, dim[1] * 100, dim[0] * 100, pts))
+            color = object.pose.pose.orientation.x
+            rospy.loginfo('Found object: %.1f x %.1f x %.1f --- %i points --- %f color. Store?' % (dim[2] * 100, dim[1] * 100, dim[0] * 100, pts, color))
             if not raw_input():
-                dataset.store(dim, object.cluster.width, args.object_type)
+                dataset.store(dim, pts, color, args.object_type)
     except rospy.ServiceException, e:
         rospy.logerr('Service call failed: %s' % e)
         exit()

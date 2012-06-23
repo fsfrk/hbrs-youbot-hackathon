@@ -15,7 +15,10 @@
 #include "bounding_box.h"
 #include "object_tracker.h"
 #include "occupancy_octree_object.h"
+#include "colored_occupancy_octree_object.h"
 #include "tabletop_cluster_extractor.h"
+
+typedef ColoredOccupancyOctreeObject ObjectT;
 
 class ObjectFinderNode
 {
@@ -39,7 +42,7 @@ public:
     tce_ = std::unique_ptr<TabletopClusterExtractor>(new TabletopClusterExtractor(0.009,  // point min height
                                                                                   0.200,  // point max height
                                                                                   0.010,  // object min height
-                                                                                  0.015,  // object cluster tolerance
+                                                                                  0.020,  // object cluster tolerance
                                                                                   20,     // min cluster size
                                                                                   5000)); // max cluster size
 
@@ -56,7 +59,7 @@ public:
     // Get dominant plane to work with. This will block until server responds.
     if (!getDominantPlane()) return false;
     // Create new tracker.
-    tracker_.reset(new ObjectTracker<OccupancyOctreeObject>);
+    tracker_.reset(new ObjectTracker<ObjectT>);
     // Subscribe to the point clouds.
     ros::NodeHandle pn("~");
     std::string input_cloud_topic;
@@ -77,7 +80,7 @@ public:
 
     // Pack the response
     ros::NodeHandle nh;
-    //ros::ServiceClient object_recoginition_client = nh.serviceClient<raw_srvs::RecognizeObject>("recognize_object");
+    ros::ServiceClient object_recoginition_client = nh.serviceClient<raw_srvs::RecognizeObject>("recognize_object");
 
     response.stamp = ros::Time::now();
     size_t rejected = 0;
@@ -103,11 +106,12 @@ public:
       v.z = box.getHeight();
       object_msg.dimensions.vector = v;
       object_msg.pose.header.frame_id = frame_id_;
-/*
+
       // UGLY HACK
       raw_srvs::RecognizeObject srv;
       srv.request.points = cloud.points.size();
       srv.request.dimensions.vector = v;
+      srv.request.color = object->getMedianColor();
       if (object_recoginition_client.call(srv))
       {
         object_msg.name = srv.response.name;
@@ -116,18 +120,35 @@ public:
       {
         ROS_WARN("Call to object recognition service failed.");
         object_msg.name = "?";
+        continue;
       }
       // UGLY HACK
-*/
+      // UGLIER HACK
+      if (object_msg.name != "R20")
+      {
+        // then it is profile, need to consider color
+        if (object->getMedianColor() > 0.001200)
+        {
+          // is silver
+          object_msg.name.append("G");
+        }
+        else
+        {
+          object_msg.name.append("B");
+        }
+      }
+      //
+
       auto& pt = box.getCenter();
       geometry_msgs::Point center;
       center.x = pt[0];
       center.y = pt[1];
       center.z = pt[2];
       object_msg.pose.pose.position = center;
+      object_msg.pose.pose.orientation.x = object->getMedianColor();
       response.objects.push_back(object_msg);
     }
-    //publishObjectLabels(response);
+    publishObjectLabels(response);
     ROS_INFO("Rejected %zu object candidates.", rejected);
     return true;
   }
@@ -235,7 +256,7 @@ public:
     pcl::toROSMsg(composite, cloud_msg);
     clusters_publisher_.publish(cloud_msg);
   }
-/*
+
   void publishObjectLabels(const raw_srvs::GetObjects::Response& response)
   {
     visualization_msgs::MarkerArray ma;
@@ -261,7 +282,7 @@ public:
     }
     object_labels_publisher_.publish(ma);
   }
-*/
+
   void publishBoundingBoxes(const std_msgs::Header& header)
   {
     raw_msgs::BoundingBoxList list_msg;
@@ -291,7 +312,7 @@ public:
 private:
 
   std::unique_ptr<TabletopClusterExtractor> tce_;
-  std::unique_ptr<ObjectTracker<OccupancyOctreeObject>> tracker_;
+  std::unique_ptr<ObjectTracker<ObjectT>> tracker_;
   ros::ServiceServer find_service_;
   ros::Publisher clusters_publisher_;
   ros::Publisher bounding_boxes_publisher_;

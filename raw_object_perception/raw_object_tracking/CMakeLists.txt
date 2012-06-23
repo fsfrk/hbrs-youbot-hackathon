@@ -40,6 +40,7 @@ include_directories(${PROJECT_SOURCE_DIR}/ros/include)
 rosbuild_add_library(trackers ros/src/object_tracker.cpp
                               ros/src/bounding_box_object.cpp
                               ros/src/occupancy_octree_object.cpp
+                              ros/src/colored_occupancy_octree_object.cpp
 )
 
 #...: target executables :......................................................

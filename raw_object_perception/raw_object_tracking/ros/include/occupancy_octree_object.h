@@ -22,7 +22,7 @@ public:
 
     void saveToPCD(const std::string& filename);
 
-private:
+protected:
 
     pcl::octree::OctreePointCloudOccupancy<PointT> octree_;
 

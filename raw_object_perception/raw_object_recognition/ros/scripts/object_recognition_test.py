@@ -11,10 +11,11 @@ if __name__ == '__main__':
     try:
         recognize_object = rospy.ServiceProxy('recognize_object', RecognizeObject)
         request = RecognizeObjectRequest()
-        request.dimensions.vector.x = 0.1
-        request.dimensions.vector.y = 0.02
+        request.dimensions.vector.x = 0.5
+        request.dimensions.vector.y = 0.03
         request.dimensions.vector.z = 0.02
-        request.points = 1000
+        request.points = 600
+        request.color = 0.002800
         response = recognize_object(request)
         print response
     except rospy.ServiceException, e:

@@ -16,6 +16,8 @@
       <param name="filter_min_height" type="double" value="0.01" />
     </node>
   
+    <node name="object_recognition_node" pkg="raw_object_recognition" type="object_recognition_node.py" args="$(find raw_object_recognition)/data/profiles_tube.txt" output="screen" />
+  
   </group>
 
 </launch>
