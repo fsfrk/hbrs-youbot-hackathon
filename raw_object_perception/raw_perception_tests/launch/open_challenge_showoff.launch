@@ -20,6 +20,9 @@
     <param name="input_cloud_topic" type="string" value="/camera/rgb/points" />
   </node>
 
+  <!-- Object recognition node -->
+  <node name="object_recognition_node" pkg="raw_object_recognition" type="object_recognition_node.py" args="$(find raw_object_recognition)/data/dataset.txt" output="screen" required="true" />
+
   <!-- Bounding box visualizer node -->
   <node name="bounding_box_visualizer_node" pkg="raw_object_tracking" type="bounding_box_visualizer_node" output="screen" />
 

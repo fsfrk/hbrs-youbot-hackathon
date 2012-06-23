@@ -19,14 +19,11 @@ class Dataset:
 def get_one_sample():
     rospy.loginfo('Sending request...')
     response = get_objects()
-    if not len(response.objects) == 2:
+    if not len(response.objects) == 1:
         rospy.loginfo('Found more than one object.')
         return None
     else:
-        if response.objects[0].cluster.width < 5000:
-            return response.objects[0]
-        else:
-            return response.objects[1]
+        return response.objects[0]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='''

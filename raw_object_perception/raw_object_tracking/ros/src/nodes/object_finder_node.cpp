@@ -3,6 +3,8 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 
 #include <raw_msgs/BoundingBox.h>
 #include <raw_msgs/BoundingBoxList.h>
@@ -31,7 +33,7 @@ public:
     find_service_ = nh.advertiseService(find_objects_service, &ObjectFinderNode::findObjectsCallback, this);
     clusters_publisher_ = nh.advertise<sensor_msgs::PointCloud2>(found_clusters_topic, 1);
     bounding_boxes_publisher_ = nh.advertise<raw_msgs::BoundingBoxList>(bounding_boxes_topic, 1);
-    object_labels_publisher_ = nh.advertise<visualization_msgs::Marker>("object_labels", 1);
+    object_labels_publisher_ = nh.advertise<visualization_msgs::MarkerArray>("object_labels", 10);
     ROS_INFO("Object finder service started.");
     // Create TabletopClusterExtractor
     tce_ = std::unique_ptr<TabletopClusterExtractor>(new TabletopClusterExtractor(0.009,  // point min height
@@ -75,7 +77,7 @@ public:
 
     // Pack the response
     ros::NodeHandle nh;
-    ros::ServiceClient object_recoginition_client = nh.serviceClient<raw_srvs::RecognizeObject>("recognize_object");
+    //ros::ServiceClient object_recoginition_client = nh.serviceClient<raw_srvs::RecognizeObject>("recognize_object");
 
     response.stamp = ros::Time::now();
     size_t rejected = 0;
@@ -101,7 +103,7 @@ public:
       v.z = box.getHeight();
       object_msg.dimensions.vector = v;
       object_msg.pose.header.frame_id = frame_id_;
-
+/*
       // UGLY HACK
       raw_srvs::RecognizeObject srv;
       srv.request.points = cloud.points.size();
@@ -116,7 +118,7 @@ public:
         object_msg.name = "?";
       }
       // UGLY HACK
-
+*/
       auto& pt = box.getCenter();
       geometry_msgs::Point center;
       center.x = pt[0];
@@ -125,7 +127,7 @@ public:
       object_msg.pose.pose.position = center;
       response.objects.push_back(object_msg);
     }
-    publishObjectLabels(response);
+    //publishObjectLabels(response);
     ROS_INFO("Rejected %zu object candidates.", rejected);
     return true;
   }
@@ -233,27 +235,33 @@ public:
     pcl::toROSMsg(composite, cloud_msg);
     clusters_publisher_.publish(cloud_msg);
   }
-
+/*
   void publishObjectLabels(const raw_srvs::GetObjects::Response& response)
   {
+    visualization_msgs::MarkerArray ma;
+    int id = 1;
     for (const auto& object : response.objects)
     {
       visualization_msgs::Marker lines;
-      lines.header.frame_id = "openni_rgb_optical_frame";
+      lines.header.frame_id = "/openni_rgb_optical_frame";
       lines.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
       lines.action = visualization_msgs::Marker::ADD;
-      lines.scale.z = 0.01;
+      lines.scale.z = 0.04;
       lines.color.a = 1.0;
       lines.ns = "labels";
-      lines.id = 1;
+      lines.id = id++;
       lines.color.r = 1.0f;
       lines.color.g = 0.5f;
       lines.color.b = 0.5f;
       lines.pose = object.pose.pose;
-      object_labels_publisher_.publish(lines);
+      lines.pose.position.y += 0.02;
+      lines.pose.orientation.w = 1.0;
+      lines.text = object.name;
+      ma.markers.push_back(lines);
     }
+    object_labels_publisher_.publish(ma);
   }
-
+*/
   void publishBoundingBoxes(const std_msgs::Header& header)
   {
     raw_msgs::BoundingBoxList list_msg;
