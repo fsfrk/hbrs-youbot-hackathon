@@ -87,8 +87,11 @@ def main():
             transitions={'succeeded':'MOVE_TO_DESTINATION_POSE'})
         
         smach.StateMachine.add('MOVE_TO_DESTINATION_POSE', move_base_rel(-1.1),
+            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM'})
+
+        smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM', adjust_pose_wrt_platform(),
             transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATION',
-                        'failed':'MOVE_TO_DESTINATION_POSE'})
+                        'failed':'ADJUST_POSE_WRT_PLATFORM'})
         
        
         #ToDo: implement state
@@ -117,8 +120,7 @@ def main():
             transitions={'succeeded':'MOVE_TO_FINAL_POSE'})
                 
         smach.StateMachine.add('MOVE_TO_FINAL_POSE', move_base_rel(1.1),
-            transitions={'succeeded':'overall_success',
-                        'failed':'MOVE_TO_FINAL_POSE'})
+            transitions={'succeeded':'overall_success'})
         
        
     # Start SMACH viewer
