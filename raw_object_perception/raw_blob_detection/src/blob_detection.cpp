@@ -292,6 +292,11 @@ public:
         {
           double rotational_speed = 0.0; 
 
+          if( rot_offset > 180 )
+          {
+              rot_offset = rot_offset - 180; 
+          }
+
           if( ( rot_offset < 87 && rot_offset >= 0 ) || ( rot_offset < 267 && rot_offset >= 235 ) )
           {
             rotational_speed = -0.2; 
