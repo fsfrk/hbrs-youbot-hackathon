@@ -77,7 +77,7 @@ public:
 
     // Pack the response
     ros::NodeHandle nh;
-    //ros::ServiceClient object_recoginition_client = nh.serviceClient<raw_srvs::RecognizeObject>("recognize_object");
+    ros::ServiceClient object_recoginition_client = nh.serviceClient<raw_srvs::RecognizeObject>("recognize_object");
 
     response.stamp = ros::Time::now();
     size_t rejected = 0;
@@ -103,7 +103,7 @@ public:
       v.z = box.getHeight();
       object_msg.dimensions.vector = v;
       object_msg.pose.header.frame_id = frame_id_;
-/*
+
       // UGLY HACK
       raw_srvs::RecognizeObject srv;
       srv.request.points = cloud.points.size();
@@ -118,7 +118,7 @@ public:
         object_msg.name = "?";
       }
       // UGLY HACK
-*/
+
       auto& pt = box.getCenter();
       geometry_msgs::Point center;
       center.x = pt[0];
@@ -127,7 +127,7 @@ public:
       object_msg.pose.pose.position = center;
       response.objects.push_back(object_msg);
     }
-    //publishObjectLabels(response);
+    publishObjectLabels(response);
     ROS_INFO("Rejected %zu object candidates.", rejected);
     return true;
   }
@@ -235,7 +235,7 @@ public:
     pcl::toROSMsg(composite, cloud_msg);
     clusters_publisher_.publish(cloud_msg);
   }
-/*
+
   void publishObjectLabels(const raw_srvs::GetObjects::Response& response)
   {
     visualization_msgs::MarkerArray ma;
@@ -261,7 +261,7 @@ public:
     }
     object_labels_publisher_.publish(ma);
   }
-*/
+
   void publishBoundingBoxes(const std_msgs::Header& header)
   {
     raw_msgs::BoundingBoxList list_msg;
