@@ -42,7 +42,7 @@ public:
 
 		nh_ = nh;
 
-		target_distance = 0.07;
+		target_distance = 0.05;
 		max_velocity = 0.1;
 
 		
@@ -64,7 +64,8 @@ public:
 		geometry_msgs::Twist cmd;
 
 		std::cout << "HHHHH: " << fabs(b) << std::endl;
-		if (fabs(b) > 1.5) 
+		
+        if (fabs(b) > 0.2) 
 		{
 		  cmd.angular.z = -b;
 			//cmd_pub.publish(cmd);
@@ -80,6 +81,7 @@ public:
 			//std::cout << "cmd.linear.y:  " << cmd.linear.y << std::endl;
 		}*/	
 		
+     
 		else if (a > target_distance) 
 		{
 			cmd.linear.x = a / 3;
@@ -113,12 +115,12 @@ public:
 
 		srv.request.filter_minAngle = -M_PI_4;
 		srv.request.filter_maxAngle = M_PI_4;
-		srv.request.filter_minDistance = 0.05;
-		srv.request.filter_maxDistance = 0.50;
+		srv.request.filter_minDistance = 0.02;
+		srv.request.filter_maxDistance = 0.80;
 
 		target_distance = goal->distance;
 
-		ros::Duration max_time(30.0);
+		ros::Duration max_time(10.0);
 		ros::Time stamp = ros::Time::now();
 		OrientToBaseResult result;
 
@@ -145,6 +147,8 @@ public:
 				if  (stamp + max_time < ros::Time::now()) {
 					result.succeed = false;
 				        as_.setAborted(result);
+                        geometry_msgs::Twist zero_vel;
+                        cmd_pub.publish(zero_vel);
 				    	break;
 				}
 
