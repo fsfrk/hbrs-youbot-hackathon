@@ -120,13 +120,14 @@ public:
       {
         ROS_WARN("Call to object recognition service failed.");
         object_msg.name = "?";
+        continue;
       }
       // UGLY HACK
       // UGLIER HACK
       if (object_msg.name != "R20")
       {
         // then it is profile, need to consider color
-        if (object->getMedianColor() > 1200)
+        if (object->getMedianColor() > 0.001200)
         {
           // is silver
           object_msg.name.append("G");
