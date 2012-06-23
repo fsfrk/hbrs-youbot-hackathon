@@ -218,13 +218,13 @@ public:
           double move_speed = 0.0; 
 
           // added a buffer for a "good enough" region of interest. [14.06.2012]
-          if( x_offset >= 15 )
+          if( x_offset >= 20 )
           {
             // move the robot base right
             move_speed = -0.005; 
             done_base_movement_adjustment = false; 
           }
-          else if( x_offset <= -15 )
+          else if( x_offset <= -20 )
           {
             // move the robot left
             move_speed = 0.005; 
@@ -292,17 +292,19 @@ public:
         {
           double rotational_speed = 0.0; 
 
+
           if( rot_offset > 180 )
           {
               rot_offset = rot_offset - 180; 
           }
 
-          if( ( rot_offset < 87 && rot_offset >= 0 ) || ( rot_offset < 267 && rot_offset >= 235 ) )
+          if( ( rot_offset < 86 && rot_offset >= 0 ) || ( rot_offset < 266 && rot_offset >= 235 ) )
+
           {
             rotational_speed = -0.2; 
             done_rotational_adjustment = false; 
           }
-          else if( rot_offset > 93 && rot_offset < 235 )
+          else if( rot_offset > 94 && rot_offset < 235 )
           {
             rotational_speed = 0.1; 
             done_rotational_adjustment = false; 
