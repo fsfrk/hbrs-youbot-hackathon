@@ -16,7 +16,7 @@
 
 using namespace std;
 
-const double Velocity = 0.005;
+double Velocity = 0.01;
 
 
 class BaseMotionController
@@ -52,6 +52,7 @@ class BaseMotionController
    double roll, pitch, yaw;
    btQuaternion q;
 
+   bool odom_received;
    // Odometry subscriber and Base Velocity Publisher
    ros::Publisher   base_velocities_publisher;   
    ros::Subscriber  base_odom;
@@ -72,7 +73,7 @@ class BaseMotionController
         // Velocity control for the YouBot base.
         base_velocities_publisher = node_handler.advertise<geometry_msgs::Twist>( "/cmd_vel", 1 );
         base_odom = node_handler.subscribe("/odom", 1, &BaseMotionController::OdomCallback, this);
-
+        odom_received = false;
    }
    ~BaseMotionController()
    {
@@ -82,18 +83,19 @@ class BaseMotionController
 
    void movebase()
    {
-      bool xstatus = moveX();
-      if(xstatus == true)
-      {
-        bool ystatus = moveY();
-      }   
+      //bool xstatus = moveX();
+      //if(xstatus == true)
+      //{
+      moveY();
+      //}   
    } 
    bool moveX()
    {
         bool isReached=false;
 
-        ros::spinOnce();
-       ROS_INFO("here");
+	    
+        
+	    ROS_INFO("here");
         x_initodom = x_tempodom;
         y_initodom = y_tempodom;
         theta_initodom = theta_tempodom;
@@ -122,6 +124,8 @@ ROS_INFO("run");
         }   
         geometry_msgs::Twist zeroval;
         base_velocities_publisher.publish(zeroval);
+        base_velocities_publisher.publish(zeroval);
+        base_velocities_publisher.publish(zeroval);
 
         return true;
    }
@@ -129,9 +133,21 @@ ROS_INFO("run");
    {
 
         bool isReached=false;
-        ros::spinOnce();
+
+        while(!odom_received)
+        {
+        	ros::spinOnce();
+            
+        }
+        odom_received = false;
+
         x_initodom = x_tempodom;
         y_initodom = y_tempodom;
+
+
+        std::cout << "shift in y: " << yval << std::endl;
+        std::cout << "init odom: x:" << x_initodom << " y: " << y_initodom << std::endl;
+
         theta_initodom = theta_tempodom;
         x_currentodom = x_tempodom;
         y_currentodom = y_tempodom;
@@ -139,10 +155,14 @@ ROS_INFO("run");
 
         while(isReached != true)
         {
-         ROS_INFO("Run");  
+            //ROS_INFO("Run");  
             float valuediff = (y_currentodom-y_initodom);
+            
+            //std::cout << "diff y: " << valuediff << std::endl;
+            
             if( abs(valuediff) >= abs(yval)) 
             {
+                std::cout << "pose reached, current odom: " << y_currentodom <<  std::endl;
                isReached =true; 
             }
             else
@@ -152,7 +172,13 @@ ROS_INFO("run");
                 base_velocities_publisher.publish( youbot_base_velocities );  
               
             }
-            ros::spinOnce();
+            while(!odom_received)
+            {
+            	ros::spinOnce();
+                
+            }
+            odom_received = false;
+            
             x_currentodom = x_tempodom;
             y_currentodom = y_tempodom;
             theta_currentodom = theta_tempodom;
@@ -160,6 +186,9 @@ ROS_INFO("run");
         }  
         geometry_msgs::Twist zeroval;
         base_velocities_publisher.publish(zeroval);
+        base_velocities_publisher.publish(zeroval);
+        base_velocities_publisher.publish(zeroval);
+        
         return true; 
 
    }
@@ -202,7 +231,8 @@ ROS_INFO("run");
         y_tempodom  = Odom.pose.pose.position.y ;
         tf::quaternionMsgToTF(Odom.pose.pose.orientation, q);
         btMatrix3x3(q).getRPY(roll, pitch, yaw);  
-        theta_tempodom = yaw ; 
+        theta_tempodom = yaw ;
+	    odom_received = true; 
     } 
       
    bool moveoptimal()
@@ -253,6 +283,8 @@ bool shiftbase(raw_srvs::SetPoseStamped::Request  &req, raw_srvs::SetPoseStamped
 
     float X_dist = req.pose.pose.position.x ;
     float Y_dist = req.pose.pose.position.y ;
+
+    Velocity = req.pose.pose.position.z;
 
     tf::quaternionMsgToTF(req.pose.pose.orientation, q);
     btMatrix3x3(q).getRPY(roll, pitch, yaw);  

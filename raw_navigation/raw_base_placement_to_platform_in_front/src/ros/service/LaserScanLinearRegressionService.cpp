@@ -40,8 +40,8 @@ public:
 		}
 
 		if (fabs(req.filter_maxDistance) <= 0.0001 && fabs(req.filter_minDistance) <= 0.0001) {
-			req.filter_minDistance = 0.06;
-			req.filter_maxDistance = 0.5;
+			req.filter_minDistance = 0.02;
+			req.filter_maxDistance = 0.8;
 		}
 
 
