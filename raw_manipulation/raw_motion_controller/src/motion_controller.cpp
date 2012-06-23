@@ -16,7 +16,7 @@
 
 using namespace std;
 
-const double Velocity = 0.1;
+const double Velocity = 0.005;
 
 
 class BaseMotionController
@@ -83,15 +83,17 @@ class BaseMotionController
    void movebase()
    {
       bool xstatus = moveX();
-      bool ystatus = moveY();
-
+      if(xstatus == true)
+      {
+        bool ystatus = moveY();
+      }   
    } 
    bool moveX()
    {
         bool isReached=false;
 
         ros::spinOnce();
-ROS_INFO("here");
+       ROS_INFO("here");
         x_initodom = x_tempodom;
         y_initodom = y_tempodom;
         theta_initodom = theta_tempodom;
@@ -108,17 +110,19 @@ ROS_INFO("run");
                isReached =true; 
             }
             else
-            {xval>0?(youbot_base_velocities.linear.x = Velocity):(youbot_base_velocities.linear.x = -Velocity);
-                base_velocities_publisher.publish( youbot_base_velocities );  
+            {
+             xval>0?(youbot_base_velocities.linear.x = Velocity):(youbot_base_velocities.linear.x = -Velocity);
+             base_velocities_publisher.publish( youbot_base_velocities );  
               
             }
             ros::spinOnce();
             x_currentodom = x_tempodom;
             y_currentodom = y_tempodom;
-            theta_currentodom = theta_tempodom;
-  
+            theta_currentodom = theta_tempodom;  
         }   
-        cout<<x_currentodom<<endl;
+        geometry_msgs::Twist zeroval;
+        base_velocities_publisher.publish(zeroval);
+
         return true;
    }
    bool moveY()
@@ -154,6 +158,8 @@ ROS_INFO("run");
             theta_currentodom = theta_tempodom;
   
         }  
+        geometry_msgs::Twist zeroval;
+        base_velocities_publisher.publish(zeroval);
         return true; 
 
    }

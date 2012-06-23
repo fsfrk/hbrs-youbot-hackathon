@@ -64,7 +64,7 @@ public:
 		geometry_msgs::Twist cmd;
 
 		std::cout << "HHHHH: " << fabs(b) << std::endl;
-		if (fabs(b) > 0.5) 
+		if (fabs(b) > 1.5) 
 		{
 		  cmd.angular.z = -b;
 			//cmd_pub.publish(cmd);
