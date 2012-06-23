@@ -15,7 +15,10 @@
 #include "bounding_box.h"
 #include "object_tracker.h"
 #include "occupancy_octree_object.h"
+#include "colored_occupancy_octree_object.h"
 #include "tabletop_cluster_extractor.h"
+
+typedef ColoredOccupancyOctreeObject ObjectT;
 
 class ObjectFinderNode
 {
@@ -39,7 +42,7 @@ public:
     tce_ = std::unique_ptr<TabletopClusterExtractor>(new TabletopClusterExtractor(0.009,  // point min height
                                                                                   0.200,  // point max height
                                                                                   0.010,  // object min height
-                                                                                  0.015,  // object cluster tolerance
+                                                                                  0.020,  // object cluster tolerance
                                                                                   20,     // min cluster size
                                                                                   5000)); // max cluster size
 
@@ -56,7 +59,7 @@ public:
     // Get dominant plane to work with. This will block until server responds.
     if (!getDominantPlane()) return false;
     // Create new tracker.
-    tracker_.reset(new ObjectTracker<OccupancyOctreeObject>);
+    tracker_.reset(new ObjectTracker<ObjectT>);
     // Subscribe to the point clouds.
     ros::NodeHandle pn("~");
     std::string input_cloud_topic;
@@ -108,6 +111,7 @@ public:
       raw_srvs::RecognizeObject srv;
       srv.request.points = cloud.points.size();
       srv.request.dimensions.vector = v;
+      srv.request.color = object->getMedianColor();
       if (object_recoginition_client.call(srv))
       {
         object_msg.name = srv.response.name;
@@ -125,6 +129,7 @@ public:
       center.y = pt[1];
       center.z = pt[2];
       object_msg.pose.pose.position = center;
+      object_msg.pose.pose.orientation.x = object->getMedianColor();
       response.objects.push_back(object_msg);
     }
     publishObjectLabels(response);
@@ -291,7 +296,7 @@ public:
 private:
 
   std::unique_ptr<TabletopClusterExtractor> tce_;
-  std::unique_ptr<ObjectTracker<OccupancyOctreeObject>> tracker_;
+  std::unique_ptr<ObjectTracker<ObjectT>> tracker_;
   ros::ServiceServer find_service_;
   ros::Publisher clusters_publisher_;
   ros::Publisher bounding_boxes_publisher_;

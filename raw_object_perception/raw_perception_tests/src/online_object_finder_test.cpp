@@ -15,7 +15,7 @@ int main (int argc, char** argv)
   raw_srvs::GetObjects srv;
   if (client.call(srv))
   {
-    boost::format fmt("Object #%i: %2.1f,%2.1f,%2.1f,%6u : %s");
+    boost::format fmt("Object #%i: %2.1f,%2.1f,%2.1f,%6u : %s : %f");
     int cnt = 1;
     for (const auto& object : srv.response.objects)
     {
@@ -26,7 +26,7 @@ int main (int argc, char** argv)
       double y = std::min(lenght, height);
       double z = std::min(y, width);
       y = std::max(y, width);
-      ROS_INFO_STREAM(fmt % cnt++ % x % y % z % object.cluster.width % object.name);
+      ROS_INFO_STREAM(fmt % cnt++ % x % y % z % object.cluster.width % object.name % object.pose.pose.orientation.x);
     }
   }
   else
