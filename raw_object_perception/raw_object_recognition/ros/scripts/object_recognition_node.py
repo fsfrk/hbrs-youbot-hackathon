@@ -12,14 +12,16 @@ import rospy
 pca = None
 svm = None
 
-NAMES = ['Big nut', 'Big profile', 'Small profile', 'Small screw', 'Tube', 'Small nut', 'Big screw', 'Small profile silver', 'Big profile silver']
+#NAMES = ['Big nut', 'Big profile', 'Small profile', 'Small screw', 'Tube', 'Small nut', 'Big screw', 'Small profile silver', 'Big profile silver']
+NAMES = ['Big nut', 'S40_40_B', 'F20_20_B', 'Small screw', 'R20', 'Small nut', 'Big screw', 'F20_20_G', 'S40_40_G']
 
 def recognize(request):
     global pca
     global svm
     rospy.loginfo('Received request to recognize object.')
     v = request.dimensions.vector
-    x = [v.x, v.y, v.z, request.points, request.color]
+    #x = [v.x, v.y, v.z, request.points, request.color]
+    x = [v.x, v.y, v.z, request.points]
     z = pca.transform(x, k=2)
     print 'Principal components:', z
     klass = svm.pred(z)
@@ -44,7 +46,7 @@ if __name__ == '__main__':
     global pca
     global svm
     data = np.loadtxt(sys.argv[1], delimiter=' ')
-    x, y = data[:, :5], data[:, 5].astype(np.int)
+    x, y = data[:, :4], data[:, 5].astype(np.int)
     pca = mlpy.PCA(whiten=True)
     pca.learn(x)
     z = pca.transform(x, k=2)
