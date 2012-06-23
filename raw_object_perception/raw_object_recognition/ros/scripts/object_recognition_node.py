@@ -13,7 +13,7 @@ pca = None
 svm = None
 
 #NAMES = ['Big nut', 'Big profile', 'Small profile', 'Small screw', 'Tube', 'Small nut', 'Big screw', 'Small profile silver', 'Big profile silver']
-NAMES = ['Big nut', 'S40_40_B', 'F20_20_B', 'Small screw', 'R20', 'Small nut', 'Big screw', 'F20_20_G', 'S40_40_G']
+NAMES = ['Big nut', 'S40_40_', 'F20_20_', 'Small screw', 'R20', 'Small nut', 'Big screw', 'F20_20_', 'S40_40_']
 
 def recognize(request):
     global pca

@@ -122,6 +122,21 @@ public:
         object_msg.name = "?";
       }
       // UGLY HACK
+      // UGLIER HACK
+      if (object_msg.name != "R20")
+      {
+        // then it is profile, need to consider color
+        if (object->getMedianColor() > 1200)
+        {
+          // is silver
+          object_msg.name.append("G");
+        }
+        else
+        {
+          object_msg.name.append("B");
+        }
+      }
+      //
 
       auto& pt = box.getCenter();
       geometry_msgs::Point center;
