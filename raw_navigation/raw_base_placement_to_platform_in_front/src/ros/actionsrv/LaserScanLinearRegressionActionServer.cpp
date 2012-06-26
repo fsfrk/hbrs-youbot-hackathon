@@ -6,11 +6,11 @@
 #include <geometry_msgs/Twist.h>
 
 #include "../../LaserScanLinearRegression.h"
-#include <basescan_regression/OrientToBaseAction.h>
-#include <basescan_regression/BaseScanLinearRegression.h>
+#include <raw_base_placement_to_platform_in_front/OrientToBaseAction.h>
+#include <raw_base_placement_to_platform_in_front/BaseScanLinearRegression.h>
 #include <iostream>
 
-using namespace basescan_regression;
+using namespace raw_base_placement_to_platform_in_front;
 
 
 
@@ -43,7 +43,7 @@ public:
 		nh_ = nh;
 
 		target_distance = 0.07;
-		max_velocity = 0.15;
+		max_velocity = 0.1;
 
 		
 		ROS_INFO("Register publisher");
@@ -63,38 +63,45 @@ public:
 	geometry_msgs::Twist calculateVelocityCommand(double center, double a, double b) {
 		geometry_msgs::Twist cmd;
 
-		if (fabs(b) > 0.005) {
+		std::cout << "HHHHH: " << fabs(b) << std::endl;
+		if (fabs(b) > 0.2) 
+		{
 		  cmd.angular.z = -b;
 			//cmd_pub.publish(cmd);
 			//std::cout << "cmd.angular.z:  " << cmd.angular.z << std::endl;
 
 		}
-		else
-		if (fabs(center) > 0.005) {
-		  cmd.linear.y = center / 3;
+
+		/*
+		else if (fabs(center) > 0.005) 
+		{
+			cmd.linear.y = center / 3;
 			//cmd_pub.publish(cmd);
 			//std::cout << "cmd.linear.y:  " << cmd.linear.y << std::endl;
-
-		}
-		else 
-		if (a > target_distance) {
+		}*/	
+		
+		else if (a > target_distance) 
+		{
 			cmd.linear.x = a / 3;
 			//std::cout << "cmd.linear.x:  " << cmd.linear.x << std::endl;
 			//cmd_pub.publish(cmd);
 
 		}
 
-		if (cmd.linear.x > max_velocity) {
+		if (cmd.linear.x > max_velocity) 
 			cmd.linear.x = max_velocity;
-		}
+		else if (cmd.linear.x < -max_velocity) 
+			cmd.linear.x = -max_velocity;
 
-		if (cmd.linear.y > max_velocity) {
+		if (cmd.linear.y > max_velocity) 
 			cmd.linear.y = max_velocity;
-		}
+		else if (cmd.linear.y < -max_velocity) 
+			cmd.linear.y = -max_velocity;
 
-		if (cmd.angular.z > max_velocity) {
+		if (cmd.angular.z > max_velocity)
 			cmd.angular.z = max_velocity;
-		}
+		else if (cmd.angular.z < -max_velocity)
+			cmd.angular.z = -max_velocity;
 
 		return cmd;
 	}
@@ -109,6 +116,7 @@ public:
 		srv.request.filter_minDistance = 0.05;
 		srv.request.filter_maxDistance = 0.50;
 
+		target_distance = goal->distance;
 
 		ros::Duration max_time(30.0);
 		ros::Time stamp = ros::Time::now();
@@ -119,14 +127,14 @@ public:
 
 			if(client.call(srv)) {
 				ROS_INFO("Called service LaserScanLinearRegressionService");
-				std::cout << "result: " << srv.response.center << ", " << srv.response.a << ", " << srv.response.b << std::endl;
+				//std::cout << "result: " << srv.response.center << ", " << srv.response.a << ", " << srv.response.b << std::endl;
 
 				geometry_msgs::Twist cmd = calculateVelocityCommand(srv.response.center, srv.response.a, srv.response.b);
 				cmd_pub.publish(cmd);
 
 				std::cout << "cmd x:" << cmd.linear.x << ", y: "  << cmd.linear.y << ", z: " << cmd.angular.z << std::endl;
 
-				if (fabs(cmd.linear.x) + fabs(cmd.linear.y) + fabs(cmd.angular.z) < 0.00001) {
+				if (fabs(cmd.linear.x) + fabs(cmd.angular.z) < 0.00001) {
 			    
 					ROS_INFO("Point reached");
 					result.succeed = true;

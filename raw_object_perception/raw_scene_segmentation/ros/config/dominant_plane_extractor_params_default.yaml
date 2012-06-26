@@ -1,0 +1,20 @@
+# Topics and services names
+input_cloud_topic: /camera/rgb/points
+extract_dominant_plane_service: extract_dominant_plane
+
+# Filtering bounds, keep only what is inside
+min_x:  -1.5
+max_x: 1.5
+min_y: -1.5
+max_y: 1.5
+min_z: 0.4
+max_z: 1.5
+
+# Shrink detected plane polygon by this amount of meters
+shrink_polygon_by: 0.03
+
+# After a request is received, skip this many clouds before doing processing
+skip_clouds: 4
+
+# Retry extraction (if no planes detected) this many times
+extraction_retries: 1

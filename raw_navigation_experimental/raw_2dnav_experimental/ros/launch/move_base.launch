@@ -15,8 +15,8 @@
 		<rosparam file="$(find raw_2dnav_experimental)/ros/config/global_costmap_params.yaml" 	command="load" />
 		<rosparam file="$(find raw_2dnav_experimental)/ros/config/base_local_planner_params.yaml" command="load" />
 		
-		<!--param name="base_local_planner" type="string" value="raw_local_planner_omnidirectional/RAWPlannerROS"/-->
+		<param name="base_local_planner" type="string" value="raw_local_planner_omnidirectional/RAWPlannerROS"/>
                <!-- Load Elastic Band plugin to the base_local_planner -->
-		<param name="base_local_planner" type="string" value="eband_local_planner/EBandPlannerROS" />
+		<!--param name="base_local_planner" type="string" value="eband_local_planner/EBandPlannerROS" /-->
 	</node>
 </launch>

@@ -17,6 +17,7 @@
   <depend package="opencv2"/>
   <depend package="raw_scene_segmentation"/>
   <depend package="raw_msgs"/>
+  <depend package="raw_srvs"/>
   
   <export>
     <cpp cflags="-I${prefix}/ros/include" />

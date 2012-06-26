@@ -33,8 +33,9 @@
 // Arm Movement Stuff
 #include <arm_navigation_msgs/JointLimits.h>
 #include <brics_actuator/JointVelocities.h>
+#include <brics_actuator/JointPositions.h>
 
-class ImageConverter 
+class raw_blob_detection 
 {
 
 //-----------------------------------------------------------------------------
@@ -42,59 +43,57 @@ class ImageConverter
 //-----------------------------------------------------------------------------
 public:
 
-  //------------------------------------------------------------ ImageConverter
+  //-------------------------------------------------------- raw_blob_detection
   //---------------------------------------------------------------------------
   //    This function is used for all of the incoming and outgoing ROS messages
   //---------------------------------------------------------------------------
-  ImageConverter(ros::NodeHandle &n) : n_(n), it_(n_)
+  raw_blob_detection( ros::NodeHandle &n ) : node_handler( n ), image_transporter( node_handler )
   {
-    XmlRpc::XmlRpcValue param_list;
-    n_.getParam("/arm_1/arm_controller/joints", param_list);
-    ROS_ASSERT(param_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+    background_image = cvLoadImage( "/home/atwork/RoboCupAtWork/raw_object_perception/raw_blob_detection/src/background.png" );
 
-    for (int32_t i = 0; i < param_list.size(); ++i)
+    //-------------------------------------------------------------------------
+    //  Get all of the joint names for the YouBot arm as well as their limits.
+    //-------------------------------------------------------------------------
+    XmlRpc::XmlRpcValue parameter_list;
+    node_handler.getParam("/arm_1/arm_controller/joints", parameter_list);
+    ROS_ASSERT(parameter_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
+
+    for (int32_t i = 0; i < parameter_list.size(); ++i)
     {
-      ROS_ASSERT(param_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
-      arm_joint_names_.push_back(static_cast<std::string>(param_list[i]));
+      ROS_ASSERT(parameter_list[i].getType() == XmlRpc::XmlRpcValue::TypeString);
+      arm_joint_names_.push_back(static_cast<std::string>(parameter_list[i]));
     }
 
     //read joint limits
     for(unsigned int i=0; i < arm_joint_names_.size(); ++i)
     {
-      arm_navigation_msgs::JointLimits limit;
-      limit.joint_name = arm_joint_names_[i];
-      n_.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/min", limit.min_position);
-      n_.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/max", limit.max_position);
-      arm_joint_limits_.push_back(limit);
-
+      arm_navigation_msgs::JointLimits joint_limits;
+      joint_limits.joint_name = arm_joint_names_[i];
+      node_handler.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/min", joint_limits.min_position);
+      node_handler.getParam("/arm_1/arm_controller/limits/" + arm_joint_names_[i] + "/max", joint_limits.max_position);
+      arm_joint_limits_.push_back(joint_limits);
     }
-
-    //  TODO: Add publishing messages to the YouBot Arm controllers.
-    base_movement = n_.advertise<geometry_msgs::Twist>( "/cmd_vel", 1); 
-
-    // Rotational Control for the arm. 
-    pub_arm_vel = n_.advertise<brics_actuator::JointVelocities>("/arm_1/arm_controller/velocity_command", 1);
+    //------------------- END OF ARM INITILIZATION ----------------------------
 
     // Service commands to allow this node to be started and stopped externally
-    _start_srv = n_.advertiseService("start", &ImageConverter::Start, this);
-    _stop_srv = n_.advertiseService("stop", &ImageConverter::Stop, this);
-    ROS_INFO("Advertised 'start' and 'stop' service");
+    service_start = node_handler.advertiseService( "start", &raw_blob_detection::start, this );
+    service_stop = node_handler.advertiseService( "stop", &raw_blob_detection::stop, this );
+    ROS_INFO( "Advertised 'start' and 'stop' service for raw_blob_detection" );
 
-    ROS_INFO("Blob Detection Started");
+    ROS_INFO( "Blob Detection Started" );
   }
 
-  //----------------------------------------------------------- ~ImageConverter
+  //------------------------------------------------------- ~raw_blob_detection
   //---------------------------------------------------------------------------
   //   Standard Destructor.
   //--------------------------------------------------------------------------- 
-  ~ImageConverter()
+  ~raw_blob_detection()
   {
     //  OpenCV calls to destroy any HighGUI windows that may have been opened using
     //  the provided names. 
     cvDestroyWindow( "Original" );
     cvDestroyWindow( "Thresholding" ); 
     cvDestroyWindow( "Found Blobs" ); 
-    cvDestroyWindow( "Blob Detection" ); 
   }
 
   //------------------------------------------------------------- imageCallBack
@@ -104,7 +103,7 @@ public:
   //  this function will be called. It is responsible for all of the blob
   //  detection as well as any processing that is applied to the images.
   //---------------------------------------------------------------------------
-  void imageCallback(const sensor_msgs::ImageConstPtr& msg_ptr)
+  void imageCallback( const sensor_msgs::ImageConstPtr& msg_ptr )
   {
     int master_image_width = 0; 
     int master_image_height = 0; 
@@ -113,7 +112,11 @@ public:
     double y_offset = 0; 
     double rot_offset = 0; 
 
-    IplImage* cv_image = NULL;
+    bool done_rotational_adjustment = false; 
+    bool done_base_movement_adjustment = false; 
+    bool done_y_base_movement_adjustment = false; 
+
+    IplImage* cv_image = NULL; 
     IplImage* blob_image = NULL; 
 
     CBlob* currentBlob; 
@@ -125,28 +128,37 @@ public:
     }
     catch (sensor_msgs::CvBridgeException error)
     {
-      ROS_ERROR("error");
+      ROS_ERROR( "Error converting from ROS image message to OpenCV IplImage" );
     }
+
+    IplImage* background_threshold = cvCreateImage( cvGetSize( background_image ), 8, 1 ); 
+    cvCvtColor( background_image, background_threshold, CV_BGR2GRAY ); 
+    cvSmooth( background_threshold, background_threshold, CV_GAUSSIAN, 7, 7 );
+    cvThreshold( background_threshold, background_threshold, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU );   
 
     //  Obtain image properties that we require. 
     master_image_width = cv_image->width; 
     master_image_height = cv_image->height; 
 
-    IplImage* gray = cvCreateImage( cvGetSize( cv_image ), 8, 1 );
-    cvCvtColor( cv_image, gray, CV_BGR2GRAY );
-
-    cvSmooth( cv_image, cv_image, CV_GAUSSIAN, 7, 7 );
-
     blob_image = cvCreateImage( cvGetSize( cv_image ), 8, 3 ); 
 
+    IplImage* gray = cvCreateImage( cvGetSize( cv_image ), 8, 1 );
+    cvCvtColor( cv_image, gray, CV_BGR2GRAY );
+    cvSmooth( gray, gray, CV_GAUSSIAN, 7, 7 );
     cvThreshold( gray, gray, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU );
+    
+    IplImage* temp_img = cvCreateImage( cvGetSize( background_image ), 8, 1); 
+
+    //    This takes a background image (the gripper on a white background) and removes
+    //  it from the current image (cv_image). The results are stored again in cv_image.
+    cvSub( gray, background_threshold, gray, NULL );
 
     // Find any blobs that are not white. 
     CBlobResult blobs = CBlobResult( gray, NULL, 0 );
 
     //  Make sure they are big enough to really be considered.
     //  In this case we will use an area of AT LEAST 100 px. 
-    int minimum_blob_area = 100; 
+    int minimum_blob_area = 300; 
     blobs.Filter( blobs, B_EXCLUDE, CBlobGetArea(), B_LESS, minimum_blob_area ); 
 
     int blob_number = blobs.GetNumBlobs(); 
@@ -179,15 +191,13 @@ public:
       rotation = get_orientation( *currentBlob );
 
       //  DEBUGGING
-      std::cout << "Blob #:\t\t\t" << i << std::endl; 
-      std::cout << "Blob Center x:\t\t" << blob_x << std::endl; 
-      std::cout << "Blob Center y:\t\t" << blob_y << std::endl; 
-      std::cout << "Distance to Center:\t" << distance << std::endl; 
-      std::cout << "Horizontal Offset:\t" << dist_x << std::endl; 
-      std::cout << "Vertical Offset:\t" << dist_y << std::endl; 
-      std::cout << "Rotational Offset:\t" << rotation << std::endl; 
-      std::cout << "\n" << std::endl; 
-
+      ROS_DEBUG( "Blob #:\t\t\t%d", i ); 
+      ROS_DEBUG( "Blob Center x:\t\t%d", blob_x );
+      ROS_DEBUG( "Blob Center y:\t\t%d", blob_y ); 
+      ROS_DEBUG( "Distance to Center:\t%d", distance ); 
+      ROS_DEBUG( "Horizontal Offset:\t%d", dist_x ); 
+      ROS_DEBUG( "Vertical Offset:\t%d", dist_y ); 
+      ROS_DEBUG( "Rotational Offset:\t%d",rotation );  
 
       // Base adjustment stuff. This code assumes that the largest blob is the one that you
       // want to work with. This being the case the arm/camera will need to be guided to the
@@ -203,24 +213,27 @@ public:
         //---------------------------------------------------------------------
         //-------------------- base movement control --------------------------
         //---------------------------------------------------------------------
-        if( x_offset != 0 )
+        if( done_base_movement_adjustment == false )
         {
           double move_speed = 0.0; 
 
           // added a buffer for a "good enough" region of interest. [14.06.2012]
-          if( x_offset >= 10 )
+          if( x_offset >= 15 )
           {
             // move the robot base right
-            move_speed = -0.1; 
+            move_speed = -0.005; 
+            done_base_movement_adjustment = false; 
           }
-          else if( x_offset <= -10 )
+          else if( x_offset <= -15 )
           {
             // move the robot left
-            move_speed = 0.1; 
+            move_speed = 0.005; 
+            done_base_movement_adjustment = false; 
           }
           else if( x_offset > -10 && x_offset < 10 )
           {
-            move_speed = 0.0; 
+            move_speed = 0.0;
+            done_base_movement_adjustment = true;  
           }
           else
           {
@@ -229,32 +242,72 @@ public:
           }
 
           // Prepare and then send the base movement commands.
-          base_velocity.linear.y = move_speed; 
-          base_movement.publish( base_velocity ); 
+          youbot_base_velocities.linear.y = move_speed; 
+          base_velocities_publisher.publish( youbot_base_velocities ); 
         }
 
         //---------------------------------------------------------------------
+        //-------------------- base movement control --------------------------
+        //---------------------------------------------------------------------
+        if( done_y_base_movement_adjustment == false )
+        {
+          double move_speed = 0.0; 
+
+          if( y_offset >= 85 )
+          {
+            // move the robot base right
+            move_speed = -0.005; 
+            done_y_base_movement_adjustment = false; 
+          }
+          else if( y_offset <= 65 )
+          {
+            // move the robot left
+            move_speed = 0.005; 
+            done_y_base_movement_adjustment = false; 
+          }
+          else if( y_offset > -10 && y_offset < 10 )
+          {
+            move_speed = 0.0;
+            done_y_base_movement_adjustment = true;  
+          }
+          else
+          {
+            // should never happen but just in case.
+            move_speed = 0.0; 
+          }
+
+          // Prepare and then send the base movement commands.
+          youbot_base_velocities.linear.x = move_speed; 
+          base_velocities_publisher.publish( youbot_base_velocities ); 
+        }
+
+        //------------------ END OF BASE MOVEMENT CONTROL ---------------------
+
+        
+        //---------------------------------------------------------------------
         //--------------------- arm rotation control --------------------------
         //---------------------------------------------------------------------
-        
-        if( rot_offset != 90 || rot_offset != 270 )
+        if( done_rotational_adjustment == false )
         {
           double rotational_speed = 0.0; 
 
-          if( rot_offset < 80 )
+          if( ( rot_offset < 87 && rot_offset >= 0 ) || ( rot_offset < 267 && rot_offset >= 235 ) )
           {
-            rotational_speed = 0.5; 
+            rotational_speed = -0.2; 
+            done_rotational_adjustment = false; 
           }
-          else if( rot_offset > 100  )
+          else if( rot_offset > 93 && rot_offset < 235 )
           {
-            rotational_speed = -0.5; 
+            rotational_speed = 0.1; 
+            done_rotational_adjustment = false; 
           }
           else
           {
             rotational_speed = 0.0; 
+            done_rotational_adjustment = true; 
           }
 
-          arm_vel_.velocities.clear();
+          youbot_arm_velocities.velocities.clear();
           for(unsigned int i=0; i < arm_joint_names_.size(); ++i)
           {
             brics_actuator::JointValue joint_value;
@@ -263,7 +316,7 @@ public:
             joint_value.joint_uri = arm_joint_names_[i];
             joint_value.unit = to_string(boost::units::si::radian_per_second);
             
-            if( i == 5 )
+            if( i == 4 )
             {
               joint_value.value = rotational_speed;
             }
@@ -272,22 +325,21 @@ public:
               joint_value.value = 0.0; 
             }
 
-            arm_vel_.velocities.push_back(joint_value);
+            youbot_arm_velocities.velocities.push_back(joint_value);
+            arm_velocities_publisher.publish( youbot_arm_velocities );
           }
         }
+        //------------------- END OF ARM ROTATION CONTROL ---------------------
 
-        //---------------------------------------------------------------------
-        //--------------------- arm rotation control --------------------------
-        //---------------------------------------------------------------------
-        if( y_offset != 0 )
+        if( done_rotational_adjustment == true && done_base_movement_adjustment == true && done_y_base_movement_adjustment == true )
         {
-
+          blob_detection_completed = true; 
+          ROS_DEBUG( "Graping position has been reached." ); 
         }
-
 
         // make sure the last thing we do is paint one centroid for debugging.
         cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
-      }
+      } 
     }
 
     //-------------------------------------------------------------------------
@@ -303,12 +355,9 @@ public:
     CvFont font;
     cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 1.0, 1.0, 0, 1, CV_AA);
 
-
-    cvLine( blob_image,   cvPoint( 0, (master_image_height/2) ), cvPoint( master_image_width, (master_image_height / 2) ), CV_RGB( 255, 0, 0 ), 2, 0 ); 
+    cvLine( blob_image,   cvPoint( 0, (master_image_height/2) + 85 ), cvPoint( master_image_width, (master_image_height/2) + 85 ), CV_RGB( 255, 0, 0 ), 2, 0 ); 
     cvLine( blob_image,   cvPoint( (master_image_width/2), 0 ), cvPoint( (master_image_width/2), master_image_height ), CV_RGB( 255, 0, 0 ), 2, 0 );
-    //cvPutText( gray, "Hello World!", cvPoint( 10, gray->height - 10 ), &font, cvScalar( 255, 1, 1 ) );
     cvRectangle( blob_image, cvPoint( 0, blob_image->height-40 ), cvPoint( blob_image->width, blob_image->height ), CV_RGB( 0, 0, 0 ), -1 );
-
 
     std::string x_str = "X: "; 
     x_str += boost::lexical_cast<std::string>( x_offset ); 
@@ -319,14 +368,11 @@ public:
     std::string rot_str = "Rotation: "; 
     rot_str += boost::lexical_cast<std::string>( rot_offset ); 
 
-    cvPutText( blob_image, x_str.c_str(), cvPoint( 50, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
-    cvPutText( blob_image, y_str.c_str(),  cvPoint( 200, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
+    cvPutText( blob_image, x_str.c_str(), cvPoint( 10, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
+    cvPutText( blob_image, y_str.c_str(),  cvPoint( 185, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
     cvPutText( blob_image, rot_str.c_str(), cvPoint( 350, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
 
-    //cvShowImage( "Original", cv_image ); 
-    //cvShowImage( "Thresholding", gray ); 
-    cvShowImage( "Found Blobs", blob_image ); 
-    //cvShowImage( "Blob Detection", display_image ); 
+    cvShowImage( "Found Blobs", blob_image );                             
 
     //-------------------------------------------------------------------------
     //----------------------- END OF VISUAL OUTPUT ----------------------------
@@ -336,20 +382,63 @@ public:
     cvWaitKey(3);
   }
 
-  bool Start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+  //--------------------------------------------------------------------- start
+  //---------------------------------------------------------------------------
+  //   Used to start up the processing of the web camera images once the node 
+  //  has been told to start.
+  //--------------------------------------------------------------------------- 
+  bool start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
+    blob_detection_completed = false; 
+
      //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
-    image_sub_ = it_.subscribe( "/usb_cam/image_raw", 1, &ImageConverter::imageCallback, this );
+    image_subscriber = image_transporter.subscribe( "/usb_cam/image_raw", 1, &raw_blob_detection::imageCallback, this );
+
+    // Velocity control for the YouBot base.
+    base_velocities_publisher = node_handler.advertise<geometry_msgs::Twist>( "/cmd_vel", 1 ); 
+
+    // Velocity Control for the YouBot arm. 
+    arm_velocities_publisher = node_handler.advertise<brics_actuator::JointVelocities>( "/arm_1/arm_controller/velocity_command", 1 );
 
     ROS_INFO("Blob Detection Enabled");
+
+    while( blob_detection_completed == false && ros::ok() )
+    {
+      ros::spinOnce();
+    }
+
+     // Turn off the image subscriber for the web camera.
+    image_subscriber.shutdown(); 
+
+    // Turn off the velocity publishers for the YouBot Arm & Base.
+    arm_velocities_publisher.shutdown(); 
+    base_velocities_publisher.shutdown(); 
+
+    // Shut down any open windows.
+    cvDestroyAllWindows(); 
+
+    ROS_INFO("Blob Detection Disabled");
 
     return true;
   }
 
-
-  bool Stop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+  //---------------------------------------------------------------------- stop
+  //---------------------------------------------------------------------------
+  //   Used to stop the processing of the web camera images once the node has
+  //  been asked to stop. Note this does not remove the nodes service it only
+  //  halts the processing.
+  //--------------------------------------------------------------------------- 
+  bool stop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
-    image_sub_.shutdown(); 
+    // Turn off the image subscriber for the web camera.
+    image_subscriber.shutdown(); 
+
+    // Turn off the velocity publishers for the YouBot Arm & Base.
+    arm_velocities_publisher.shutdown(); 
+    base_velocities_publisher.shutdown(); 
+
+    // Shut down any open windows.
+    cvDestroyAllWindows(); 
 
     ROS_INFO("Blob Detection Disabled");
 
@@ -361,28 +450,32 @@ public:
 //-----------------------------------------------------------------------------
 protected:
 
-  ros::NodeHandle n_;
-  image_transport::ImageTransport it_;
-  image_transport::Subscriber image_sub_;
+  ros::NodeHandle node_handler;
+  image_transport::ImageTransport image_transporter;
+  image_transport::Subscriber image_subscriber;
   sensor_msgs::CvBridge bridge_;
 
   // Topics that this node publishes to.
-  ros::Publisher base_movement; 
-  ros::Publisher arm_movement;
-
-  ros::Publisher pub_arm_vel;
+  ros::Publisher base_velocities_publisher;
+  ros::Publisher arm_velocities_publisher;
 
   // base movement topic.
-  geometry_msgs::Twist base_velocity;
+  geometry_msgs::Twist youbot_base_velocities;
 
   // Arm Joint Names.
   std::vector<std::string> arm_joint_names_;
   std::vector<arm_navigation_msgs::JointLimits> arm_joint_limits_;
-  brics_actuator::JointVelocities arm_vel_;
+  brics_actuator::JointVelocities youbot_arm_velocities;
 
   // Stop and start services for this ROS node.
-  ros::ServiceServer _start_srv; 
-  ros::ServiceServer _stop_srv;
+  ros::ServiceServer service_start; 
+  ros::ServiceServer service_stop;
+
+  // Node status variable;
+  bool blob_detection_completed; 
+
+  // background Image.
+  IplImage* background_image; 
 };
 
 //------------------------------------------------------------------------ main
@@ -393,7 +486,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "image_converter");
   ros::NodeHandle n;
-  ImageConverter ic(n);
+  raw_blob_detection ic(n);
   ros::spin();
   return 0;
 }

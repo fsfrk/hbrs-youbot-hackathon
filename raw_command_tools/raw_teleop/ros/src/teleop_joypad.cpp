@@ -25,7 +25,7 @@ TeleOpJoypad::TeleOpJoypad(ros::NodeHandle &nh)
 	arm_max_vel_ =  param / MAX_JOYPAD;
 	ros::param::param<double>("~soft_joint_limit_threshold", soft_joint_limit_threshold_, 0.05);
 
-	/*
+	
 	// read joint names
 	XmlRpc::XmlRpcValue param_list;
 	nh.getParam("/arm_1/arm_controller/joints", param_list);
@@ -60,13 +60,13 @@ TeleOpJoypad::TeleOpJoypad(ros::NodeHandle &nh)
 		joint_value.value = 0.0;
 
 		arm_vel_.velocities.push_back(joint_value);
-	}*/
+	}
 
 	sub_joy_ = nh.subscribe<sensor_msgs::Joy>("/joy", 1, &TeleOpJoypad::cbJoy, this);
 	sub_joint_states_ = nh.subscribe<sensor_msgs::JointState>("/joint_states", 1, &TeleOpJoypad::cbJointStates, this);
 
 	pub_base_vel = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
-	//pub_arm_vel = nh.advertise<brics_actuator::JointVelocities>("/arm_1/arm_controller/velocity_command", 1);
+	pub_arm_vel = nh.advertise<brics_actuator::JointVelocities>("/arm_1/arm_controller/velocity_command", 1);
 
 	srv_arm_motors_on = nh.serviceClient<std_srvs::Empty>("arm_1/switchOnMotors");
 	srv_arm_motors_off = nh.serviceClient<std_srvs::Empty>("arm_1/switchOffMotors");
@@ -184,9 +184,9 @@ void TeleOpJoypad::publishCommands()
 {
 	if(button_deadman_pressed_)
 	{
-		//checkArmJointLimits();
+		checkArmJointLimits();
 
-		//pub_arm_vel.publish(arm_vel_);
+		pub_arm_vel.publish(arm_vel_);
 		pub_base_vel.publish(base_vel_);
 	}
 
@@ -195,8 +195,8 @@ void TeleOpJoypad::publishCommands()
 		if(button_deadman_pressed_prev_)
 		{
 			pub_base_vel.publish(base_zero_vel_);
-			//setAllArmJointVel(0.0);
-			//pub_arm_vel.publish(arm_vel_);
+			setAllArmJointVel(0.0);
+			pub_arm_vel.publish(arm_vel_);
 		}
 	}
 }

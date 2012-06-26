@@ -1,0 +1,16 @@
+<package>
+  <description brief="raw_arm_cmds">
+
+     raw_arm_cmds
+
+  </description>
+  <author>Alexander Moriarty</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_arm_cmds</url>
+  
+  <depend package="raw_script_server"/>
+
+</package>
+
+

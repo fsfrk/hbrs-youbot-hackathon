@@ -1,0 +1,190 @@
+Index: geometry/include/pcl/geometry/planar_polygon.h
+===================================================================
+--- geometry/include/pcl/geometry/planar_polygon.h	(revision 5669)
++++ geometry/include/pcl/geometry/planar_polygon.h	(working copy)
+@@ -102,6 +102,9 @@
+       
+       /** \brief A list of model coefficients (a,b,c,d). */
+       Eigen::Vector4f coefficients_;
++      
++    public:
++      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+   };
+ }
+ 
+Index: segmentation/include/pcl/segmentation/planar_polygon_fusion.h
+===================================================================
+--- segmentation/include/pcl/segmentation/planar_polygon_fusion.h	(revision 5669)
++++ segmentation/include/pcl/segmentation/planar_polygon_fusion.h	(working copy)
+@@ -69,7 +69,7 @@
+         * \param[in] input the list of 2D planar polygons to refine
+         */
+       void
+-      addInputPolygons (const std::vector<PlanarRegion<PointT> > &input)
++      addInputPolygons (const std::vector<PlanarRegion<PointT>, Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > > &input)
+       {
+         int start = static_cast<int> (regions_.size ());
+         regions_.resize (regions_.size () + input.size ());
+Index: segmentation/include/pcl/segmentation/impl/organized_multi_plane_segmentation.hpp
+===================================================================
+--- segmentation/include/pcl/segmentation/impl/organized_multi_plane_segmentation.hpp	(revision 5669)
++++ segmentation/include/pcl/segmentation/impl/organized_multi_plane_segmentation.hpp	(working copy)
+@@ -191,7 +191,7 @@
+ 
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ template<typename PointT, typename PointNT, typename PointLT> void
+-pcl::OrganizedMultiPlaneSegmentation<PointT, PointNT, PointLT>::segment (std::vector<PlanarRegion<PointT> >& regions)
++pcl::OrganizedMultiPlaneSegmentation<PointT, PointNT, PointLT>::segment (std::vector<PlanarRegion<PointT>, Eigen::aligned_allocator<PlanarRegion<PointT> > >& regions)
+ {
+   std::vector<ModelCoefficients> model_coefficients;
+   std::vector<PointIndices> inlier_indices;  
+@@ -228,7 +228,7 @@
+ 
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ template<typename PointT, typename PointNT, typename PointLT> void
+-pcl::OrganizedMultiPlaneSegmentation<PointT, PointNT, PointLT>::segmentAndRefine (std::vector<PlanarRegion<PointT> >& regions)
++pcl::OrganizedMultiPlaneSegmentation<PointT, PointNT, PointLT>::segmentAndRefine (std::vector<PlanarRegion<PointT>, Eigen::aligned_allocator<PlanarRegion<PointT> > >& regions)
+ {
+   std::vector<ModelCoefficients> model_coefficients;
+   std::vector<PointIndices> inlier_indices;  
+@@ -272,7 +272,7 @@
+ 
+ //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ template<typename PointT, typename PointNT, typename PointLT> void
+-pcl::OrganizedMultiPlaneSegmentation<PointT, PointNT, PointLT>::segmentAndRefine (std::vector<PlanarRegion<PointT> >& regions,
++pcl::OrganizedMultiPlaneSegmentation<PointT, PointNT, PointLT>::segmentAndRefine (std::vector<PlanarRegion<PointT>, Eigen::aligned_allocator<PlanarRegion<PointT> > >& regions,
+                                                                                   std::vector<ModelCoefficients>& model_coefficients,
+                                                                                   std::vector<PointIndices>& inlier_indices,
+                                                                                   PointCloudLPtr& labels,
+@@ -284,7 +284,8 @@
+   std::vector <Eigen::Matrix3f, Eigen::aligned_allocator<Eigen::Matrix3f> > covariances;
+   segment (model_coefficients, inlier_indices, centroids, covariances, *labels, label_indices);
+   refine (model_coefficients, inlier_indices, centroids, covariances, labels, label_indices);
+-  regions.resize (model_coefficients.size ());
++  //regions.resize (model_coefficients.size ());
++  regions.clear();
+   boundary_indices.resize (model_coefficients.size ());
+   
+   for (size_t i = 0; i < model_coefficients.size (); i++)
+@@ -305,12 +306,14 @@
+     Eigen::Vector3f vp (0.0, 0.0, 0.0);
+     if (project_points_ && boundary_cloud.points.size () > 0)
+       boundary_cloud = projectToPlaneFromViewpoint (boundary_cloud, model, centroid, vp);
+-
+-    regions[i] = PlanarRegion<PointT> (centroid,
++    
++    // regions[i] = PlanarRegion<PointT> (centroid,
++    regions.push_back(PlanarRegion<PointT> (centroid,
+                                        covariances[i], 
+                                        static_cast<unsigned int> (inlier_indices[i].indices.size ()),
+                                        boundary_cloud.points,
+-                                       model);
++                                       model));
++                                       //model);
+   }
+ }
+ 
+Index: segmentation/include/pcl/segmentation/planar_region.h
+===================================================================
+--- segmentation/include/pcl/segmentation/planar_region.h	(revision 5669)
++++ segmentation/include/pcl/segmentation/planar_region.h	(working copy)
+@@ -102,6 +102,9 @@
+         * or was due to edge of frame / occlusion boundary. 
+         */
+       std::vector<bool> contour_labels_;
++    
++    public:
++      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+ 
+   };
+ }
+Index: segmentation/include/pcl/segmentation/organized_multi_plane_segmentation.h
+===================================================================
+--- segmentation/include/pcl/segmentation/organized_multi_plane_segmentation.h	(revision 5669)
++++ segmentation/include/pcl/segmentation/organized_multi_plane_segmentation.h	(working copy)
+@@ -240,13 +240,13 @@
+         * \param[out] regions a list of resultant planar polygonal regions
+         */
+       void
+-      segment (std::vector<PlanarRegion<PointT> >& regions);
++      segment (std::vector<PlanarRegion<PointT>, Eigen::aligned_allocator<PlanarRegion<PointT> > >& regions);
+       
+       /** \brief Perform a segmentation, as well as an additional refinement step.  This helps with including points whose normals may not match neighboring points well, but may match the planar model well.
+         * \param[out] regions A list of regions generated by segmentation and refinement.
+         */
+       void
+-      segmentAndRefine (std::vector<PlanarRegion<PointT> >& regions);
++      segmentAndRefine (std::vector<PlanarRegion<PointT>, Eigen::aligned_allocator<PlanarRegion<PointT> > >& regions);
+ 
+       /** \brief Perform a segmentation, as well as additional refinement step.  Returns intermediate data structures for use in
+         * subsequent processing.
+@@ -258,7 +258,7 @@
+         * \param[out] boundary_indices A vector of PointIndices corresponding to the outer boundary / contour of each label
+         */
+       void
+-      segmentAndRefine (std::vector<PlanarRegion<PointT> >& regions,
++      segmentAndRefine (std::vector<PlanarRegion<PointT>, Eigen::aligned_allocator<PlanarRegion<PointT> > >& regions,
+                         std::vector<ModelCoefficients>& model_coefficients,
+                         std::vector<PointIndices>& inlier_indices,
+                         PointCloudLPtr& labels,
+Index: apps/include/pcl/apps/organized_segmentation_demo.h
+===================================================================
+--- apps/include/pcl/apps/organized_segmentation_demo.h	(revision 5669)
++++ apps/include/pcl/apps/organized_segmentation_demo.h	(working copy)
+@@ -78,7 +78,7 @@
+     QTimer *vis_timer_;
+     pcl::PointCloud<PointT> prev_cloud_;
+     pcl::PointCloud<pcl::Normal> prev_normals_;
+-    std::vector<pcl::PlanarRegion<PointT> > prev_regions_;
++    std::vector<pcl::PlanarRegion<PointT>, Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > > prev_regions_;
+     float* prev_distance_map_;
+     
+     pcl::PointCloud<PointT>::CloudVectorType prev_clusters_;
+Index: apps/src/organized_segmentation_demo.cpp
+===================================================================
+--- apps/src/organized_segmentation_demo.cpp	(revision 5669)
++++ apps/src/organized_segmentation_demo.cpp	(working copy)
+@@ -12,7 +12,7 @@
+ #include <pcl/surface/convex_hull.h>
+ 
+ void
+-displayPlanarRegions (std::vector<pcl::PlanarRegion<PointT> > &regions, 
++displayPlanarRegions (std::vector<pcl::PlanarRegion<PointT>, Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > > &regions, 
+                       boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer)
+ {
+   char name[1024];
+@@ -289,7 +289,7 @@
+ 
+   // Segment Planes
+   double mps_start = pcl::getTime ();
+-  std::vector<pcl::PlanarRegion<PointT> > regions;
++  std::vector<pcl::PlanarRegion<PointT>, Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > > regions;
+   std::vector<pcl::ModelCoefficients> model_coefficients;
+   std::vector<pcl::PointIndices> inlier_indices;  
+   pcl::PointCloud<pcl::Label>::Ptr labels (new pcl::PointCloud<pcl::Label>);
+Index: apps/src/openni_organized_multi_plane_segmentation.cpp
+===================================================================
+--- apps/src/openni_organized_multi_plane_segmentation.cpp	(revision 5669)
++++ apps/src/openni_organized_multi_plane_segmentation.cpp	(working copy)
+@@ -133,7 +133,7 @@
+       mps.setAngularThreshold (0.017453 * 2.0); //3 degrees
+       mps.setDistanceThreshold (0.02); //2cm
+ 
+-      std::vector<pcl::PlanarRegion<PointT> > regions;
++      std::vector<pcl::PlanarRegion<PointT>, Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > > regions;
+       pcl::PointCloud<PointT>::Ptr contour (new pcl::PointCloud<PointT>);
+       size_t prev_models_size = 0;
+       char name[1024];
+Index: apps/src/pcd_organized_multi_plane_segmentation.cpp
+===================================================================
+--- apps/src/pcd_organized_multi_plane_segmentation.cpp	(revision 5669)
++++ apps/src/pcd_organized_multi_plane_segmentation.cpp	(working copy)
+@@ -130,7 +130,7 @@
+       mps.setDistanceThreshold (0.03); //2cm
+       mps.setRefinementComparator (refinement_compare);
+       
+-      std::vector<pcl::PlanarRegion<PointT> > regions;
++      std::vector<pcl::PlanarRegion<PointT>, Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > > regions;
+       typename pcl::PointCloud<PointT>::Ptr contour (new pcl::PointCloud<PointT>);
+       typename pcl::PointCloud<PointT>::Ptr approx_contour (new pcl::PointCloud<PointT>);
+       char name[1024];

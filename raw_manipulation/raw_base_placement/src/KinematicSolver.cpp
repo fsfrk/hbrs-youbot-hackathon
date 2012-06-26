@@ -7,7 +7,9 @@
 #include <iostream>
 using namespace std;
 
+#include "ros/ros.h"
 #include "KinematicSolver.h"
+
 
 
 KinematicSolver::KinematicSolver()
@@ -37,7 +39,7 @@ void KinematicSolver::UpdateDHTable(JointParameter p)
                            0,     dbase,   abase,   0, 
                            0,     L_Prior,   0,     0, 
 			   0,     0,         0,    p(0,3),
-                           deg2rad(90),  0,         L1,   p(0,4),
+                           deg2rad(90),  0,         -L1,   p(0,4),
 			   0,     0,         L2,   p(0,5),
 			   0,     0,         L3,   p(0,6),
 			   deg2rad(-90),  L4,        0,    p(0,7);
@@ -95,10 +97,10 @@ HomogenousTransform KinematicSolver::calculateForwardKinematics(JointParameter p
 }
 
 
-bool KinematicSolver::solveIK(Pose GoalPose, JointParameter& prefConfig)
+bool KinematicSolver::solveIK(Pose GoalPose, JointParameter& prefConfig, bool isValid)
 {
 
-float Xdash = 0.100 ;
+float Xdash = 0.400 ;
 
 HomogenousTransform GoalTR = ht_from_xyzrpy(GoalPose(0),GoalPose(1),GoalPose(2),GoalPose(3),GoalPose(4),GoalPose(5));
 
@@ -106,39 +108,61 @@ GoalTR = ht_from_xyz(GoalPose(0),GoalPose(1),GoalPose(2)) * ht_from_eul(GoalPose
 
 float Beta  = atan2(GoalTR(2,2),sqrt( pow(GoalTR(0,2),2)+pow(GoalTR(1,2),2)));
 
-//Vertical Height
-float Zw = GoalPose(0,2);
-float Z2w = 0.249838 ;
-float Zdash  = Zw - Z2w;
-float Zddash = Zdash - (L4*cos(Beta));
- cout<<"Zddash"<<Zddash;
-// Sin and Cos exchange
-float Xddash = Xdash - (L4*sin(Beta));
-cout<<"Xddash"<<Xddash;
- 
-// Theta 3 evaluation
-float ct3 = (-pow(Zddash,2)-pow(Xddash,2) + pow(L2,2)+pow(L3,2))/(2*L2*L3);
-//float t3 = acos(ct3);
-float st3 = sqrt(1-pow(ct3,2));
-
-float t3 = atan2(st3,ct3);
+float t,t1,t2,tempt2,t3,t4,t5;
 
 
-// Theta 4 evaluation
-float k2 = L3*sin(t3);
-float k1 = L2-(L3*cos(t3));
-float t2 = atan2(Zddash,Xddash)+ atan2(k2,k1);
-float t4= t2+t3-Beta;
+//prefferred config
+//t2 = 1.18826;
+//t3 = -1.17518;
+//t4 = 3.15417;
 
-// Base Orientation 
-float t = atan2(GoalTR(1,2),GoalTR(0,2));
 
-// Angular transformations to suit the fk solver
+if(isValid == true)
+    {
+        tempt2=deg2rad(180)+prefConfig(3);
+        t2 = tempt2>deg2rad(180)?(deg2rad(360)-tempt2):tempt2;
+        ROS_INFO("t2 = %f",t2);
+        t3 = prefConfig(5);
+        t4 = prefConfig(6);
+        t = atan2(GoalTR(1,2),GoalTR(0,2));
+    }
+else
+    {
+        //Vertical Height
+        float Zw = GoalPose(0,2);
+        //float Z2w = 0.249838 ;
+        float Z2w = 0.349 ;
+        float Zdash  = Zw - Z2w;
+        float Zddash = Zdash - (L4*cos(Beta));
+         cout<<"Zddash"<<Zddash;
+        // Sin and Cos exchange
+        float Xddash = Xdash - (L4*sin(Beta));
+        cout<<"Xddash"<<Xddash;
+         
+        // Theta 3 evaluation
+        float ct3 = (-pow(Zddash,2)-pow(Xddash,2) + pow(L2,2)+pow(L3,2))/(2*L2*L3);
+        //float t3 = acos(ct3);
+        float st3 = sqrt(1-pow(ct3,2));
 
-//t2 = deg2rad(-90)+t2;
-t3 = (deg2rad(180)+t3);
-t4 = (deg2rad(180)-t4);
-//t4 = deg2rad(270)-t4;
+        t3 = atan2(st3,ct3);
+
+
+        // Theta 4 evaluation
+        float k2 = L3*sin(t3);
+        float k1 = L2-(L3*cos(t3));
+        t2 = atan2(Zddash,Xddash)+ atan2(k2,k1);
+        t4= t2+t3-Beta;
+
+        // Base Orientation 
+        t = atan2(GoalTR(1,2),GoalTR(0,2));
+
+        // Angular transformations to suit the fk solver
+
+        //t2 = deg2rad(-90)+t2;
+        t3 = (deg2rad(180)+t3);
+        t4 = (deg2rad(180)-t4);
+        //t4 = deg2rad(270)-t4;
+    } 
 
 //Base position
 JointParameter tmpconfig(1,8);
@@ -158,9 +182,9 @@ TRobot = calculateForwardKinematics(tmpconfig);
 Eigen::MatrixXf Product(3,3) ; 
 Product = (TRobot.rotation().transpose())*GoalTR.rotation();
 //HomogenousTransform  Product = GoalTR;
-float t5 = atan2(Product(1,0),Product(0,0));
+t5 = atan2(Product(1,0),Product(0,0));
 //Theta 1 Solution
-float t1=0;
+t1=0;
 
 //Final Solution
 

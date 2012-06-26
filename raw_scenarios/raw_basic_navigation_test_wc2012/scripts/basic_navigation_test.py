@@ -6,6 +6,7 @@ import smach
 import smach_ros
 
 # generic states
+from generic_basic_states import *
 from generic_robocup_states import *
 from generic_navigation_states import *
 
@@ -42,7 +43,7 @@ def main():
             transitions={'succeeded':'SELECT_POSE_TO_APPROACH',
                          'no_more_tasks':'MOVE_TO_EXIT'})
 
-        smach.StateMachine.add('MOVE_TO_EXIT', approach_pose("exit"),
+        smach.StateMachine.add('MOVE_TO_EXIT', approach_pose("EXIT"),
             transitions={'succeeded':'overall_success', 
                         'failed':'MOVE_TO_EXIT'})
 

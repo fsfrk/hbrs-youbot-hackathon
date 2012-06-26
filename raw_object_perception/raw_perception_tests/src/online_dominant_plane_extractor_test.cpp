@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 
+#include <boost/lexical_cast.hpp>
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <pcl/filters/passthrough.h>
@@ -13,13 +14,16 @@ class TestNode
 
 public:
 
-    TestNode(std::string input_cloud_topic)
+    TestNode(float min_z, float max_z)
     : dpe_(new OrganizedDominantPlaneExtractor)
     {
       ros::NodeHandle nh;
-      cloud_subscriber_ = nh.subscribe(input_cloud_topic, 5, &TestNode::cloudCallback, this);
+      cloud_subscriber_ = nh.subscribe("/camera/rgb/points", 5, &TestNode::cloudCallback, this);
       marker_publisher_ = nh.advertise<visualization_msgs::Marker>("dominant_plane", 1);
-      dpe_->setShrinkPlanePolygonRatio(0.08);
+      dpe_->setShrinkPlanePolygonBy(0.03);
+      pass_through_.setFilterFieldName("z");
+      pass_through_.setFilterLimits(min_z, max_z);
+      pass_through_.setKeepOrganized(true);
     }
 
 protected:
@@ -29,17 +33,13 @@ protected:
       PointCloud::Ptr cloud(new PointCloud);
       pcl::fromROSMsg(*ros_cloud, *cloud);
 
-      pcl::PassThrough<PointT> pass_through;
-      pass_through.setFilterFieldName("z");
-      pass_through.setFilterLimits(0.7, 1.3);
-      pass_through.setKeepOrganized(true);
-      pass_through.setInputCloud(cloud);
-      pass_through.filter(*cloud);
+      pass_through_.setInputCloud(cloud);
+      pass_through_.filter(*cloud);
 
       PlanarPolygon planar_polygon;
       dpe_->setInputCloud(cloud);
       dpe_->extract(planar_polygon);
-      ROS_INFO("Number of points in plane contour: %li.", planar_polygon.getContour().size());
+      ROS_INFO_STREAM("Number of points in plane contour: " << planar_polygon.getContour().size());
       ROS_INFO_STREAM("Plane coefficients:\n" << planar_polygon.getCoefficients());
 
       publishPlanarPolygon(planar_polygon, ros_cloud->header);
@@ -48,6 +48,9 @@ protected:
     /** For the given PlanarPolygon draw a polyline through it points and also display the points themselves. */
     void publishPlanarPolygon(const PlanarPolygon& polygon, const std_msgs::Header& header)
     {
+      const auto& contour = polygon.getContour();
+      if (!contour.size()) return;
+
       visualization_msgs::Marker lines;
       lines.header = header;
       lines.type = visualization_msgs::Marker::LINE_LIST;
@@ -61,7 +64,6 @@ protected:
       lines.color.g = 0.5f;
       lines.color.b = 0.5f;
 
-      const auto& contour = polygon.getContour();
       geometry_msgs::Point first_point;
       first_point.x = contour[0].x;
       first_point.y = contour[0].y;
@@ -89,6 +91,7 @@ protected:
 private:
 
     std::unique_ptr<DominantPlaneExtractor> dpe_;
+    pcl::PassThrough<PointT> pass_through_;
     ros::Subscriber cloud_subscriber_;
     ros::Publisher marker_publisher_;
 
@@ -99,13 +102,24 @@ int main (int argc, char** argv)
 {
   ros::init(argc, argv, "online_dominant_plane_extractor_test");
 
-  if (argc != 2)
+  if (argc != 1 && argc != 3)
   {
-    ROS_ERROR("Usage: %s <cloud topic>", argv[0]);
+    ROS_ERROR("Usage: %s [min_z max_z]", argv[0]);
     return 1;
   }
 
-  TestNode tn(argv[1]);
+  float min_z = 0.4;
+  float max_z = 3;
+
+  if (argc == 3)
+  {
+    min_z = boost::lexical_cast<float>(argv[1]);
+    max_z = boost::lexical_cast<float>(argv[2]);
+  }
+
+  ROS_INFO("Keep points in %.2f to %.2f range.", min_z, max_z);
+
+  TestNode tn(min_z, max_z);
 
   ros::spin();
   return 0;

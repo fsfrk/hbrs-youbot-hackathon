@@ -54,7 +54,7 @@ void OrganizedDominantPlaneExtractor::extract(PlanarPolygon& planar_polygon)
 {
   // Step 1: perform multiplanar segmentation
   PointCloudN::Ptr normals(new PointCloudN);
-  std::vector<pcl::PlanarRegion<PointT>> regions;
+  std::vector<pcl::PlanarRegion<PointT>, Eigen::aligned_allocator<pcl::PlanarRegion<PointT> > > regions;
   std::vector<pcl::ModelCoefficients> model_coefficients;
   std::vector<pcl::PointIndices> inlier_indices;
   PointCloudL::Ptr labels(new PointCloudL);
@@ -105,8 +105,8 @@ void OrganizedDominantPlaneExtractor::extract(PlanarPolygon& planar_polygon)
       largest_region_id = i;
     }
   }
-  shrinkPointCloud(largest_region_hull, shrink_plane_polygon_ratio_);
   planar_polygon = PlanarPolygon(largest_region_hull->points, regions.at(largest_region_id).getCoefficients());
+  shrinkPlanarPolygon(planar_polygon, shrink_plane_polygon_by_);
 }
 
 void OrganizedDominantPlaneExtractor::setPlaneConstraints(const Eigen::Vector3f& normal, double angle_threshold)

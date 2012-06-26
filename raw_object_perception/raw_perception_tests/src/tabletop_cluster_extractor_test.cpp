@@ -42,7 +42,7 @@ private:
   {
     planar_polygon_.reset(new PlanarPolygon);
     dpe_->setInputCloud(cloud_);
-    dpe_->setShrinkPlanePolygonRatio(0.10);
+    dpe_->setShrinkPlanePolygonBy(0.03);
     MEASURE_RUNTIME(dpe_->extract(*planar_polygon_), "Plane extraction");
     std::cout << "Number of points in plane contour: " << planar_polygon_->getContour().size() << std::endl;
     std::cout << "Plane coefficients:\n" << planar_polygon_->getCoefficients() << std::endl;
@@ -55,7 +55,7 @@ private:
     tce_->setTablePolygon(planar_polygon_);
     MEASURE_RUNTIME(tce_->extract(clusters), "Cluster extraction");
 
-    ROS_INFO("Number of clusters: %li.", clusters.size());
+    ROS_INFO_STREAM("Number of clusters: " << clusters.size());
 
     viewer_.removeAllPointClouds(0);
     viewer_.removeAllShapes(0);
@@ -67,7 +67,7 @@ private:
     int i = 0;
     for (const PointCloud::Ptr& cluster : clusters)
     {
-      ROS_INFO("Cluster %i: pts %li", i, cluster->points.size());
+      ROS_INFO("Cluster %i: pts %i", i, (int)cluster->points.size());
       std::string name = boost::str(boost::format("cluster_%02i") % i);
       pcl::visualization::PointCloudColorHandlerCustom<PointT> single_color(cluster, red[i % 6], grn[i % 6], blu[i % 6]);
       viewer_.addPointCloud<PointT>(cluster, single_color, name);
@@ -96,8 +96,9 @@ private:
 
   void reconfigure_callback(raw_perception_tests::TabletopClusterExtractorTestConfig &config, uint32_t level)
   {
-    tce_.reset(new TabletopClusterExtractor(config.object_min_height,
-                                            config.object_max_height,
+    tce_.reset(new TabletopClusterExtractor(config.point_min_height,
+                                            config.point_max_height,
+                                            config.object_min_height,
                                             config.object_cluster_tolerance,
                                             config.object_cluster_min_size,
                                             config.object_cluster_max_size));
