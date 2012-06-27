@@ -86,7 +86,7 @@ def main():
         smach.StateMachine.add('SELECT_DESTINATION_POSE', select_base_pose("destination_pose"),
             transitions={'succeeded':'MOVE_TO_DESTINATION_POSE'})
         
-        smach.StateMachine.add('MOVE_TO_DESTINATION_POSE', move_base_rel(-1.0),
+        smach.StateMachine.add('MOVE_TO_DESTINATION_POSE', move_base_rel(-1.1),
             transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM'})
 
         smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM', adjust_pose_wrt_platform(),
@@ -119,7 +119,7 @@ def main():
         smach.StateMachine.add('MOVE_ARM_TO_INIT', move_arm("initposition"),
             transitions={'succeeded':'MOVE_TO_FINAL_POSE'})
                 
-        smach.StateMachine.add('MOVE_TO_FINAL_POSE', move_base_rel(1.0),
+        smach.StateMachine.add('MOVE_TO_FINAL_POSE', move_base_rel(1.1),
             transitions={'succeeded':'overall_success'})
         
        
