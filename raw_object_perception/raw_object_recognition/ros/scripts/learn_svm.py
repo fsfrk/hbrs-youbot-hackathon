@@ -4,6 +4,7 @@ import pickle
 import numpy as np
 import mlpy
 import matplotlib.pyplot as plt
+import sys
 
 def confirm(prompt=None, resp=False):
     """prompts for yes or no response from the user. Returns True for yes and
@@ -45,8 +46,8 @@ def confirm(prompt=None, resp=False):
             return False
 
 if __name__ == '__main__':
-    data = np.loadtxt('alldata.txt', delimiter=' ')
-    x, y = data[:, :4], data[:, 4].astype(np.int)
+    data = np.loadtxt(sys.argv[1], delimiter=' ')
+    x, y = data[:, :5], data[:, 5].astype(np.int)
     print 'Dataset dimensions:', x.shape
 
     # Learn PCA and visualize

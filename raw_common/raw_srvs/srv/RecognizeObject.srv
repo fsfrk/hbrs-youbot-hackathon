@@ -2,5 +2,7 @@
 geometry_msgs/Vector3Stamped dimensions
 # Number of points in cluster
 uint32 points
+# Median color of points
+float64 color
 ---
 string name

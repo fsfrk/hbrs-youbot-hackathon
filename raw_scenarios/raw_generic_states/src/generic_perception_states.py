@@ -81,6 +81,7 @@ class recognize_objects(smach.State):
         smach.State.__init__(
             self,
             outcomes=['succeeded', 'failed'],
+            input_keys=['recognized_objects'],
             output_keys=['recognized_objects'])
         
         self.object_finder_srv = rospy.ServiceProxy('/raw_object_perception/find_objects', raw_srvs.srv.GetObjects)
@@ -110,7 +111,7 @@ class recognize_objects(smach.State):
             try:
                 print "frame_id:",resp.objects[0].pose.header.frame_id
                 print "cluster_id:",resp.objects[0].cluster.header.frame_id
-                tf_listener.waitForTransform(resp.objects[0].pose.header.frame_id, '/map', resp.objects[0].pose.header.stamp, rospy.Duration(2))
+                tf_listener.waitForTransform(resp.objects[0].pose.header.frame_id, '/odom', resp.objects[0].pose.header.stamp, rospy.Duration(2))
                 tf_wait_worked = True
             except Exception, e:
                 print "tf exception in recognize person: wait for transform: ", e
@@ -118,11 +119,18 @@ class recognize_objects(smach.State):
                 rospy.sleep(0.5)
                    
         transformed_poses = []
+        obj_count = 1
         for obj in resp.objects:
             tf_worked = False
+            
+            if obj_count >= 4:
+                break
+
+            obj_count = obj_count + 1
+
             while not tf_worked:
                 try:
-                    obj.pose = tf_listener.transformPose('/map', obj.pose)
+                    obj.pose = tf_listener.transformPose('/odom', obj.pose)
                     transformed_poses.append(obj.pose)
                     tf_worked = True
                 except Exception, e:
@@ -130,5 +138,7 @@ class recognize_objects(smach.State):
                     tf_worked = False
 
         userdata.recognized_objects = transformed_poses
+
+        print "################ OBJECTS TAKEN: ", len(userdata.recognized_objects)
 
         return 'succeeded'

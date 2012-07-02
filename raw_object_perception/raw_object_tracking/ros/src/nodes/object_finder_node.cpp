@@ -3,6 +3,8 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 
 #include <raw_msgs/BoundingBox.h>
 #include <raw_msgs/BoundingBoxList.h>
@@ -13,7 +15,10 @@
 #include "bounding_box.h"
 #include "object_tracker.h"
 #include "occupancy_octree_object.h"
+#include "colored_occupancy_octree_object.h"
 #include "tabletop_cluster_extractor.h"
+
+typedef ColoredOccupancyOctreeObject ObjectT;
 
 class ObjectFinderNode
 {
@@ -31,13 +36,13 @@ public:
     find_service_ = nh.advertiseService(find_objects_service, &ObjectFinderNode::findObjectsCallback, this);
     clusters_publisher_ = nh.advertise<sensor_msgs::PointCloud2>(found_clusters_topic, 1);
     bounding_boxes_publisher_ = nh.advertise<raw_msgs::BoundingBoxList>(bounding_boxes_topic, 1);
-    object_labels_publisher_ = nh.advertise<visualization_msgs::Marker>("object_labels", 1);
+    object_labels_publisher_ = nh.advertise<visualization_msgs::MarkerArray>("object_labels", 10);
     ROS_INFO("Object finder service started.");
     // Create TabletopClusterExtractor
     tce_ = std::unique_ptr<TabletopClusterExtractor>(new TabletopClusterExtractor(0.009,  // point min height
                                                                                   0.200,  // point max height
                                                                                   0.010,  // object min height
-                                                                                  0.015,  // object cluster tolerance
+                                                                                  0.020,  // object cluster tolerance
                                                                                   20,     // min cluster size
                                                                                   5000)); // max cluster size
 
@@ -54,7 +59,7 @@ public:
     // Get dominant plane to work with. This will block until server responds.
     if (!getDominantPlane()) return false;
     // Create new tracker.
-    tracker_.reset(new ObjectTracker<OccupancyOctreeObject>);
+    tracker_.reset(new ObjectTracker<ObjectT>);
     // Subscribe to the point clouds.
     ros::NodeHandle pn("~");
     std::string input_cloud_topic;
@@ -106,6 +111,7 @@ public:
       raw_srvs::RecognizeObject srv;
       srv.request.points = cloud.points.size();
       srv.request.dimensions.vector = v;
+      srv.request.color = object->getMedianColor();
       if (object_recoginition_client.call(srv))
       {
         object_msg.name = srv.response.name;
@@ -114,8 +120,24 @@ public:
       {
         ROS_WARN("Call to object recognition service failed.");
         object_msg.name = "?";
+        continue;
       }
       // UGLY HACK
+      // UGLIER HACK
+      if (object_msg.name != "R20")
+      {
+        // then it is profile, need to consider color
+        if (object->getMedianColor() > 0.001200)
+        {
+          // is silver
+          object_msg.name.append("G");
+        }
+        else
+        {
+          object_msg.name.append("B");
+        }
+      }
+      //
 
       auto& pt = box.getCenter();
       geometry_msgs::Point center;
@@ -123,6 +145,7 @@ public:
       center.y = pt[1];
       center.z = pt[2];
       object_msg.pose.pose.position = center;
+      object_msg.pose.pose.orientation.x = object->getMedianColor();
       response.objects.push_back(object_msg);
     }
     publishObjectLabels(response);
@@ -236,22 +259,28 @@ public:
 
   void publishObjectLabels(const raw_srvs::GetObjects::Response& response)
   {
+    visualization_msgs::MarkerArray ma;
+    int id = 1;
     for (const auto& object : response.objects)
     {
       visualization_msgs::Marker lines;
-      lines.header.frame_id = "openni_rgb_optical_frame";
+      lines.header.frame_id = "/openni_rgb_optical_frame";
       lines.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
       lines.action = visualization_msgs::Marker::ADD;
-      lines.scale.z = 0.01;
+      lines.scale.z = 0.04;
       lines.color.a = 1.0;
       lines.ns = "labels";
-      lines.id = 1;
+      lines.id = id++;
       lines.color.r = 1.0f;
       lines.color.g = 0.5f;
       lines.color.b = 0.5f;
       lines.pose = object.pose.pose;
-      object_labels_publisher_.publish(lines);
+      lines.pose.position.y += 0.02;
+      lines.pose.orientation.w = 1.0;
+      lines.text = object.name;
+      ma.markers.push_back(lines);
     }
+    object_labels_publisher_.publish(ma);
   }
 
   void publishBoundingBoxes(const std_msgs::Header& header)
@@ -283,7 +312,7 @@ public:
 private:
 
   std::unique_ptr<TabletopClusterExtractor> tce_;
-  std::unique_ptr<ObjectTracker<OccupancyOctreeObject>> tracker_;
+  std::unique_ptr<ObjectTracker<ObjectT>> tracker_;
   ros::ServiceServer find_service_;
   ros::Publisher clusters_publisher_;
   ros::Publisher bounding_boxes_publisher_;

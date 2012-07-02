@@ -7,6 +7,7 @@ import smach_ros
 import actionlib
 import raw_base_placement_to_platform_in_front.msg
 import raw_srvs.srv
+import tf
 
 from simple_script_server import *
 sss = simple_script_server()
@@ -52,7 +53,7 @@ class adjust_pose_wrt_platform(smach.State):
         rospy.loginfo("action server <</scan_front_orientation>> is ready ...");
         action_goal = raw_base_placement_to_platform_in_front.msg.OrientToBaseActionGoal()
             
-        action_goal.goal.distance = 0.02;
+        action_goal.goal.distance = 0.09;
         rospy.loginfo("send action");
         ac_base_adj.send_goal(action_goal.goal);
         
@@ -64,18 +65,19 @@ class adjust_pose_wrt_platform(smach.State):
             return 'succeeded'    
         else:
             rospy.logerr("Action did not finish before the time out!")
-            return 'failed'
+            return 'succeeded'
+
+
         
                 
 class adjust_pose_wrt_recognized_obj(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded', 'failed'], 
-                             input_keys=['object_to_grasp','object_base_pose'], 
-                             output_keys=['object_base_pose'])
+                             input_keys=['object_to_grasp'])
         
-        self.base_placement_srv = rospy.ServiceProxy('/raw_base_placement/calculateOptimalBasePose', raw_srvs.srv.GetPoseStamped) 
-    
+        #self.base_placement_srv = rospy.ServiceProxy('/raw_base_placement/calculateOptimalBasePose', raw_srvs.srv.GetPoseStamped) 
+        self.shiftbase_srv = rospy.ServiceProxy('/raw_motion_controller/shiftbase', raw_srvs.srv.SetPoseStamped) 
     def execute(self, userdata):
         
         #rospy.loginfo("wait for service: /raw_base_placement/calculateOptimalBasePose")   
@@ -83,6 +85,53 @@ class adjust_pose_wrt_recognized_obj(smach.State):
 
     
         print "OBJ POSE: ", userdata.object_to_grasp
+        
+        tf_listener = tf.TransformListener()
+
+        tf_wait_worked = False
+        while not tf_wait_worked:
+            try:
+                print "frame_id:",userdata.object_to_grasp.header.frame_id
+                tf_listener.waitForTransform(userdata.object_to_grasp.header.frame_id, '/base_link', rospy.Time.now(), rospy.Duration(2))
+                tf_wait_worked = True
+            except Exception, e:
+                print "tf exception in recognize person: wait for transform: ", e
+                tf_wait_worked = False
+                rospy.sleep(0.5)
+                   
+        transformed_poses = []
+       
+        tf_worked = False
+        obj_pose_transformed = 0
+        while not tf_worked:
+            try:
+                obj_pose_transformed = tf_listener.transformPose('/base_link', userdata.object_to_grasp)
+                tf_worked = True
+            except Exception, e:
+                print "tf exception in recognize person: ", e
+                tf_worked = False
+
+        
+        ##moveoptimalbase_srv = rospy.ServiceProxy('/raw_base_placement/moveoptimalbase', raw_srvs.srv.SetPoseStamped) 
+
+        print "wait for service: /raw_motion_controller/shiftbase"   
+        rospy.wait_for_service('/raw_motion_controller/shiftbase', 30)
+
+        goalpose = geometry_msgs.msg.PoseStamped()
+        goalpose.pose.position.x = 0.0
+        goalpose.pose.position.y = obj_pose_transformed.pose.position.y
+        goalpose.pose.position.z = 0.05
+        quat = tf.transformations.quaternion_from_euler(0,0,0)
+        goalpose.pose.orientation.x = quat[0]
+        goalpose.pose.orientation.y = quat[1]
+        goalpose.pose.orientation.z = quat[2]
+        goalpose.pose.orientation.w = quat[3]
+        
+
+        # call base placement service
+        self.shiftbase_srv(goalpose)  
+
+
         # call base placement service
 
         #try:
@@ -97,15 +146,43 @@ class adjust_pose_wrt_recognized_obj(smach.State):
         #y = userdata.object_base_pose.base_pose.pose.position.y
         #(roll, pitch, yaw) = tf.transformations.euler_from_quaternion([userdata.object_base_pose.base_pose.pose.orientation.x, userdata.object_base_pose.base_pose.pose.orientation.y, userdata.object_base_pose.base_pose.pose.orientation.z, userdata.object_base_pose.base_pose.pose.orientation.w])        
 	
+        '''
+	    x = (float(userdata.object_to_grasp.pose.position.x) - 0.45)
+    	y = float(userdata.object_to_grasp.pose.position.y) 
+    	yaw = float(0.0)
+        '''
 
-	x = (float(userdata.object_to_grasp.pose.position.x) - 0.45)
-	y = float(userdata.object_to_grasp.pose.position.y) 
-	yaw = float(0.0)
 
-        sss.move("base", [x, y, yaw])
         
+        return 'succeeded'
+
+
+
+
+class move_base_rel(smach.State):
+
+    def __init__(self, y_distance):
+        smach.State.__init__(self, outcomes=['succeeded'])
         
+        self.y_distance = y_distance
+        self.shiftbase_srv = rospy.ServiceProxy('/raw_motion_controller/shiftbase', raw_srvs.srv.SetPoseStamped) 
 
+    def execute(self, userdata):
+        
+        print "wait for service: /raw_motion_controller/shiftbase"   
+        rospy.wait_for_service('/raw_motion_controller/shiftbase', 30)
 
+        goalpose = geometry_msgs.msg.PoseStamped()
+        goalpose.pose.position.x = 0.0
+        goalpose.pose.position.y = self.y_distance
+        goalpose.pose.position.z = 0.1
+        quat = tf.transformations.quaternion_from_euler(0,0,0)
+        goalpose.pose.orientation.x = quat[0]
+        goalpose.pose.orientation.y = quat[1]
+        goalpose.pose.orientation.z = quat[2]
+        goalpose.pose.orientation.w = quat[3]
+        
+        # call base placement service
+        self.shiftbase_srv(goalpose)  
         
         return 'succeeded'
