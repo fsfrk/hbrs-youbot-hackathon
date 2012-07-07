@@ -8,6 +8,9 @@ ObjectSegmentation::ObjectSegmentation(const std::string &node_name)
 
 	ros::NodeHandle pn("~");
 
+    pn.param("extract_obj_in_rgb_img", _extract_obj_in_rgb_img, false);
+    ROS_INFO_STREAM("extract objects in rgb image: " << _extract_obj_in_rgb_img);
+
 	pn.param("min_x", _dist_min_x, -1.5);
 	pn.param("max_x", _dist_max_x,  1.5);
 	pn.param("min_y", _dist_min_y, -1.5);
@@ -92,9 +95,15 @@ void ObjectSegmentation::Segment(const sensor_msgs::PointCloud2 &msg)
 				pcl::toROSMsg(object, cloud);
 				clustered_objects_msgs.push_back(cloud);
 
+                raw_msgs::Object segmented_object;
 
 				// find the image corresponding to the cluster
-				sensor_msgs::ImagePtr img = ExtractRegionOfInterest(cloud, image);
+                if(_extract_obj_in_rgb_img)
+                {
+    				sensor_msgs::ImagePtr img = ExtractRegionOfInterest(cloud, image);
+                    segmented_object.rgb_image = *img;
+    				segmented_object.rgb_image.header = msg.header;
+                }
 
 
 				// find the centroid
@@ -102,10 +111,7 @@ void ObjectSegmentation::Segment(const sensor_msgs::PointCloud2 &msg)
 				centroids_msgs.push_back(centroid);
 
 
-				// save all information about the object for publication
-				raw_msgs::Object segmented_object;
-				segmented_object.rgb_image = *img;
-				segmented_object.rgb_image.header = msg.header;
+				// save all information about the object for publication				
 				segmented_object.cluster = cloud;
 				segmented_object.pose = centroid;
 				segmented_objects.push_back(segmented_object);
