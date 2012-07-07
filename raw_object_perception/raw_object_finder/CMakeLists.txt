@@ -40,3 +40,7 @@ target_link_libraries(object_segmentation_node
 	raw_plane_extraction
 	raw_object_candidate_extraction
 )
+
+target_link_libraries(raw_object_candidate_extraction
+	raw_plane_extraction
+)
