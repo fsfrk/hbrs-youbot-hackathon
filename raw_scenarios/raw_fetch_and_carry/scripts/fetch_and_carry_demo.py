@@ -17,18 +17,17 @@ from fetch_and_carry_demo_states import *
 def main():
     rospy.init_node('fetch_and_carry_demo')
 
-    SM = smach.StateMachine(outcomes=['overall_failed'])
+    SM = smach.StateMachine(outcomes=['overall_failed', 'overall_success'])
     
     # world knowledge
-    SM.userdata.base_pose_list = ["S2", "D1"]
+    SM.userdata.base_pose_list = ["S2", "S1"]
     SM.userdata.base_pose_to_approach = -1; 
     SM.userdata.object_list = [];
                                             # x, y, z, roll, pitch, yaw
-    SM.userdata.rear_platform_free_poses = [[0.033 + 0.024 - 0.32,  0.0, 0.14, 0, -math.pi + 0.2, 0, "/arm_link_0"],   #front pos
-                                            [0.033 + 0.024 - 0.28,  0.0, 0.14, 0, -math.pi + 0.3, 0, "/arm_link_0"],    #rear pos
-                                            [0.033 + 0.024 - 0.235, 0.0, 0.14, 0, -math.pi + 0.3, 0, "/arm_link_0"]]
-    
+    SM.userdata.rear_platform_free_poses = ['platform_centre']
     SM.userdata.rear_platform_occupied_poses = []
+    
+    SM.userdata.obj_goal_configuration_poses = []
 
     # open the container
     with SM:
@@ -38,19 +37,66 @@ def main():
             transitions={'succeeded':'SELECT_POSE_TO_APPROACH', 
                          'failed':'overall_failed'})
         
+        # collect objects
         smach.StateMachine.add('SELECT_POSE_TO_APPROACH', select_pose_to_approach(),
             transitions={'succeeded':'MOVE_TO_GRASP_POSE'})
         
         smach.StateMachine.add('MOVE_TO_GRASP_POSE', approach_pose(),
-            transitions={'succeeded':'SM_GRASP_OBJECT', 
+            transitions={'succeeded':'ADJUST_POSE', 
                         'failed':'overall_failed'})
+
+        smach.StateMachine.add('ADJUST_POSE', adjust_pose_wrt_platform(),
+            transitions={'succeeded':'SM_GRASP_OBJECT',
+                        'failed':'ADJUST_POSE'})
                       
         smach.StateMachine.add('SM_GRASP_OBJECT', sm_grasp_random_object(),
             transitions={'object_grasped':'PLACE_OBJECT_ON_REAR_PLATFORM', 
                          'failed':'SM_GRASP_OBJECT'})
                                 
         smach.StateMachine.add('PLACE_OBJECT_ON_REAR_PLATFORM', place_obj_on_rear_platform(),
-            transitions={'succeeded':'SELECT_POSE_TO_APPROACH', 
+            transitions={'succeeded':'MOVE_BACK_FIXED_DISTANCE', 
+                        'no_more_free_poses':'MOVE_TO_DESTINATION_POSE'})
+
+        smach.StateMachine.add('MOVE_BACK_FIXED_DISTANCE', move_base_rel(-0.2),
+            transitions={'succeeded':'SELECT_POSE_TO_APPROACH'})
+
+        
+        # place object at destination pose
+        smach.StateMachine.add('MOVE_TO_DESTINATION_POSE', approach_pose("D2"),
+            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM', 
+                        'failed':'overall_failed'})
+
+        smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM', adjust_pose_wrt_platform(),
+            transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATION',
+                        'failed':'ADJUST_POSE_WRT_PLATFORM'})
+        
+        smach.StateMachine.add('GET_OBJ_POSES_FOR_CONFIGURATION', get_obj_poses_for_goal_configuration("line"),
+            transitions={'succeeded':'PLACE_OBJ_IN_CONFIGURATION',
+                         'configuration_poses_not_available':'overall_failed'})
+         
+        #place first obj in gripper
+        smach.StateMachine.add('PLACE_OBJ_IN_CONFIGURATION', place_object_in_configuration(),
+            transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF',
+                        'no_more_cfg_poses':'MOVE_ARM_OUT_OF_VIEW2'}) 
+        
+        
+        #ToDo: implement state
+        smach.StateMachine.add('GRASP_OBJECT_FROM_PLTF', grasp_obj_from_pltf(),
+            transitions={'succeeded':'PLACE_OBJ_IN_CONFIGURATION_2',
+                        'no_more_obj_on_pltf':'MOVE_ARM_OUT_OF_VIEW2'})
+        
+        smach.StateMachine.add('PLACE_OBJ_IN_CONFIGURATION_2', place_object_in_configuration(),
+            transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF',
+                        'no_more_cfg_poses':'MOVE_ARM_OUT_OF_VIEW2'})
+        
+        
+        smach.StateMachine.add('MOVE_ARM_OUT_OF_VIEW2', move_arm_out_of_view(),
+                transitions={'succeeded':'MOVE_TO_EXIT',  
+                             'failed':'overall_failed'})
+        
+        
+        smach.StateMachine.add('MOVE_TO_EXIT', approach_pose("EXIT"),
+            transitions={'succeeded':'overall_success', 
                         'failed':'overall_failed'})
               
             

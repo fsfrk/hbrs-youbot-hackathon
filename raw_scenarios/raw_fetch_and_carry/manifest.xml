@@ -19,5 +19,8 @@
   <depend package="raw_script_server"/>
   <depend package="raw_bringup"/>
   <depend package="raw_bringup_sim"/>
+  <depend package="raw_base_placement"/>
+  <depend package="raw_relative_movements"/>
+
 
 </package>
