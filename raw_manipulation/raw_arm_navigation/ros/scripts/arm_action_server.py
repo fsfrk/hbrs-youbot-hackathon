@@ -39,10 +39,10 @@ class ArmActionServer:
                 self.joint_limits.append(limit)
         self.current_joint_configuration = [0 for i in range(len(self.joint_names))]
         self.unit = "rad"
-		
-		# subscriptions
+        
+        # subscriptions
         rospy.Subscriber("joint_states", sensor_msgs.msg.JointState, self.joint_states_callback)
-		# publications
+        # publications
         self.pub_joint_positions = rospy.Publisher("position_command", brics_actuator.msg.JointPositions)
         
         # action server
@@ -51,7 +51,7 @@ class ArmActionServer:
         self.as_move_joint_direct = actionlib.SimpleActionServer("MoveToJointConfigurationDirect", raw_arm_navigation.msg.MoveToJointConfigurationAction, execute_cb = self.execute_cb_move_joint_config_direct)
         self.as_move_joint_trajectory = actionlib.SimpleActionServer("MoveJointTrajectory", control_msgs.msg.FollowJointTrajectoryAction, execute_cb = self.execute_cb_move_joint_trajectory)
         #self.as_move_joint_planned = actionlib.SimpleActionServer("MoveJointPlanned", arm_navigation_msgs.msg.MoveArmAction, execute_cb = self.execute_cb_move_joint_planned)
-	
+    
         # additional classes
         self.iks = SimpleIkSolver()
         
@@ -76,7 +76,7 @@ class ArmActionServer:
         is_timed_out = False
         start = rospy.Time.now()
         duration = rospy.Duration(5.0)
-		
+        
         for i in range(len(goal.trajectory.points)):
             joint_positions = brics_actuator.msg.JointPositions()
             conf = goal.trajectory.points[i].positions
@@ -112,59 +112,63 @@ class ArmActionServer:
         rospy.loginfo("move arm to joint configuration")
         
         if not self.is_joint_configuration_not_in_limits(action_msgs.goal):
-			result = raw_arm_navigation.msg.MoveToJointConfigurationResult()
-			result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.JOINT_LIMITS_VIOLATED
-			self.as_move_joint_direct.set_aborted(result)
-			return
+            result = raw_arm_navigation.msg.MoveToJointConfigurationResult()
+            result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.JOINT_LIMITS_VIOLATED
+            self.as_move_joint_direct.set_aborted(result)
+            return
+
         self.pub_joint_positions.publish(action_msgs.goal)
         #wait to reach the goal position
+
         while (not rospy.is_shutdown()):
             if (self.is_goal_reached(action_msgs.goal)):
                 break
+
         result = raw_arm_navigation.msg.MoveToJointConfigurationResult()
         result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.SUCCESS
         self.as_move_joint_direct.set_succeeded(result)
         
+
     def execute_cb_move_cartesian_direct(self, action_msgs):
-		rospy.loginfo("move arm to cartesian pose")
-		
-		joint_config = self.iks.call_constraint_aware_ik_solver(action_msgs.goal)
-		
-		result = raw_arm_navigation.msg.MoveToCartesianPoseResult()
-				
-		if (joint_config):
-			rospy.loginfo("IK solution found")
-			jp = brics_actuator.msg.JointPositions()
-			
-			for i in range(5):
-				jv = brics_actuator.msg.JointValue()
-				jv.joint_uri = self.iks.joint_names[i]
-				jv.value = joint_config[i]
-				jv.unit = self.unit
-				jp.positions.append(jv)
-				
-		
-			if not self.is_joint_configuration_not_in_limits(jp):
-				result = raw_arm_navigation.msg.MoveToJointConfigurationResult()
-				result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.JOINT_LIMITS_VIOLATED
-				self.as_move_cart_direct.set_aborted(result)
-				return
-		
-			
-			self.pub_joint_positions.publish(jp)
-			
-			#wait to reach the goal position
-			while (not rospy.is_shutdown()):
-				if (self.is_goal_reached(jp)):
-					break
-			
-			result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.SUCCESS
-			self.as_move_cart_direct.set_succeeded(result)
-		
-		else:
-			rospy.logerr("NO IK solution found")
-			result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.NO_IK_SOLUTION
-			self.as_move_cart_direct.set_aborted(result)
+        rospy.loginfo("move arm to cartesian pose")
+        
+        joint_config = self.iks.call_constraint_aware_ik_solver(action_msgs.goal)
+        
+        result = raw_arm_navigation.msg.MoveToCartesianPoseResult()
+                
+        if (joint_config):
+            rospy.loginfo("IK solution found")
+            jp = brics_actuator.msg.JointPositions()
+            
+            for i in range(5):
+                jv = brics_actuator.msg.JointValue()
+                jv.joint_uri = self.iks.joint_names[i]
+                jv.value = joint_config[i]
+                jv.unit = self.unit
+                jp.positions.append(jv)
+                
+        
+            if not self.is_joint_configuration_not_in_limits(jp):
+                result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.JOINT_LIMITS_VIOLATED
+                self.as_move_cart_direct.set_aborted(result)
+                return
+        
+            
+            self.pub_joint_positions.publish(jp)
+            
+            #wait to reach the goal position
+            while (not rospy.is_shutdown()):
+                if (self.is_goal_reached(jp)):
+                    break
+            
+            result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.SUCCESS
+            self.as_move_cart_direct.set_succeeded(result)
+        
+        else:
+            rospy.logerr("NO IK solution found")
+            result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.NO_IK_SOLUTION
+            self.as_move_cart_direct.set_aborted(result)
+
             
     def execute_cb_move_cartesian_rpy_sampled(self, action_msgs):
         rospy.loginfo("move to cartesian pose sampling for valid rpy")
@@ -174,23 +178,24 @@ class ArmActionServer:
         pose.goal.pose.position.x = action_msgs.goal.pose.position.x
         pose.goal.pose.position.y = action_msgs.goal.pose.position.y
         pose.goal.pose.position.z = action_msgs.goal.pose.position.z
-		
-        for i in range(250):
+        
+        for i in range(100):
             rand_value = random.randint(int(-math.pi/0.01), int(math.pi/0.01))/100.0
+
             (qx, qy, qz, qw) = tf.transformations.quaternion_from_euler(0, rand_value, 0)
             pose.goal.header.stamp = rospy.Time.now()
             pose.goal.pose.orientation.x = qx
             pose.goal.pose.orientation.y = qy
             pose.goal.pose.orientation.z = qz
             pose.goal.pose.orientation.w = qw
-		
+                    
             joint_config = self.iks.call_constraint_aware_ik_solver(pose.goal)
-			
-            result = raw_arm_navigation.msg.MoveToCartesianPoseResult()
-					
+                                
             if (joint_config):
                 rospy.loginfo("IK solution found")
                 break
+
+        result = raw_arm_navigation.msg.MoveToJointConfigurationResult()
         
         if(joint_config):
             jp = brics_actuator.msg.JointPositions()
@@ -201,21 +206,25 @@ class ArmActionServer:
                 jv.unit = self.unit
                 jp.positions.append(jv)
             if not self.is_joint_configuration_not_in_limits(jp):
-                result = raw_arm_navigation.msg.MoveToJointConfigurationResult()
                 result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.JOINT_LIMITS_VIOLATED
                 self.as_move_cart_rpy_sampled.set_aborted(result)
                 return
+
             self.pub_joint_positions.publish(jp)
+            
             #wait to reach the goal position
             while (not rospy.is_shutdown()):
                 if (self.is_goal_reached(jp)):
                     break
-                result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.SUCCESS
-                self.as_move_cart_rpy_sampled.set_succeeded(result)
+
+            result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.SUCCESS
+            self.as_move_cart_rpy_sampled.set_succeeded(result)
+
         else:
             rospy.logerr("NO IK solution found")
             result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.NO_IK_SOLUTION
             self.as_move_cart_rpy_sampled.set_aborted(result)
+
                 
     def is_goal_reached(self, goal_pose):
         for i in range(len(self.joint_names)):
@@ -227,10 +236,10 @@ class ArmActionServer:
         return True
 
 if __name__ == "__main__":
-	rospy.init_node("arm_action_server")
-	
-	action = ArmActionServer()
-	
-	rospy.loginfo("arm action server started")
-	
-	rospy.spin()
+    rospy.init_node("arm_action_server")
+    
+    action = ArmActionServer()
+    
+    rospy.loginfo("arm action server started")
+    
+    rospy.spin()
