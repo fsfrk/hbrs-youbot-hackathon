@@ -3,7 +3,7 @@
 
 
 import roslib
-roslib.load_manifest('raw_base_placement2')
+roslib.load_manifest('raw_base_placement_fred')
 
 import rospy
 import tf

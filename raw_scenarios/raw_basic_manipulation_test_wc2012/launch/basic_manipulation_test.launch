@@ -15,8 +15,7 @@
 		<include file="$(find raw_arm_navigation)/ros/launch/simple_manipulation.launch" />	
 	
 		<!-- base placement -->
-		<include file="$(find raw_base_placement_to_platform_in_front)/launch/basescan_regression.launch" />
-        <!--include file="$(find raw_base_placement)/launch/baseplacement.launch" /-->
+		<include file="$(find raw_base_placement_matthias_fueller)/launch/basescan_regression.launch" />
 		
         <!-- motion controller -->
         <include file="$(find raw_relative_movements)/launch/base_controller.launch" />

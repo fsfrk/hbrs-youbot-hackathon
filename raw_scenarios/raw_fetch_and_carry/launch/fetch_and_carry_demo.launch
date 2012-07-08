@@ -11,7 +11,7 @@
 	    <include file="$(find raw_relative_movements)/launch/base_controller.launch" />
 	
 	    <!-- behavior -->
-	    <include file="$(find raw_base_placement2)/ros/launch/adjust_pose_wrt_nearest_obj.launch" />
+	    <include file="$(find raw_base_placement_fred)/ros/launch/adjust_pose_wrt_nearest_obj.launch" />
 	    <include file="$(find brsu_nearest_object_detector)/ros/launch/nearest_object_detector.launch" />
 
 	    <!-- manipulation -->

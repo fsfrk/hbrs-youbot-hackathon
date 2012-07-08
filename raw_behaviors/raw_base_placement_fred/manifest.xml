@@ -1,13 +1,13 @@
 <package>
-  <description brief="raw_base_placement2">
+  <description brief="raw_base_placement_fred">
 
-     raw_base_placement2
+     raw_base_placement_fred
 
   </description>
   <author>fred</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/raw_base_placement2</url>
+  <url>http://ros.org/wiki/raw_base_placement_fred</url>
 
   <depend package="rospy" />
   <depend package="tf" />

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import roslib
-roslib.load_manifest('raw_base_placement')
+roslib.load_manifest('raw_base_placement_nirmal')
 import rospy
 import geometry_msgs
 import raw_srvs.srv
@@ -12,7 +12,7 @@ from simple_script_server import *
         
 # main
 def main():
-    rospy.init_node('raw_base_placement_test_script')
+    rospy.init_node('raw_base_placement_nirmal_test_script')
 
     ### tf listener
     tf_listener = tf.TransformListener()
@@ -21,9 +21,9 @@ def main():
     ##sss.move("arm", "pregrasp_front_init")
     
     # BASE PLACEMENT
-    base_placement_srv = rospy.ServiceProxy('/raw_base_placement/calculateOptimalBasePose', raw_srvs.srv.GetPoseStamped) 
-    print "wait for service: /raw_base_placement/calculateOptimalBasePose"   
-    rospy.wait_for_service('/raw_base_placement/calculateOptimalBasePose', 30)
+    base_placement_srv = rospy.ServiceProxy('/raw_base_placement_nirmal/calculateOptimalBasePose', raw_srvs.srv.GetPoseStamped) 
+    print "wait for service: /raw_base_placement_nirmal/calculateOptimalBasePose"   
+    rospy.wait_for_service('/raw_base_placement_nirmal/calculateOptimalBasePose', 30)
 
     obj_pose = geometry_msgs.msg.PoseStamped()
     obj_pose.pose.position.x = 6.59999

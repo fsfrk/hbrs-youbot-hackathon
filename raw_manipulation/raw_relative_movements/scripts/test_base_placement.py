@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import roslib
-roslib.load_manifest('raw_base_placement')
+roslib.load_manifest('raw_relative_movements')
 import rospy
 import geometry_msgs
 import raw_srvs.srv
@@ -22,7 +22,7 @@ def main():
     
     # BASE PLACEMENT
     shiftbase_srv = rospy.ServiceProxy('/raw_relative_movements/shiftbase', raw_srvs.srv.SetPoseStamped) 
-    ##moveoptimalbase_srv = rospy.ServiceProxy('/raw_base_placement/moveoptimalbase', raw_srvs.srv.SetPoseStamped) 
+    ##moveoptimalbase_srv = rospy.ServiceProxy('/raw_base_placement_nirmal/moveoptimalbase', raw_srvs.srv.SetPoseStamped) 
 
     print "wait for service: /raw_relative_movements/shiftbase"   
     rospy.wait_for_service('/raw_relative_movements/shiftbase', 30)
