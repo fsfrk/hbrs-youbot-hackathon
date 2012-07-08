@@ -19,7 +19,7 @@
         <!--include file="$(find raw_base_placement)/launch/baseplacement.launch" /-->
 		
         <!-- motion controller -->
-        <include file="$(find raw_motion_controller)/launch/base_controller.launch" />
+        <include file="$(find raw_relative_movements)/launch/base_controller.launch" />
 
 		<!-- script server -->
 		<include file="$(find raw_script_server)/launch/script_server.launch" />

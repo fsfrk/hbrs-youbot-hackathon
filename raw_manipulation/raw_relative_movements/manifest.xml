@@ -1,13 +1,14 @@
 <package>
-  <description brief="raw_motion_controller">
+  <description brief="raw_relative_movements">
 
-     raw_reactive_base_placement
+     raw_relative_movements
 
   </description>
   <author>Nemo Giftsun</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/raw_reactive_base_placement</url>
+  <url>http://ros.org/wiki/raw_relative_movements
+</url>
   <depend package="std_msgs"/>
   <depend package="rospy"/>
   <depend package="roscpp"/>
@@ -15,14 +16,12 @@
   <depend package="eigen"/>  
   <depend package="tf"/>  
   <depend package="raw_srvs"/>
-<!--
-  <depend package="bullet"/> 
-  <depend package="raw_script_server"/>-->
+
   <depend package="std_srvs"/>
   <depend package="actionlib"/>
   <depend package="nav_msgs"/>
   <depend package="geometry_msgs"/>
-  <depend package="raw_base_placement_to_platform_in_front"/>
+  <depend package="raw_base_placement"/>
 
 </package>
 
