@@ -1,0 +1,21 @@
+<package>
+  <description brief="raw_base_placement2">
+
+     raw_base_placement2
+
+  </description>
+  <author>fred</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_base_placement2</url>
+
+  <depend package="rospy" />
+  <depend package="tf" />
+  <depend package="geometry_msgs" />
+  <depend package="std_srvs" />
+  <depend package="raw_srvs" />
+  <depend package="brsu_srvs" />
+  
+</package>
+
+
