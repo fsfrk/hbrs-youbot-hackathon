@@ -26,3 +26,34 @@ class select_pose_to_approach(smach.State):
         rospy.loginfo("selected pose: %s", userdata.base_pose_to_approach)
                 
         return 'succeeded'
+
+
+class get_obj_poses_for_goal_configuration(smach.State):
+    def __init__(self, config):
+        smach.State.__init__(self, 
+            outcomes=['succeeded', 'configuration_poses_not_available'],
+            input_keys=['obj_goal_configuration_poses'],
+            output_keys=['obj_goal_configuration_poses'])
+        
+        self.config = config
+        
+    def execute(self, userdata):
+        
+        
+        if (not rospy.has_param("/script_server/arm/" + self.config)):
+            rospy.logerr("configuration <<" + self.config + ">> NOT available on parameter server")
+            return 'configuration_poses_not_available'
+            
+        pose_names = rospy.get_param("/script_server/arm/" + self.config)
+
+        print pose_names
+        
+        for pose_name in pose_names:
+            print "cfg pose: ", pose_name
+            userdata.obj_goal_configuration_poses.append((self.config + "/" + pose_name))
+    
+
+        userdata.obj_goal_configuration_poses.sort()
+        
+                
+        return 'succeeded'

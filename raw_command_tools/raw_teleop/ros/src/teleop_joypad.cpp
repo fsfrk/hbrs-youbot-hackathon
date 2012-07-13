@@ -13,6 +13,8 @@ TeleOpJoypad::TeleOpJoypad(ros::NodeHandle &nh)
 	button_deadman_pressed_ = false;
 	button_deadman_pressed_prev_ = false;
 	button_run_pressed_ = false;
+    button_print_arm_states_ = false;
+    button_print_arm_states_prev_ = false;
 
 	double param = 0;
 	ros::param::param<double>("~base_max_linear_x_vel", param, 0.3);
@@ -25,7 +27,6 @@ TeleOpJoypad::TeleOpJoypad(ros::NodeHandle &nh)
 	arm_max_vel_ =  param / MAX_JOYPAD;
 	ros::param::param<double>("~soft_joint_limit_threshold", soft_joint_limit_threshold_, 0.05);
 
-	
 	// read joint names
 	XmlRpc::XmlRpcValue param_list;
 	nh.getParam("/arm_1/arm_controller/joints", param_list);
@@ -79,6 +80,9 @@ void TeleOpJoypad::cbJoy(const sensor_msgs::Joy::ConstPtr& command)
 	button_deadman_pressed_ = (bool)command->buttons[BUTTON_DEADMAN];
 	button_run_pressed_ = (bool)command->buttons[BUTTON_RUN];
 
+    button_print_arm_states_prev_ = button_print_arm_states_;
+    button_print_arm_states_ = (bool)command->buttons[BUTTON_PRINT_ARM_JOINT_STATES];
+
 	//base
 	if(!button_run_pressed_)
 		speed_factor_ = 0.5;
@@ -104,7 +108,7 @@ void TeleOpJoypad::cbJoy(const sensor_msgs::Joy::ConstPtr& command)
 
 	if((bool)command->buttons[BUTTON_ARM_MOTOR_1_2])
 	{
-		arm_vel_.velocities[0].value = command->axes[AXES_ARM_1] * arm_max_vel_ * speed_factor_;
+		arm_vel_.velocities[0].value = command->axes[AXES_ARM_1] * arm_max_vel_ * speed_factor_ * (-1.0);
 		arm_vel_.velocities[1].value = command->axes[AXES_ARM_2] * arm_max_vel_ * speed_factor_;
 	}
 	else if((bool)command->buttons[BUTTON_ARM_MOTOR_3_4])
@@ -113,7 +117,7 @@ void TeleOpJoypad::cbJoy(const sensor_msgs::Joy::ConstPtr& command)
 		arm_vel_.velocities[3].value = command->axes[AXES_ARM_2] * arm_max_vel_ * speed_factor_;
 	}
 	else if((bool)command->buttons[BUTTON_ARM_MOTOR_5])
-		arm_vel_.velocities[4].value = command->axes[AXES_ARM_1] * arm_max_vel_ * speed_factor_;
+		arm_vel_.velocities[4].value = command->axes[AXES_ARM_1] * arm_max_vel_ * speed_factor_ * (-1.0);
 
 }
 
@@ -164,18 +168,36 @@ void TeleOpJoypad::setAllArmJointVel(double motor_vel)
 		setSingleArmJointVel(motor_vel, arm_joint_names_[i]);
 }
 
+void TeleOpJoypad::printArmJointStates()
+{
+    std::cout << "[";
+    
+    for(unsigned int i=0; i < (current_joint_states_.position.size() - 2); ++i)
+    {   
+        std::cout << current_joint_states_.position[i];
+        
+        if(i < (current_joint_states_.position.size() - 3))
+            std::cout << ", ";
+    }
+    std::cout << "]" << std::endl;
+        
+}
+
 void TeleOpJoypad::checkArmJointLimits()
 {
 	for(unsigned int i =0; i < arm_joint_limits_.size(); i++)
 	{
-		for(unsigned j = 0; j < current_joint_states_.name.size(); ++j)
+		for(unsigned int j = 0; j < current_joint_states_.name.size(); ++j)
 		{
-			if((current_joint_states_.name[j] == arm_joint_limits_[i].joint_name) &&
-			   ((current_joint_states_.position[j] < (arm_joint_limits_[i].min_position + soft_joint_limit_threshold_)) || (current_joint_states_.position[j] > (arm_joint_limits_[i].max_position - soft_joint_limit_threshold_))))
-			{
-				ROS_ERROR_STREAM("arm joint <<" << arm_joint_limits_[i].joint_name << ">> at soft joint limit: " << current_joint_states_.position[j] << " rad");
-				arm_vel_.velocities[i].value = 0.0;
-			}
+            if(current_joint_states_.name[j] == arm_joint_limits_[i].joint_name)
+            {
+                if(((current_joint_states_.position[j] < (arm_joint_limits_[i].min_position + soft_joint_limit_threshold_)) && (arm_vel_.velocities[j].value < 0)) || 
+                   ((current_joint_states_.position[j] > (arm_joint_limits_[i].max_position - soft_joint_limit_threshold_)) && (arm_vel_.velocities[j].value > 0)))
+                {
+    				//ROS_ERROR_STREAM("arm joint <<" << arm_joint_limits_[i].joint_name << ">> at soft joint limit: " << current_joint_states_.position[j] << " rad");
+    				arm_vel_.velocities[i].value = 0.0;
+    			}
+            }
 		}
 	}
 }
@@ -184,9 +206,9 @@ void TeleOpJoypad::publishCommands()
 {
 	if(button_deadman_pressed_)
 	{
-		//checkArmJointLimits();
+		checkArmJointLimits();
 
-		//pub_arm_vel.publish(arm_vel_);
+		pub_arm_vel.publish(arm_vel_);
 		pub_base_vel.publish(base_vel_);
 	}
 
@@ -195,9 +217,12 @@ void TeleOpJoypad::publishCommands()
 		if(button_deadman_pressed_prev_)
 		{
 			pub_base_vel.publish(base_zero_vel_);
-			//setAllArmJointVel(0.0);
-			//pub_arm_vel.publish(arm_vel_);
+			setAllArmJointVel(0.0);
+			pub_arm_vel.publish(arm_vel_);
 		}
 	}
+
+    if(button_print_arm_states_prev_ == false && button_print_arm_states_ == true)
+        printArmJointStates();
 }
 

@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+	<node pkg="raw_base_placement_matthias_fueller" type="basescan_linregressionservice" name="raw_basescan_regression_service"  respawn="false" output="screen" /> 
+	<node pkg="raw_base_placement_matthias_fueller" type="basescan_linregressionactionserver" name="raw_basescan_regression_as"  respawn="false" output="screen" /> 
+
+
+</launch>

@@ -51,6 +51,7 @@ class ObjectSegmentation {
 		sensor_msgs::CvBridge _bridge;
 		raw_srvs::GetObjects::Response _last_segmented_objects;
 
+        bool _extract_obj_in_rgb_img;
 		double _dist_min_x;
 		double _dist_max_x;
 		double _dist_min_y;

@@ -27,6 +27,9 @@
 
 #define BUTTON_ARM_MOTORS_ON			9
 #define BUTTON_ARM_MOTORS_OFF			8
+
+#define BUTTON_PRINT_ARM_JOINT_STATES	4
+
 #define BUTTON_ARM_MOTOR_1_2			0
 #define BUTTON_ARM_MOTOR_3_4			1
 #define BUTTON_ARM_MOTOR_5				2
@@ -56,6 +59,7 @@ private:
 	void checkArmJointLimits();
 	void turnOnArmMotorsOn();
 	void turnOnArmMotorsOff();
+    void printArmJointStates();
 
 	sensor_msgs::JointState current_joint_states_;
 	bool is_in_soft_joint_limits_;
@@ -70,6 +74,8 @@ private:
 	bool button_deadman_pressed_;
 	bool button_deadman_pressed_prev_;
 	bool button_run_pressed_;
+    bool button_print_arm_states_;
+    bool button_print_arm_states_prev_;
 
 	geometry_msgs::Twist base_vel_;
 	geometry_msgs::Twist base_zero_vel_;

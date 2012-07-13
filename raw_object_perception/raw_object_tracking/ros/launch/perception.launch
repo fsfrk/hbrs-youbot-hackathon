@@ -13,7 +13,7 @@
     <node pkg="raw_object_tracking" name="object_finder_node" type="object_finder_node" output="screen" respawn="true">
       <param name="number_of_merges" type="int" value="25" />
       <param name="filter_min_points" type="int" value="140" />
-      <param name="filter_min_height" type="double" value="0.01" />
+      <param name="filter_min_height" type="double" value="0.012" />
     </node>
   
     <node name="object_recognition_node" pkg="raw_object_recognition" type="object_recognition_node.py" args="$(find raw_object_recognition)/data/profiles_tube.txt" output="screen" />
