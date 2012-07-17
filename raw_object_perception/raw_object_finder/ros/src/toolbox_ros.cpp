@@ -148,12 +148,12 @@ bool CToolBoxROS::statisticalOutlierRemoval(
 
 pcl::PointCloud<pcl::PointXYZRGBNormal> CToolBoxROS::movingLeastSquares(
 		pcl::PointCloud<pcl::PointXYZRGB> &cloud, float searchRadius) {
-	pcl::KdTreeFLANN<pcl::PointXYZRGB>::Ptr tree = boost::make_shared<
-			pcl::KdTreeFLANN<pcl::PointXYZRGB> >();
+	pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree = boost::make_shared<
+			pcl::search::KdTree<pcl::PointXYZRGB> >();
 	pcl::PointCloud<pcl::PointXYZRGB> mls_points;
 	pcl::PointCloud<pcl::Normal>::Ptr mls_normals(new pcl::PointCloud<pcl::Normal> ());
 
-	tree = boost::make_shared<pcl::KdTreeFLANN<pcl::PointXYZRGB> >();
+	tree = boost::make_shared<pcl::search::KdTree<pcl::PointXYZRGB> >();
 	tree->setInputCloud(cloud.makeShared());
 
 	pcl::MovingLeastSquares<pcl::PointXYZRGB, pcl::Normal>
@@ -175,12 +175,12 @@ pcl::PointCloud<pcl::PointXYZRGBNormal> CToolBoxROS::movingLeastSquares(
 
 pcl::PointCloud<pcl::PointNormal> CToolBoxROS::movingLeastSquares(
 		pcl::PointCloud<pcl::PointXYZ> &cloud, float searchRadius) {
-		pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr tree = boost::make_shared<
-			pcl::KdTreeFLANN<pcl::PointXYZ> >();
+		pcl::search::KdTree<pcl::PointXYZ>::Ptr tree = boost::make_shared<
+			pcl::search::KdTree<pcl::PointXYZ> >();
 	pcl::PointCloud<pcl::PointXYZ> mls_points;
 	pcl::PointCloud<pcl::PointNormal>::Ptr mls_normals(new pcl::PointCloud<pcl::PointNormal> ());
 
-	tree = boost::make_shared<pcl::KdTreeFLANN<pcl::PointXYZ> >();
+	tree = boost::make_shared<pcl::search::KdTree<pcl::PointXYZ> >();
 	tree->setInputCloud(boost::make_shared<pcl::PointCloud<pcl::PointXYZ> >(
 			cloud));
 
@@ -223,8 +223,8 @@ pcl::PointCloud<pcl::Normal> CToolBoxROS::estimatingNormals(pcl::PointCloud<
 		pcl::PointXYZRGB> &cloud, int KSearch) {
 	pcl::PointCloud<pcl::Normal> cloud_normals;
 
-	pcl::KdTreeFLANN<pcl::PointXYZRGB>::Ptr tree = boost::make_shared<
-			pcl::KdTreeFLANN<pcl::PointXYZRGB> >();
+	pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree = boost::make_shared<
+			pcl::search::KdTree<pcl::PointXYZRGB> >();
 	pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> normalEstimation;
 
 	normalEstimation.setSearchMethod(tree);
@@ -283,9 +283,9 @@ pcl::PointCloud<pcl::Normal> CToolBoxROS::filterNormals(pcl::PointCloud<
  pcl::FPFHEstimation<pcl::PointXYZ, pcl::Normal, pcl::FPFHSignature33> fpfhEstimation;
  pcl::PointCloud<pcl::Normal> normalEstimation;
  pcl::PointCloud<pcl::FPFHSignature33> cloudFeatures;
- pcl::KdTreeFLANN<pcl::PointXYZ> tree;
+ pcl::search::KdTree<pcl::PointXYZ> tree;
 
- fpfhEstimation.setSearchMethod(boost::make_shared<pcl::KdTreeFLANN<pcl::PointXYZ> > (tree));
+ fpfhEstimation.setSearchMethod(boost::make_shared<pcl::search::KdTree<pcl::PointXYZ> > (tree));
  fpfhEstimation.setRadiusSearch (searchRadius);
 
  normalEstimation = this->estimatingNormals(cloud,0,searchRadius);
