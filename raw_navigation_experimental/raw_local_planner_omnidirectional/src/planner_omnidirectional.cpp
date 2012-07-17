@@ -192,8 +192,8 @@ namespace raw_local_planner_omnidirectional {
     bool best_forward = best->xv_ >= 0.0;
     bool comp_valid = comp->cost_ >= 0.0;
     bool comp_forward = comp->xv_ >= 0.0;
-    bool best_starf = best->yv_ >= 0.0;
-    bool comp_starf = comp->yv_ >= 0.0;
+    //bool best_starf = best->yv_ >= 0.0;
+    //bool comp_starf = comp->yv_ >= 0.0;
 
     //if we don't have a valid trajecotry... then do nothing
     if(!comp_valid)
@@ -631,7 +631,7 @@ printf("\n------cost = %f\n\n", best_traj->cost_);
     else{
       btVector3 start(best.xv_, best.yv_, 0);
       drive_velocities.setOrigin(start);
-      btMatrix3x3 matrix;
+      tf::Matrix3x3 matrix;
       matrix.setRotation(tf::createQuaternionFromYaw(best.thetav_));
       drive_velocities.setBasis(matrix);
     }

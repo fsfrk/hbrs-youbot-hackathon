@@ -18,8 +18,7 @@ using namespace std;
 bool calculateOptimalBasePose(raw_srvs::GetPoseStamped::Request  &req,
          raw_srvs::GetPoseStamped::Response &res )
 {
-	  btQuaternion q;
-	  double roll, pitch, yaw;
+	  tf::Quaternion q;
 	  double roll_obj, pitch_obj, yaw_obj;
 	  KinematicSolver youBot;
 	  Pose Goal;
@@ -36,7 +35,7 @@ bool calculateOptimalBasePose(raw_srvs::GetPoseStamped::Request  &req,
 	  float y_obj = req.object_pose.pose.position.y;
 	  float z_obj = req.object_pose.pose.position.z;
 	  tf::quaternionMsgToTF(req.object_pose.pose.orientation, q);
-	  btMatrix3x3(q).getRPY(roll_obj, pitch_obj, yaw_obj);  
+	  tf::Matrix3x3(q).getRPY(roll_obj, pitch_obj, yaw_obj);  
 
 	  Goal << x_obj,y_obj,z_obj,roll_obj, pitch_obj, yaw_obj;
 
