@@ -28,7 +28,7 @@
 	    <machine name="pc2" address="youbot-hbrs2-pc2" default="true"/>
 
 	    <include file="$(find raw_bringup)/components/cam3d.launch" />
-  	    <include file="$(find raw_usb_cam)/ros/launch/usb_cam.launch" />
+  	    <include file="$(find raw_bringup)/components/usb_cam.launch" />
 
 	    <include file="$(find raw_object_tracking)/ros/launch/perception.launch" />
 <!--

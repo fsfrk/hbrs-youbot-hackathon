@@ -17,5 +17,6 @@
   <depend package="youbot_joint_trajectory_action"/>
   <depend package="openni_camera" />
   <depend package="raw_hardware_config" />
+  <depend package="usb_cam" />
 
 </package>
