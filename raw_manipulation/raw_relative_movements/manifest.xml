@@ -13,10 +13,8 @@
   <depend package="rospy"/>
   <depend package="roscpp"/>
   <depend package="rospack"/>
-  <depend package="eigen"/>  
   <depend package="tf"/>  
   <depend package="raw_srvs"/>
-
   <depend package="std_srvs"/>
   <depend package="actionlib"/>
   <depend package="nav_msgs"/>
