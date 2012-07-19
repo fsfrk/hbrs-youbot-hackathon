@@ -50,7 +50,7 @@ class BaseMotionController
 
    //temporary variables
    double roll, pitch, yaw;
-   btQuaternion q;
+   tf::Quaternion q;
 
    bool odom_received;
    // Odometry subscriber and Base Velocity Publisher
@@ -255,7 +255,7 @@ class BaseMotionController
         x_tempodom = Odom.pose.pose.position.x ;
         y_tempodom  = Odom.pose.pose.position.y ;
         tf::quaternionMsgToTF(Odom.pose.pose.orientation, q);
-        btMatrix3x3(q).getRPY(roll, pitch, yaw);  
+        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);  
         theta_tempodom = yaw ;
 	    odom_received = true; 
     } 
@@ -273,6 +273,7 @@ class BaseMotionController
         goal.goal.distance = 0.1;
         ac.sendGoal(goal.goal);
         bool finished_before_timeout = ac.waitForResult(ros::Duration(10.0));
+        bool base_reached = false;
         if (finished_before_timeout)
         {
             actionlib::SimpleClientGoalState state = ac.getState();
@@ -289,12 +290,14 @@ class BaseMotionController
             HomogenousTransform OdomTf = ht_from_xyzrpy(xdiff,ydiff,0,0,0,yawdiff);
             HomogenousTransform finalTf = OdomTf*Objecttf;
             yval = (finalTf.translation())(1); 
-            bool base_reached = moveY();
+            base_reached = moveY();
         }
         else  
         {
             ROS_INFO("Action did not finish before the time out.");
         } 
+        
+        return base_reached;
 
    }
 
@@ -303,7 +306,7 @@ class BaseMotionController
 
 bool shiftbase(raw_srvs::SetPoseStamped::Request  &req, raw_srvs::SetPoseStamped::Response &res)
 {
-    btQuaternion q;
+    tf::Quaternion q;
     double roll, pitch, yaw;
 
     float X_dist = req.pose.pose.position.x ;
@@ -312,7 +315,7 @@ bool shiftbase(raw_srvs::SetPoseStamped::Request  &req, raw_srvs::SetPoseStamped
     Velocity = req.pose.pose.position.z;
 
     tf::quaternionMsgToTF(req.pose.pose.orientation, q);
-    btMatrix3x3(q).getRPY(roll, pitch, yaw);  
+    tf::Matrix3x3(q).getRPY(roll, pitch, yaw);  
 
     float Theta = yaw ;
  
@@ -328,7 +331,7 @@ bool shiftbase(raw_srvs::SetPoseStamped::Request  &req, raw_srvs::SetPoseStamped
 
 bool moveoptimalbase(raw_srvs::SetPoseStamped::Request  &req, raw_srvs::SetPoseStamped::Response &res)
 {
-    btQuaternion q;
+    tf::Quaternion q;
     double roll, pitch, yaw;
 
     float X = req.pose.pose.position.x ;
@@ -336,7 +339,7 @@ bool moveoptimalbase(raw_srvs::SetPoseStamped::Request  &req, raw_srvs::SetPoseS
     float Y = req.pose.pose.position.y ;
 
     tf::quaternionMsgToTF(req.pose.pose.orientation, q);
-    btMatrix3x3(q).getRPY(roll, pitch, yaw);  
+    tf::Matrix3x3(q).getRPY(roll, pitch, yaw);  
 
     ros::NodeHandle node;
 
@@ -344,7 +347,7 @@ bool moveoptimalbase(raw_srvs::SetPoseStamped::Request  &req, raw_srvs::SetPoseS
 
     bool status = bm.moveoptimal();
 
-    return true;
+    return status;
 }
 
 
