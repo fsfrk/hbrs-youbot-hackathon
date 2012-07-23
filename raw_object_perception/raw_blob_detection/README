@@ -1,0 +1,6 @@
+This program is designed to detect the largest blob (object) in the scene and move the robot and arm in place to properly and safely interact with the object. 
+
+Any questions or problems please contact the author Matthew Roscoe at: mat.roscoe@unb.ca
+
+Internal ROS requirements: 
+[arm_navigation_msgs] http://ros.org/wiki/arm_navigation
