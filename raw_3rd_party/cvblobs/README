@@ -1,0 +1,9 @@
+README: 
+
+In order to properly set up and install the CvBlobsLib you need to first to download and install the latest version of OpenCV. This version of the library was tested and works on version 2.4.
+
+First set up and install OpenCV 2.4 using the readme that can be found in the containing zip file. 
+
+Once OpenCV is set up install cvblobs8.3 that can be found in: RoboCupAtWork/raw_3rd_party/cvblobs.
+
+Installation instructions for cvblobs8.3 are contained in the zip file.
