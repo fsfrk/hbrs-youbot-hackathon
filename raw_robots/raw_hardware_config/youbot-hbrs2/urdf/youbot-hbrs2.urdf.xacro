@@ -62,12 +62,12 @@
 
   <!-- tower with 3D camera -->
   <xacro:cam3d_tower name="tower" parent="plate_link">
-    <origin xyz="-0.015 0 0.025" rpy="0 0 0" />
+    <origin xyz="-0.0659 0.0 0.025" rpy="0 0 0" />
   </xacro:cam3d_tower>
 
   <!-- 3D camera on tower -->
   <xacro:kinect name="openni" parent="tower_link">
-    <origin xyz="-0.001 -0.03 0.49" rpy="0.0 0.545 0.0" />
+    <origin xyz="0.0509 -0.03 0.49" rpy="0.0 0.545 0.0" />
   </xacro:kinect>
 
 
