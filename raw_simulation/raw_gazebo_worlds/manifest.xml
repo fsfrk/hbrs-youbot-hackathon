@@ -20,9 +20,7 @@
 	<export>
 		<gazebo gazebo_media_path="$(find gazebo)/gazebo/share/gazebo-1.0.2:$(find gazebo_worlds):$(find youbot_description)" />
 	</export>
-  
-
-        <!--env name="GAZEBO_RESOURCE_PATH" value="$(find youbot_description):$(find gazebo_worlds):$(find gazebo)/gazebo/share/gazebo" />
+ 
 </package>
 
 
