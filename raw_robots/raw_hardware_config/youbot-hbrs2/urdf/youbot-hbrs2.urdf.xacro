@@ -52,7 +52,7 @@
 
   <!-- BRSU SPECIFIC STUFF -->
   <include filename="$(find raw_robot_description)/urdf/materials.urdf.xacro" />
-  <include filename="$(find raw_robot_description)/urdf/tower/cam3d_tower.urdf.xacro" />
+  <include filename="$(find raw_robot_description)/urdf/misc/cam3d_tower.urdf.xacro" />
   <include filename="$(find raw_robot_description)/urdf/sensors/kinect.urdf.xacro" />
 
   <!-- base laser rear -->
