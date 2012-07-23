@@ -16,10 +16,6 @@
 	<depend package="gazebo"/>
 	<depend package="gazebo_tools"/>
 	<depend package="gazebo_plugins"/>
-
-	<export>
-		<gazebo gazebo_media_path="$(find gazebo)/gazebo/share/gazebo-1.0.2:$(find gazebo_worlds):$(find youbot_description)" />
-	</export>
  
 </package>
 
