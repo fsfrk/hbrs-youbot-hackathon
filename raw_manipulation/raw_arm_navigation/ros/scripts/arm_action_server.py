@@ -162,7 +162,7 @@ class ArmActionServer:
         pose.goal.pose.position.z = action_msgs.goal.pose.position.z
         
         for i in range(100):
-            rand_value = random.randint(int(-math.pi/0.01), int(math.pi/0.01))/100.0
+            rand_value = random.randint(0, int(math.pi/0.02))/100.0
 
             (qx, qy, qz, qw) = tf.transformations.quaternion_from_euler(0, rand_value, 0)
             pose.goal.header.stamp = rospy.Time.now()
