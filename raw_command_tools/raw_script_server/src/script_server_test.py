@@ -18,16 +18,23 @@ if __name__ == '__main__':
     
     
     #sss.move("base", "intro")
-    #sss.move("arm", "zeroposition")
-    #rospy.sleep(2)
+    sss.move("arm", "zeroposition")
     
-    sss.move("gripper", "open")
+    
+    sss.move("arm", "pregrasp_laying_mex", mode="planned")
+    sss.move("arm", "platform_left", mode="planned")
+    sss.move("arm", "initposition", mode="planned")
+    sss.move("arm", "field_of_view_sim", mode="planned")
+    sss.move("arm", "platform_right", mode="planned")
+    
+    
+    #sss.move("gripper", "open")
     
     #rospy.sleep(2)
     
     #sss.move("gripper", "close")
 
-    rospy.sleep(2)
+    #rospy.sleep(2)
     
     #sss.move("arm", [0.3, 0.1, 0.15, 0, ((math.pi/2) + (math.pi/4)), 0, "/arm_link_0"])
     
@@ -39,7 +46,7 @@ if __name__ == '__main__':
    
     #sss.move("arm", "pregrasp_laying_mex")
     #sss.move("arm", [0.024 + 0.033 , 0.0, 0.535,"/base_link"])
-    rospy.sleep(2)
+    #rospy.sleep(2)
 
     #sss.move("arm", "zeroposition")
     #rospy.sleep(2)
