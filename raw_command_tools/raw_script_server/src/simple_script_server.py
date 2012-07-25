@@ -311,7 +311,7 @@ class simple_script_server:
         else:
             ah.set_active()
 
-        rospy.loginfo("Move <<%s>> to <<%s>>", component_name, parameter_name)
+        rospy.loginfo("Move <<%s>> DIRECT to <<%s>>", component_name, parameter_name)
 
         # get pose from parameter server
         if type(parameter_name) is str:
@@ -389,7 +389,7 @@ class simple_script_server:
             return ah
         else:
             ah.set_active()
-        rospy.loginfo("Move <<%s>> to <<%s>>", component_name, parameter_name)
+        rospy.loginfo("Move <<%s>> DIRECT to <<%s>>", component_name, parameter_name)
         # get pose from parameter server
         if type(parameter_name) is str:
             rospy.logerr("parameter must be a 6DOF array")
@@ -481,7 +481,7 @@ class simple_script_server:
         else:
             ah.set_active()
 
-        rospy.loginfo("Move <<%s>> to <<%s>>", component_name, parameter_name)
+        rospy.loginfo("Move <<%s>> DIRECT to <<%s>>", component_name, parameter_name)
 
         # get pose from parameter server
         if type(parameter_name) is str:
@@ -590,7 +590,7 @@ class simple_script_server:
         else:
             ah.set_active()
 
-        rospy.loginfo("Move <<%s>> to <<%s>>", component_name, parameter_name)
+        rospy.loginfo("Move <<%s>> PLANNED to <<%s>>", component_name, parameter_name)
 
         # get pose from parameter server
         if type(parameter_name) is str:
@@ -668,6 +668,123 @@ class simple_script_server:
         ah.wait_inside()
 
         return ah
+    
+    
+    def move_arm_cart_planned(self, component_name, parameter_name=[0, 0, 0, 0, 0, 0, "/base_link"], blocking=True):
+        ah = action_handle("move_arm_cart_planned", component_name, parameter_name, blocking, self.parse)
+        if(self.parse):
+            return ah
+        else:
+            ah.set_active()
+        rospy.loginfo("Move <<%s>> PLANNED to <<%s>>", component_name, parameter_name)
+        # get pose from parameter server
+        if type(parameter_name) is str:
+            rospy.logerr("parameter must be a 6DOF array")
+            ah.set_failed(2)
+            return ah
+        else:
+            param = parameter_name
+
+        # check pose
+        if not type(param) is list: # check outer list
+            rospy.logerr("no valid parameter for %s: not a list, aborting...", component_name)
+            print "parameter is:", param
+            ah.set_failed(3)
+            return ah
+        else:
+            #print i,"type1 = ", type(i)
+            DOF = 7
+            if not len(param) == DOF:
+                # check dimension
+                rospy.logerr("no valid parameter for %s: dimension should be %d and is %d, aborting...", component_name, DOF, len(param))
+                print "parameter is:", param
+                ah.set_failed(3)
+                return ah
+            else:
+                for i in param:
+                    #print i,"type2 = ", type(i)
+                    if i < (DOF - 1):
+                        if not ((type(i) is float) or (type(i) is int)):
+                            # check type
+                            #print type(i)
+                            rospy.logerr("no valid parameter for %s: not a list of float or int (1-6), aborting...", component_name)
+                            print "parameter is:", param
+                            ah.set_failed(3)
+                            return ah
+                        else:
+                            rospy.logdebug("accepted parameter %f for %s", i, component_name)
+                    elif i == DOF:
+                        if not (type(i) is string):
+                            # check type
+                            #print type(i)
+                            rospy.logerr("no valid parameter for %s: last parameter is not a string, aborting...", component_name)
+                            print "parameter is:", param
+                            ah.set_failed(3)
+                            return ah
+                        else:
+                            rospy.logdebug("accepted parameter %f for %s", i, component_name)
+
+        
+        goal = arm_navigation_msgs.msg.MoveArmGoal()
+        goal.motion_plan_request.group_name = "arm"
+        goal.motion_plan_request.num_planning_attempts = 1
+        goal.motion_plan_request.planner_id = ""
+        goal.planner_service_name = "/ompl_planning/plan_kinematic_path"
+        goal.motion_plan_request.allowed_planning_time = rospy.Duration(15.0)
+        
+        pc = arm_navigation_msgs.msg.PositionConstraint()
+        pc.header.stamp = rospy.Time.now()
+        pc.header.frame_id = param[6]
+        pc.link_name = 'arm_link_5'
+        pc.position.x = param[0]
+        pc.position.y = param[1]
+        pc.position.z = param[2]
+        pc.constraint_region_shape.type = arm_navigation_msgs.msg.Shape.BOX
+        pc.constraint_region_shape.dimensions = [0.02, 0.02, 0.02]
+        pc.constraint_region_orientation.w = 1.0
+        #pc.weight = 1.0
+        goal.motion_plan_request.goal_constraints.position_constraints.append(pc)
+         
+        oc = arm_navigation_msgs.msg.OrientationConstraint()
+        oc.header.stamp = rospy.Time.now()
+        oc.header.frame_id = param[6]
+        oc.link_name = 'arm_link_5'
+        (qx, qy, qz, qw) = tf.transformations.quaternion_from_euler(param[3], param[4], param[5])
+        oc.orientation.x = qx
+        oc.orientation.y = qy
+        oc.orientation.z = qz
+        oc.orientation.w = qw
+        oc.absolute_roll_tolerance = 0.28
+        oc.absolute_pitch_tolerance = 0.28
+        oc.absolute_yaw_tolerance = 0.28
+        oc.weight = 1.0
+        goal.motion_plan_request.goal_constraints.orientation_constraints.append(oc)
+       
+        
+        
+        action_server_name = "/move_arm"
+
+        rospy.logdebug("calling %s action server", action_server_name)
+        client = actionlib.SimpleActionClient(action_server_name, arm_navigation_msgs.msg.MoveArmAction)
+        # trying to connect to server
+        rospy.logdebug("waiting for %s action server to start", action_server_name)
+        if not client.wait_for_server(rospy.Duration(10)):
+            # error: server did not respond
+            rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
+            ah.set_failed(4)
+            return ah
+        else:
+            rospy.logdebug("%s action server ready", action_server_name)
+     
+
+        #print client_goal
+        client.send_goal(goal)
+        ah.set_client(client)
+
+        ah.wait_inside()
+
+        return ah
+    
         
     ## Deals with all kind of trajectory movements for different components.
     #

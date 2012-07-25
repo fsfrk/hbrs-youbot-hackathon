@@ -18,6 +18,7 @@ if __name__ == '__main__':
     
     
     #sss.move("base", "intro")
+    
     sss.move("arm", "zeroposition")
     
     
@@ -36,7 +37,9 @@ if __name__ == '__main__':
 
     #rospy.sleep(2)
     
-    #sss.move("arm", [0.3, 0.1, 0.15, 0, ((math.pi/2) + (math.pi/4)), 0, "/arm_link_0"])
+    sss.move("arm", [0.3, 0.1, 0.15, 0, ((math.pi/2) + (math.pi/4)), 0, "/arm_link_0"])
+    
+    sss.move("arm", [0.4, 0.1, 0.15, 0, ((math.pi/2) + (math.pi/4)), 0, "/base_link"], mode="planned")
     
     #rospy.sleep(2)
     
@@ -44,17 +47,17 @@ if __name__ == '__main__':
     #    sss.move("arm", [0.4, 0.0, 0.2,"/base_link"])
     #    rospy.sleep(2)
    
-    #sss.move("arm", "pregrasp_laying_mex")
-    #sss.move("arm", [0.024 + 0.033 , 0.0, 0.535,"/base_link"])
+    sss.move("arm", "pregrasp_laying_mex", mode="planned")
+    #sss.move("arm", [0.024 + 0.033 , 0.0, 0.535, "/base_link"])
     #rospy.sleep(2)
 
-    #sss.move("arm", "zeroposition")
+    sss.move("arm", "zeroposition", mode="planned")
     #rospy.sleep(2)
 
-    #sss.move("arm","pregrasp_standing_mex")
+    sss.move("arm","pregrasp_standing_mex", mode="planned")
     #rospy.sleep(2)
 
-    #sss.move("arm", "zeroposition")
+    sss.move("arm", "zeroposition", mode="planned")
     #rospy.sleep(2)
 
-    #sss.move("arm", "initposition")
+    sss.move("arm", "initposition", mode="planned")
