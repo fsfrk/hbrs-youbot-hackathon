@@ -119,13 +119,16 @@ class simple_script_server:
     def move(self, component_name, parameter_name, blocking=True, mode=""):
         if component_name == "base":
             return self.move_base(component_name, parameter_name, blocking)
+        
         elif component_name == "arm":
             if mode == "planned":
                 return self.move_arm_planned(component_name, parameter_name, blocking)
             else:
-                return self.move_arm(component_name, parameter_name, blocking)
+                return self.move_arm_direct(component_name, parameter_name, blocking)
+            
         elif component_name == "arm_traj":
             return self.move_arm_traj(component_name, parameter_name, blocking)
+        
         elif component_name == "gripper":
             return self.move_gripper_joint(component_name, parameter_name, blocking)
 
@@ -284,19 +287,104 @@ class simple_script_server:
         '''
         return
 
-    def move_arm(self, component_name, parameter_name=[0, 0, 0, 0, 0, 0, "/base_link"], blocking=True):
+
+    #########################################################
+    ##### ARM MOVEMENTS WITHOUT PLANNING
+    #########################################################
+    
+    def move_arm_direct(self, component_name, parameter_name=[0, 0, 0, 0, 0, 0, "/base_link"], blocking=True):
         if type(parameter_name) is str:
-            return self.move_arm_joint(component_name, parameter_name, blocking)
+            return self.move_arm_joint_direct(component_name, parameter_name, blocking)
         elif type(parameter_name) is list:
             if len(parameter_name) == 7:
-                return self.move_arm_cart(component_name, parameter_name, blocking)
+                return self.move_arm_cart_direct(component_name, parameter_name, blocking)
             elif len(parameter_name) == 4:
-                return self.move_arm_cart_sample_rpy(component_name, parameter_name, blocking)
+                return self.move_arm_cart_sample_rpy_direct(component_name, parameter_name, blocking)
             else:
                 rospy.loginfo("parameter <<%s>> is not in the right format", parameter_name)
 
-    def move_arm_cart(self, component_name, parameter_name=[0, 0, 0, 0, 0, 0, "/base_link"], blocking=True):
-        ah = action_handle("move_arm", component_name, parameter_name, blocking, self.parse)
+   
+    def move_arm_joint_direct(self, component_name, parameter_name="", blocking=True):
+        ah = action_handle("move_arm_joint_direct", component_name, parameter_name, blocking, self.parse)
+        if(self.parse):
+            return ah
+        else:
+            ah.set_active()
+
+        rospy.loginfo("Move <<%s>> to <<%s>>", component_name, parameter_name)
+
+        # get pose from parameter server
+        if type(parameter_name) is str:
+            if not rospy.has_param(self.ns_global_prefix + "/" + component_name + "/" + parameter_name):
+                rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...", self.ns_global_prefix + "/" + component_name + "/" + parameter_name)
+                ah.set_failed(2)
+                return ah
+            param = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/" + parameter_name)
+        else:
+            param = parameter_name
+
+        # check pose
+        if not type(param) is list: # check outer list
+            rospy.logerr("no valid parameter for %s: not a list, aborting...", component_name)
+            print "parameter is:", param
+            ah.set_failed(3)
+            return ah
+        else:
+            #print i,"type1 = ", type(i)
+            DOF = 5
+            if not len(param) == DOF: # check dimension
+                rospy.logerr("no valid parameter for %s: dimension should be %d and is %d, aborting...", component_name, DOF, len(param))
+                print "parameter is:", param
+                ah.set_failed(3)
+                return ah
+            else:
+                for i in param:
+                    #print i,"type2 = ", type(i)
+                    if not ((type(i) is float) or (type(i) is int)): # check type
+                        #print type(i)
+                        rospy.logerr("no valid parameter for %s: not a list of float or int, aborting...", component_name)
+                        print "parameter is:", param
+                        ah.set_failed(3)
+                        return ah
+                    else:
+                        rospy.logdebug("accepted parameter %f for %s", i, component_name)
+
+
+        pose_goal = raw_arm_navigation.msg.MoveToJointConfigurationGoal()
+
+        for i in range(DOF):
+            jv = brics_actuator.msg.JointValue()
+            jv.joint_uri = self.arm1_joint_names[i]
+            jv.value = param[i]
+            jv.unit = "rad"
+            pose_goal.goal.positions.append(jv)
+
+        action_server_name = "/arm_1/arm_controller/MoveToJointConfigurationDirect"
+
+        rospy.logdebug("calling %s action server", action_server_name)
+        client = actionlib.SimpleActionClient(action_server_name, MoveToJointConfigurationAction)
+        # trying to connect to server
+        rospy.logdebug("waiting for %s action server to start", action_server_name)
+        if not client.wait_for_server(rospy.Duration(5)):
+            # error: server did not respond
+            rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
+            ah.set_failed(4)
+            return ah
+        else:
+            rospy.logdebug("%s action server ready", action_server_name)
+
+
+        #print client_goal
+        client.send_goal(pose_goal)
+        ah.set_client(client)
+
+        ah.wait_inside()
+
+        return ah
+        
+
+    def move_arm_cart_direct(self, component_name, parameter_name=[0, 0, 0, 0, 0, 0, "/base_link"], blocking=True):
+        ah = action_handle("move_arm_cart_direct", component_name, parameter_name, blocking, self.parse)
         if(self.parse):
             return ah
         else:
@@ -385,86 +473,9 @@ class simple_script_server:
 
         return ah
 
-    def move_arm_joint(self, component_name, parameter_name="", blocking=True):
-        ah = action_handle("move_arm", component_name, parameter_name, blocking, self.parse)
-        if(self.parse):
-            return ah
-        else:
-            ah.set_active()
 
-        rospy.loginfo("Move <<%s>> to <<%s>>", component_name, parameter_name)
-
-        # get pose from parameter server
-        if type(parameter_name) is str:
-            if not rospy.has_param(self.ns_global_prefix + "/" + component_name + "/" + parameter_name):
-                rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...", self.ns_global_prefix + "/" + component_name + "/" + parameter_name)
-                ah.set_failed(2)
-                return ah
-            param = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/" + parameter_name)
-        else:
-            param = parameter_name
-
-        # check pose
-        if not type(param) is list: # check outer list
-            rospy.logerr("no valid parameter for %s: not a list, aborting...", component_name)
-            print "parameter is:", param
-            ah.set_failed(3)
-            return ah
-        else:
-            #print i,"type1 = ", type(i)
-            DOF = 5
-            if not len(param) == DOF: # check dimension
-                rospy.logerr("no valid parameter for %s: dimension should be %d and is %d, aborting...", component_name, DOF, len(param))
-                print "parameter is:", param
-                ah.set_failed(3)
-                return ah
-            else:
-                for i in param:
-                    #print i,"type2 = ", type(i)
-                    if not ((type(i) is float) or (type(i) is int)): # check type
-                        #print type(i)
-                        rospy.logerr("no valid parameter for %s: not a list of float or int, aborting...", component_name)
-                        print "parameter is:", param
-                        ah.set_failed(3)
-                        return ah
-                    else:
-                        rospy.logdebug("accepted parameter %f for %s", i, component_name)
-
-
-        pose_goal = raw_arm_navigation.msg.MoveToJointConfigurationGoal()
-
-        for i in range(DOF):
-            jv = brics_actuator.msg.JointValue()
-            jv.joint_uri = self.arm1_joint_names[i]
-            jv.value = param[i]
-            jv.unit = "rad"
-            pose_goal.goal.positions.append(jv)
-
-        action_server_name = "/arm_1/arm_controller/MoveToJointConfigurationDirect"
-
-        rospy.logdebug("calling %s action server", action_server_name)
-        client = actionlib.SimpleActionClient(action_server_name, MoveToJointConfigurationAction)
-        # trying to connect to server
-        rospy.logdebug("waiting for %s action server to start", action_server_name)
-        if not client.wait_for_server(rospy.Duration(5)):
-            # error: server did not respond
-            rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
-            ah.set_failed(4)
-            return ah
-        else:
-            rospy.logdebug("%s action server ready", action_server_name)
-
-
-        #print client_goal
-        client.send_goal(pose_goal)
-        ah.set_client(client)
-
-        ah.wait_inside()
-
-        return ah
-        
-    def move_arm_cart_sample_rpy(self, component_name, parameter_name=[0, 0, 0, "/base_link"], blocking=True):
-        ah = action_handle("move_arm", component_name, parameter_name, blocking, self.parse)
+    def move_arm_cart_sample_rpy_direct(self, component_name, parameter_name=[0, 0, 0, "/base_link"], blocking=True):
+        ah = action_handle("move_arm_cart_sample_rpy_direct", component_name, parameter_name, blocking, self.parse)
         if(self.parse):
             return ah
         else:
@@ -531,7 +542,7 @@ class simple_script_server:
         pose.goal.pose.orientation.z = qz
         pose.goal.pose.orientation.w = qw
 
-        action_server_name = "/arm_1/arm_controller/MoveToCartesianRPYSampled"
+        action_server_name = "/arm_1/arm_controller/MoveToCartesianRPYSampledDirect"
 
         rospy.logdebug("calling %s action server", action_server_name)
 
@@ -553,38 +564,110 @@ class simple_script_server:
 
         return ah
     
+    
+    #########################################################
+    ##### ARM MOVEMENTS WITHOUT PLANNING
+    #########################################################
+    
     def move_arm_planned(self, component_name, parameter_name, blocking=True):
-        '''
-        now = rospy.Time.now()
-
-        # parse pose_target
-        param = parameter_name[0] if type(parameter_name[0]) is list else parameter_name
-        ps = PoseStamped()
-        ps.header.stamp = now
-        ps.header.frame_id = param[0]
-
-        ps.pose.position.x, ps.pose.position.y, ps.pose.position.z = param[1]
-
-        if len(param) > 2:
-            ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w = quaternion_from_euler(*param[2])
-
-        pose_target = ps
-
-        # parse pose_origin
-        param = parameter_name[1] if type(parameter_name[0]) is list else None
-
-        ps = PoseStamped()
-
-        ps.header.stamp = now
-        ps.header.frame_id = param[0] if len(param) >=1 else "arm_7_link" # component_name+'_tcp_link'
-        if len(param) > 1:
-            ps.pose.position.x,ps.pose.position.y,ps.pose.position.z = param[1]
-        if len(param) > 2:
-            ps.pose.orientation.x,ps.pose.orientation.y,ps.pose.orientation.z,ps.pose.orientation.w = quaternion_from_euler(*param[2])
-
-        return self.move_pose_goal_planned(component_name,[pose_target,ps],blocking)
-        '''
+        if type(parameter_name) is str:
+            return self.move_arm_joint_planned(component_name, parameter_name, blocking)
+        elif type(parameter_name) is list:
+            if len(parameter_name) == 7:
+                return self.move_arm_cart_planned(component_name, parameter_name, blocking)
+            elif len(parameter_name) == 4:
+                return self.move_arm_cart_sample_rpy_planned(component_name, parameter_name, blocking)
+            else:
+                rospy.loginfo("parameter <<%s>> is not in the right format", parameter_name)
+        
         return
+    
+    
+    def move_arm_joint_planned(self, component_name, parameter_name="", blocking=True):
+        ah = action_handle("move_arm_joint_direct", component_name, parameter_name, blocking, self.parse)
+        if(self.parse):
+            return ah
+        else:
+            ah.set_active()
+
+        rospy.loginfo("Move <<%s>> to <<%s>>", component_name, parameter_name)
+
+        # get pose from parameter server
+        if type(parameter_name) is str:
+            if not rospy.has_param(self.ns_global_prefix + "/" + component_name + "/" + parameter_name):
+                rospy.logerr("parameter %s does not exist on ROS Parameter Server, aborting...", self.ns_global_prefix + "/" + component_name + "/" + parameter_name)
+                ah.set_failed(2)
+                return ah
+            param = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/" + parameter_name)
+        else:
+            param = parameter_name
+
+        # check pose
+        if not type(param) is list: # check outer list
+            rospy.logerr("no valid parameter for %s: not a list, aborting...", component_name)
+            print "parameter is:", param
+            ah.set_failed(3)
+            return ah
+        else:
+            #print i,"type1 = ", type(i)
+            DOF = 5
+            if not len(param) == DOF: # check dimension
+                rospy.logerr("no valid parameter for %s: dimension should be %d and is %d, aborting...", component_name, DOF, len(param))
+                print "parameter is:", param
+                ah.set_failed(3)
+                return ah
+            else:
+                for i in param:
+                    #print i,"type2 = ", type(i)
+                    if not ((type(i) is float) or (type(i) is int)): # check type
+                        #print type(i)
+                        rospy.logerr("no valid parameter for %s: not a list of float or int, aborting...", component_name)
+                        print "parameter is:", param
+                        ah.set_failed(3)
+                        return ah
+                    else:
+                        rospy.logdebug("accepted parameter %f for %s", i, component_name)
+
+
+        goal = arm_navigation_msgs.msg.MoveArmGoal()
+        goal.motion_plan_request.group_name = "arm"
+        goal.motion_plan_request.num_planning_attempts = 1
+        goal.motion_plan_request.planner_id = ""
+        goal.planner_service_name = "/ompl_planning/plan_kinematic_path"
+        goal.motion_plan_request.allowed_planning_time = rospy.Duration(15.0)
+        
+        for i in range(DOF):
+            joint_constraint = arm_navigation_msgs.msg.JointConstraint()
+            joint_constraint.joint_name = self.arm1_joint_names[i]
+            joint_constraint.position = param[i]
+            joint_constraint.tolerance_above = 0.1
+            joint_constraint.tolerance_below = 0.1
+            
+            goal.motion_plan_request.goal_constraints.joint_constraints.append(joint_constraint)
+
+        
+        action_server_name = "/move_arm"
+
+        rospy.logdebug("calling %s action server", action_server_name)
+        client = actionlib.SimpleActionClient(action_server_name, arm_navigation_msgs.msg.MoveArmAction)
+        # trying to connect to server
+        rospy.logdebug("waiting for %s action server to start", action_server_name)
+        if not client.wait_for_server(rospy.Duration(5)):
+            # error: server did not respond
+            rospy.logerr("%s action server not ready within timeout, aborting...", action_server_name)
+            ah.set_failed(4)
+            return ah
+        else:
+            rospy.logdebug("%s action server ready", action_server_name)
+     
+
+        #print client_goal
+        client.send_goal(goal)
+        ah.set_client(client)
+
+        ah.wait_inside()
+
+        return ah
         
     ## Deals with all kind of trajectory movements for different components.
     #
