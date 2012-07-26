@@ -25,8 +25,7 @@
   <include filename="$(find youbot_description)/gazebo/gazebo.urdf.xacro" />
   
   <!-- materials for visualization -->
-  <include filename="$(find youbot_description)/urdf/materials.urdf.xacro" />
-						     
+  <include filename="$(find youbot_description)/urdf/materials.urdf.xacro" />				     
 
   <!-- Now we can start using the macros included above to define the actual youbot -->
 
@@ -38,7 +37,7 @@
        the origin block defines where the component is w.r.t its parent (in this case the parent 
        is the world frame). For more, see http://www.ros.org/wiki/xacro -->
 
-<!-- foot for arm-->
+  <!-- foot for arm-->
   <xacro:youbot_base name="base"/>
   <xacro:youbot_plate name="plate" parent="base_link">
     <origin xyz="-0.159 0 0.046" rpy="0 0 0" />
@@ -50,5 +49,13 @@
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:youbot_gripper>
 
-  
+
+  <!-- BRSU SPECIFIC STUFF -->
+  <include filename="$(find raw_robot_description)/urdf/materials.urdf.xacro" />
+
+  <!-- base laser rear -->
+  <xacro:hokuyo_urg04_laser name="base_laser_rear" parent="base" ros_topic="scan_rear" update_rate="10" min_angle="-1.57" max_angle="1.57" >
+     <origin xyz="-0.3 0 -0.03" rpy="0 0 ${M_PI}" />
+  </xacro:hokuyo_urg04_laser>
+
 </robot>

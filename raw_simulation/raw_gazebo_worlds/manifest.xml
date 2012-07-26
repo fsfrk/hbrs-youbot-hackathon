@@ -16,11 +16,7 @@
 	<depend package="gazebo"/>
 	<depend package="gazebo_tools"/>
 	<depend package="gazebo_plugins"/>
-
-	<export>
-		<gazebo gazebo_media_path="${prefix}" />
-	</export>
-  
+ 
 </package>
 
 

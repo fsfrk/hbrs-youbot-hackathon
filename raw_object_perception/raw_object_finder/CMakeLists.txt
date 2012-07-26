@@ -21,6 +21,10 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #uncomment if you have defined services
 #rosbuild_gensrv()
 
+find_package(Eigen REQUIRED)
+include_directories(${EIGEN_INCLUDE_DIRS})
+add_definitions(${EIGEN_DEFINITIONS})
+
 
 include_directories(
 ${PROJECT_SOURCE_DIR}/ros/include
@@ -39,4 +43,8 @@ target_link_libraries(object_segmentation_node
 	raw_toolbox_ros
 	raw_plane_extraction
 	raw_object_candidate_extraction
+)
+
+target_link_libraries(raw_object_candidate_extraction
+	raw_plane_extraction
 )

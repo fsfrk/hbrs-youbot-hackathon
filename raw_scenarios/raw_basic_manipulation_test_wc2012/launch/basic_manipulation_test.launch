@@ -15,11 +15,10 @@
 		<include file="$(find raw_arm_navigation)/ros/launch/simple_manipulation.launch" />	
 	
 		<!-- base placement -->
-		<include file="$(find raw_base_placement_to_platform_in_front)/launch/basescan_regression.launch" />
-        <!--include file="$(find raw_base_placement)/launch/baseplacement.launch" /-->
+		<include file="$(find raw_base_placement_matthias_fueller)/launch/basescan_regression.launch" />
 		
         <!-- motion controller -->
-        <include file="$(find raw_motion_controller)/launch/base_controller.launch" />
+        <include file="$(find raw_relative_movements)/launch/base_controller.launch" />
 
 		<!-- script server -->
 		<include file="$(find raw_script_server)/launch/script_server.launch" />
@@ -29,7 +28,7 @@
 	    <machine name="pc2" address="youbot-hbrs2-pc2" default="true"/>
 
 	    <include file="$(find raw_bringup)/components/cam3d.launch" />
-  	    <include file="$(find raw_usb_cam)/ros/launch/usb_cam.launch" />
+  	    <include file="$(find raw_bringup)/components/usb_cam.launch" />
 
 	    <include file="$(find raw_object_tracking)/ros/launch/perception.launch" />
 <!--

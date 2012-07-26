@@ -17,15 +17,14 @@
   <depend package="raw_bringup" />
   <depend package="raw_2dnav" />
   <depend package="raw_script_server" />
-  <depend package="raw_base_placement_to_platform_in_front" />
+  <depend package="raw_base_placement_matthias_fueller" />
   <depend package="raw_arm_navigation" />
   <depend package="raw_bringup_sim" />
   <depend package="raw_object_tracking" />
-  <depend package="raw_usb_cam" />
   <depend package="raw_blob_detection" />
-  <depend package="raw_base_placement" />
+  <depend package="raw_base_placement_nirmal" />
   <depend package="raw_2dnav_omni"/>
-  <depend package="raw_motion_controller"/>
+  <depend package="raw_relative_movements"/>
 
   
 </package>
