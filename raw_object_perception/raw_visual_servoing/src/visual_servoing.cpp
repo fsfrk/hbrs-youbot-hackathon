@@ -35,7 +35,7 @@
 #include <brics_actuator/JointVelocities.h>
 #include <brics_actuator/JointPositions.h>
 
-class raw_blob_detection 
+class raw_visual_servoing 
 {
 
 //-----------------------------------------------------------------------------
@@ -43,13 +43,13 @@ class raw_blob_detection
 //-----------------------------------------------------------------------------
 public:
 
-  //-------------------------------------------------------- raw_blob_detection
+  //-------------------------------------------------------- raw_visual_servoing
   //---------------------------------------------------------------------------
   //    This function is used for all of the incoming and outgoing ROS messages
   //---------------------------------------------------------------------------
-  raw_blob_detection( ros::NodeHandle &n ) : node_handler( n ), image_transporter( node_handler )
+  raw_visual_servoing( ros::NodeHandle &n ) : node_handler( n ), image_transporter( node_handler )
   {
-    background_image = cvLoadImage( "/home/atwork/RoboCupAtWork/raw_object_perception/raw_blob_detection/src/background.png" );
+    background_image = cvLoadImage( "/home/atwork/RoboCupAtWork/raw_object_perception/raw_visual_servoing/data/background.png" );
 
     //-------------------------------------------------------------------------
     //  Get all of the joint names for the YouBot arm as well as their limits.
@@ -76,18 +76,18 @@ public:
     //------------------- END OF ARM INITILIZATION ----------------------------
 
     // Service commands to allow this node to be started and stopped externally
-    service_start = node_handler.advertiseService( "start", &raw_blob_detection::start, this );
-    service_stop = node_handler.advertiseService( "stop", &raw_blob_detection::stop, this );
-    ROS_INFO( "Advertised 'start' and 'stop' service for raw_blob_detection" );
+    service_start = node_handler.advertiseService( "start", &raw_visual_servoing::start, this );
+    service_stop = node_handler.advertiseService( "stop", &raw_visual_servoing::stop, this );
+    ROS_INFO( "Advertised 'start' and 'stop' service for raw_visual_servoing" );
 
     ROS_INFO( "Blob Detection Started" );
   }
 
-  //------------------------------------------------------- ~raw_blob_detection
+  //------------------------------------------------------- ~raw_visual_servoing
   //---------------------------------------------------------------------------
   //   Standard Destructor.
   //--------------------------------------------------------------------------- 
-  ~raw_blob_detection()
+  ~raw_visual_servoing()
   {
     //  OpenCV calls to destroy any HighGUI windows that may have been opened using
     //  the provided names. 
@@ -400,7 +400,7 @@ public:
     blob_detection_completed = false; 
 
      //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
-    image_subscriber = image_transporter.subscribe( "/usb_cam/image_raw", 1, &raw_blob_detection::imageCallback, this );
+    image_subscriber = image_transporter.subscribe( "/usb_cam/image_raw", 1, &raw_visual_servoing::imageCallback, this );
 
     // Velocity control for the YouBot base.
     base_velocities_publisher = node_handler.advertise<geometry_msgs::Twist>( "/cmd_vel", 1 ); 
@@ -494,7 +494,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "image_converter");
   ros::NodeHandle n;
-  raw_blob_detection ic(n);
+  raw_visual_servoing ic(n);
   ros::spin();
   return 0;
 }

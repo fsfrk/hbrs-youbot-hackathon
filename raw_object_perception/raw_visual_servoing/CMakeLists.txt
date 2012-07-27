@@ -32,5 +32,5 @@ link_directories( /usr/local/lib )
 #target_link_libraries(example ${PROJECT_NAME})
 
 find_package(OpenCV REQUIRED)
-rosbuild_add_executable(raw_blob_detection src/blob_detection.cpp)
-target_link_libraries( raw_blob_detection blob )
+rosbuild_add_executable(visual_servoing_node src/visual_servoing.cpp)
+target_link_libraries( visual_servoing_node blob )
