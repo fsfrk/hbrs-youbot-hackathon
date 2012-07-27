@@ -37,5 +37,8 @@
 	<include file="$(find youbot_arm_navigation)/ros/launch/collision_proximity_planning.launch" />
 	-->
 	
+	<!-- Kinect perception
+	<include file="$(find youbot_arm_navigation)/ros/launch/kinect_perception.launch" />
+	-->
 
 </launch>
