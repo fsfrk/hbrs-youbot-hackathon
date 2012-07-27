@@ -8,6 +8,7 @@
   <depend package="base_local_planner" />
   <depend package="angles" />
   <depend package="dynamic_reconfigure" />
+  <depend package="eband_planner" />
 
   <export>
     <cpp cflags="-I${prefix}/include -I${prefix}/cfg/cpp" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lraw_local_planner_omnidirectional" />
