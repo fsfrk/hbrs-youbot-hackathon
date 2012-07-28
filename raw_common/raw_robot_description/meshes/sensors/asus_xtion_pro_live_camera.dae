@@ -11,7 +11,7 @@
     </asset>
     <library_images>
         <image id="texture0" name="texture0">
-            <init_from>asus_xtion_pro_live.png</init_from>
+            <init_from>asus_xtion_pro_live_camera.png</init_from>
         </image>
     </library_images>
     <library_materials>

@@ -41,7 +41,7 @@
 	</xacro:macro>
     
 
-  <xacro:macro name="asus_xtion" params="name parent *origin ros_topic tilt">
+  <xacro:macro name="asus_xtion" params="name parent *origin tilt">
   	<link name="${name}_foot_link">
       <inertial>
         <mass value="0.01" />
@@ -50,17 +50,17 @@
       </inertial>
 
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 0" />
+        <origin xyz="0 0 0" rpy="${M_PI/2} 0 ${M_PI/2}" />
         <geometry>
-          <box size="0.05 0.088 0.005"/>
+           <mesh filename="package://raw_robot_description/meshes/sensors/asus_xtion_pro_live_base.dae" scale="0.0005 0.0008 0.001"/>
         </geometry>
-        <material name="Red" />
+        <material name="Black" />
       </visual>
 
       <collision>
-        <origin xyz="0 0 0" rpy="0 0 0" />
+        <origin xyz="0 0 0" rpy="${M_PI/2} 0 ${M_PI/2}" />
         <geometry>
-           <box size="0.05 0.088 0.005"/>
+           <mesh filename="package://raw_robot_description/meshes/sensors/asus_xtion_pro_live_base.dae" scale="0.0005 0.001 0.001"/>
         </geometry>
       </collision >
     </link>
@@ -72,7 +72,7 @@
     </joint>
   
     
-    <link name="asus_xtion_tilt_link">
+    <link name="${name}_tilt_link">
       <inertial>
         <mass value="0.01" />
         <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -98,7 +98,7 @@
     
     <joint name="asus_xtion_tilt_joint" type="fixed">
      	<parent link="${name}_foot_link"/>
-     	<child link="asus_xtion_tilt_link"/>
+     	<child link="${name}_tilt_link"/>
      	<!--<axis xyz="0 1 0"/>-->
       	<origin xyz="0 0 0.0075" rpy="0 ${tilt} 0"/>
 	<!--<limit effort="100" lower="-0.541052068" upper="0.541052068" velocity="1.0"/>-->
@@ -113,24 +113,24 @@
       </inertial>
 
       <visual>
-        <origin xyz="0 -0.03 0" rpy="0 0 0" />
+        <origin xyz="0.01 -0.03 0" rpy="${M_PI/2} 0 ${M_PI/2}" />
         <geometry>
-          <box size="0.05 0.18 0.035"/>
+          <mesh filename="package://raw_robot_description/meshes/sensors/asus_xtion_pro_live_camera.dae" scale="0.001 0.001 0.001"/>
         </geometry>
-        <material name="Red" />
+        <material name="Black" />
       </visual>
 
       <collision>
-        <origin xyz="0 -0.03 0" rpy="0 0 0" />
+        <origin xyz="0.01 -0.03 0" rpy="${M_PI/2} 0 ${M_PI/2}" />
         <geometry>
-           <box size="0.05 0.18 0.035"/>
+           <mesh filename="package://raw_robot_description/meshes/sensors/asus_xtion_pro_live_camera.dae" scale="0.001 0.001 0.001"/>
         </geometry>
       </collision >
     </link>
     
     <joint name="${name}_camera_joint" type="fixed">
       <origin xyz="0 0.03 0.03" rpy="0 0 0" />
-      <parent link="asus_xtion_tilt_link"/>
+      <parent link="${name}_tilt_link"/>
       <child link="${name}_camera"/>
     </joint>
     
@@ -149,7 +149,7 @@
 
     
    <!-- for simulation -->
-   <xacro:asus_xtion_gazebo name="${name}" ros_topic="${ros_topic}"/>
+   <xacro:asus_xtion_gazebo name="${name}"/>
 
   </xacro:macro>
 

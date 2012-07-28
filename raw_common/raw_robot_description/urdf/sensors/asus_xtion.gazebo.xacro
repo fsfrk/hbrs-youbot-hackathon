@@ -4,7 +4,7 @@
       xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
       xmlns:xacro="http://ros.org/wiki/xacro">
   
-<xacro:macro name="asus_xtion_gazebo" params="name ros_topic">
+<xacro:macro name="asus_xtion_gazebo" params="name">
 
 
   <gazebo reference="openni_camera">
@@ -33,7 +33,7 @@
             <gaussianNoise>0.005</gaussianNoise>
             <alwaysOn>true</alwaysOn>
             <updateRate>10</updateRate> <!-- true value 30Hz -->
-            <topicName>${ros_topic}</topicName>
+            <topicName>/camera/depth/points</topicName>
             <frameName>openni_camera</frameName>
             <interface:laser name="${name}_ray_block_iface" />
           </controller:gazebo_ros_block_laser>
