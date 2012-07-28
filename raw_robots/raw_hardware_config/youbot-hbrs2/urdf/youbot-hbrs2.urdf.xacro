@@ -52,22 +52,38 @@
 
   <!-- BRSU SPECIFIC STUFF -->
   <include filename="$(find raw_robot_description)/urdf/materials.urdf.xacro" />
-  <include filename="$(find raw_robot_description)/urdf/misc/cam3d_tower.urdf.xacro" />
-  <include filename="$(find raw_robot_description)/urdf/sensors/kinect.urdf.xacro" />
+  <include filename="$(find raw_robot_description)/urdf/misc/sensor_angle.urdf.xacro" />
+  <include filename="$(find raw_robot_description)/urdf/sensors/asus_xtion.urdf.xacro" />
+  <!-- include filename="$(find raw_robot_description)/urdf/misc/cam3d_tower.urdf.xacro" />
+  <include filename="$(find raw_robot_description)/urdf/sensors/kinect.urdf.xacro" /-->
+  
 
   <!-- base laser rear -->
   <xacro:hokuyo_urg04_laser name="base_laser_rear" parent="base" ros_topic="scan_rear" update_rate="10" min_angle="-1.57" max_angle="1.57" >
-     <origin xyz="-0.3 0 -0.03" rpy="0 0 ${M_PI}" />
+     <origin xyz="-0.3 0.0 -0.03" rpy="0 0 ${M_PI}" />
   </xacro:hokuyo_urg04_laser>
 
-  <!-- tower with 3D camera -->
+  <!-- Sensor angle on arm-->
+  <xacro:sensor_angle name="arm_sensor_angle" parent="arm_link_5">
+    <origin xyz="-0.002 0.0 -0.023" rpy="0.0 0.0 0.0" />
+  </xacro:sensor_angle>
+  
+  <!-- ASUS Xtion on arm sensor angle -->
+  <xacro:asus_xtion name="openni" parent="arm_sensor_angle_part2_link" tilt="0.0">
+    <origin xyz="0.0 0.0 0.0" rpy="${M_PI} 0.0 ${M_PI}" />
+  </xacro:asus_xtion> 
+  
+  
+  <!-- tower with 3D camera 
   <xacro:cam3d_tower name="tower" parent="plate_link">
     <origin xyz="-0.0659 0.0 0.025" rpy="0 0 0" />
   </xacro:cam3d_tower>
+  -->
 
-  <!-- 3D camera on tower -->
+  <!-- 3D camera on tower 
   <xacro:kinect name="openni" parent="tower_link">
     <origin xyz="0.0509 -0.03 0.49" rpy="0.0 0.545 0.0" />
   </xacro:kinect>
+  -->
 
 </robot>
