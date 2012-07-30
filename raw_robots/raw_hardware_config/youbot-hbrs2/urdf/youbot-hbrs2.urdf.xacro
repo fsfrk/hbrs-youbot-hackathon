@@ -63,14 +63,14 @@
      <origin xyz="-0.3 0.0 -0.03" rpy="0 0 ${M_PI}" />
   </xacro:hokuyo_urg04_laser>
 
-  <!-- Sensor angle on arm-->
+  <!-- Sensor angle on arm -->
   <xacro:sensor_angle name="arm_sensor_angle" parent="arm_link_5">
     <origin xyz="-0.002 0.0 -0.023" rpy="0.0 0.0 0.0" />
   </xacro:sensor_angle>
   
   <!-- ASUS Xtion on arm sensor angle -->
   <xacro:asus_xtion name="openni" parent="arm_sensor_angle_part2_link" tilt="0.0">
-    <origin xyz="0.0 0.0 0.0" rpy="${M_PI} 0.0 ${M_PI}" />
+    <origin xyz="0.01 0.0 0.0" rpy="${M_PI} 0.0 ${M_PI}" />
   </xacro:asus_xtion> 
   
   
