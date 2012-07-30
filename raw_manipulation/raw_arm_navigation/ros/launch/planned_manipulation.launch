@@ -3,6 +3,9 @@
    
 	<!-- general arm components fir inverse kinematic -->
     <include file="$(find youbot_arm_navigation)/ros/launch/planning_environment.launch" />
+    <!-- IMPORTANT: this line MUST always be launched AFTER the planning environment -->
+    <rosparam command="load" ns="robot_description_planning" file="$(find raw_arm_navigation)/ros/config/collision_checks.yaml" />
+    
 
 	<include file="$(find youbot_arm_navigation)/ros/launch/environment_server.launch">
 		<arg name="use_monitor" value="true" />
