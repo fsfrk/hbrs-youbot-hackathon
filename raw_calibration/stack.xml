@@ -4,6 +4,10 @@
   <license>BSD</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/raw_calibration</url>
+  <depend stack="albany_vision" /> <!-- ar_kinect -->
+  <depend stack="common_msgs" /> <!-- geometry_msgs -->
+  <depend stack="geometry" /> <!-- tf -->
+  <depend stack="raw_command_tools" /> <!-- raw_script_server -->
   <depend stack="ros" />
 
 </stack>

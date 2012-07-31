@@ -21,16 +21,16 @@
     </inertial>
 
     <visual>
-      <origin xyz=" 0 0 0 " rpy="0 0 0" />
+      <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
       <geometry>
-       <mesh filename="package://raw_robot_description/meshes/kinect/kinect.dae"/>
+       <mesh filename="package://raw_robot_description/meshes/sensors/kinect.dae"/>
       </geometry>
     </visual>
 
     <collision>
       <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
       <geometry>
-        <box size="0.0730 .2760 0.0720"/>
+        <mesh filename="package://raw_robot_description/meshes/sensors/kinect.dae"/>
       </geometry>
     </collision>
   </link>

@@ -631,7 +631,7 @@ printf("\n------cost = %f\n\n", best_traj->cost_);
     else{
       btVector3 start(best.xv_, best.yv_, 0);
       drive_velocities.setOrigin(start);
-      tf::Matrix3x3 matrix;
+      btMatrix3x3 matrix;
       matrix.setRotation(tf::createQuaternionFromYaw(best.thetav_));
       drive_velocities.setBasis(matrix);
     }

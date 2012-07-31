@@ -8,10 +8,10 @@ ROS dependancies:
 
 Building: 
 
-$ rosmake raw_blob_detection
+$ rosmake raw_visual_servoing
 
 Running: 
 
-$ roslaunch raw_blob_detection raw_blob_detection.launch
+$ roslaunch raw_visual_servoing raw_visual_servoing.launch
 
 NOTE: Requires "raw_usb_cam" to be running in order to work.

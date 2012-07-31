@@ -14,3 +14,4 @@ srv_gen
 CMakeFiles
 CMakeCache.txt
 /raw_navigation_experimental/raw_local_planner_omnidirectional/nbproject/private/
+stack.xml.bak

@@ -1,13 +1,13 @@
 <package>
-  <description brief="raw_blob_detection">
+  <description brief="raw_visual_servoing">
 
-     raw_blob_detection
+     raw_visual_servoing
 
   </description>
   <author>Mat Roscoe</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/raw_blob_detection</url>
+  <url>http://ros.org/wiki/raw_visual_servoing</url>
   <depend package="sensor_msgs"/>
   <depend package="opencv2"/>
   <depend package="cv_bridge"/>

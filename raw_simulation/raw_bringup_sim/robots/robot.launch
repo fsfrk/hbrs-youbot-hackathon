@@ -6,9 +6,7 @@
 	<include file="$(find raw_default_env_config)/upload_param.launch" />
 
     <!-- start gazebo with GUI and load environment -->
-    <include file="$(find raw_gazebo_worlds)/ros/launch/$(env ROBOT_ENV).launch" >
-		<arg name="gui" value="true" />
-	</include>
+    <include file="$(find raw_gazebo_worlds)/ros/launch/$(env ROBOT_ENV).launch" />
 
     <!-- load robot into gazebo -->
     <include file="$(find raw_bringup_sim)/robots/$(env ROBOT).launch" />

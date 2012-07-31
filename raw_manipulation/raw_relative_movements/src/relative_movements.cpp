@@ -255,7 +255,7 @@ class BaseMotionController
         x_tempodom = Odom.pose.pose.position.x ;
         y_tempodom  = Odom.pose.pose.position.y ;
         tf::quaternionMsgToTF(Odom.pose.pose.orientation, q);
-        tf::Matrix3x3(q).getRPY(roll, pitch, yaw);  
+        btMatrix3x3(q).getRPY(roll, pitch, yaw);  
         theta_tempodom = yaw ;
 	    odom_received = true; 
     } 
@@ -315,7 +315,7 @@ bool shiftbase(raw_srvs::SetPoseStamped::Request  &req, raw_srvs::SetPoseStamped
     Velocity = req.pose.pose.position.z;
 
     tf::quaternionMsgToTF(req.pose.pose.orientation, q);
-    tf::Matrix3x3(q).getRPY(roll, pitch, yaw);  
+    btMatrix3x3(q).getRPY(roll, pitch, yaw);  
 
     float Theta = yaw ;
  
@@ -339,7 +339,7 @@ bool moveoptimalbase(raw_srvs::SetPoseStamped::Request  &req, raw_srvs::SetPoseS
     float Y = req.pose.pose.position.y ;
 
     tf::quaternionMsgToTF(req.pose.pose.orientation, q);
-    tf::Matrix3x3(q).getRPY(roll, pitch, yaw);  
+    btMatrix3x3(q).getRPY(roll, pitch, yaw);  
 
     ros::NodeHandle node;
 
