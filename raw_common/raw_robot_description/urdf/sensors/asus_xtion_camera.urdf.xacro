@@ -1,31 +1,29 @@
 <?xml version="1.0"?>
 <root xmlns:xacro="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface">
   
-  <include filename="$(find raw_robot_description)/urdf/sensors/asus_xtion.gazebo.xacro" />
+  <include filename="$(find raw_robot_description)/urdf/sensors/asus_xtion_camera.gazebo.xacro" />
   
-  <property name="eye_x_offset" value="0.025" />
+  <property name="eye_x_offset" value="0.03" />
   <property name="eye_y_offset" value="0.035" />
   
   <xacro:macro name="asus_xtion_eye" params="suffix parent *origin">
-		<link name="${parent}_${suffix}_link">
-			<inertial>
-				<mass value="0.01" />
-				<origin xyz="0 0 0" />
-				<inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1" />
-			</inertial>
-			
-		</link>
-		
-		<joint name="${parent}_${suffix}_joint" type="fixed">
-			<parent link="${parent}_camera"/>
-			<child link="${parent}_${suffix}_link"/>
-			<insert_block name="origin"/>
-
-		</joint>		
-	</xacro:macro>
+	<link name="${parent}_${suffix}_frame">
+	  <inertial>
+		<mass value="0.01" />
+		<origin xyz="0 0 0" />
+		<inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0" izz="0.1" />
+	  </inertial>	
+	</link>
+	
+	<joint name="${parent}_${suffix}_joint" type="fixed">
+	  <parent link="${parent}_camera"/>
+	  <child link="${parent}_${suffix}_frame"/>
+	  <insert_block name="origin"/>
+	</joint>		
+  </xacro:macro>
     
 
-  <xacro:macro name="asus_xtion" params="name parent *origin tilt">
+  <xacro:macro name="asus_xtion_camera" params="name parent *origin tilt">
   	<link name="${name}_foot_link">
       <inertial>
         <mass value="0.05" />
@@ -68,7 +66,7 @@
         <geometry>
           <cylinder length="0.025" radius="0.005" />
         </geometry>
-        <material name="Blue" />
+        <material name="Black" />
       </visual>
 
       <collision>
@@ -76,7 +74,7 @@
         <geometry>
           <cylinder length="0.025" radius="0.005" />
         </geometry>
-        <material name="Blue" />
+        <material name="Black" />
       </collision >
     </link>
     
@@ -85,7 +83,7 @@
      	<child link="${name}_tilt_link"/>
      	<!--<axis xyz="0 1 0"/>-->
       	<origin xyz="0 0 0.0075" rpy="0 ${tilt} 0"/>
-	<!--<limit effort="100" lower="-0.541052068" upper="0.541052068" velocity="1.0"/>-->
+		<!--<limit effort="100" lower="-0.541052068" upper="0.541052068" velocity="1.0"/>-->
     </joint>
     
     
@@ -118,22 +116,34 @@
       <child link="${name}_camera"/>
     </joint>
     
+
+    <xacro:asus_xtion_eye suffix="depth" parent="${name}">
+		<origin xyz="${eye_x_offset} ${eye_y_offset - 0.02} 0" rpy="0 0 0" />
+	</xacro:asus_xtion_eye>
         
-	<xacro:asus_xtion_eye suffix="depth_camera" parent="${name}">
-		<origin xyz="${eye_x_offset} ${eye_y_offset - 0.02} 0" rpy="0 ${M_PI/2} 0" />
+	<xacro:asus_xtion_eye suffix="depth_optical" parent="${name}">
+		<origin xyz="${eye_x_offset} ${eye_y_offset - 0.02} 0" rpy="${-M_PI/2} 0 ${-M_PI/2}" />
 	</xacro:asus_xtion_eye>
 	
-	<xacro:asus_xtion_eye suffix="rgb_camera" parent="${name}">
-		<origin xyz="${eye_x_offset} ${eye_y_offset - 0.04} 0" rpy="0 ${M_PI/2} 0" />
+	<xacro:asus_xtion_eye suffix="rgb" parent="${name}">
+		<origin xyz="${eye_x_offset} ${eye_y_offset - 0.04} 0" rpy="0 0 0" />
+	</xacro:asus_xtion_eye>
+	
+	<xacro:asus_xtion_eye suffix="rgb_optical" parent="${name}">
+		<origin xyz="${eye_x_offset} ${eye_y_offset - 0.04} 0" rpy="${-M_PI/2} 0 ${-M_PI/2}" />
 	</xacro:asus_xtion_eye>
 	
 	<xacro:asus_xtion_eye suffix="laser" parent="${name}">
-		<origin xyz="${eye_x_offset} ${eye_y_offset - 0.09} 0" rpy="0 ${M_PI/2} 0" />
+		<origin xyz="${eye_x_offset} ${eye_y_offset - 0.09} 0" rpy="0 0 0" />
+	</xacro:asus_xtion_eye>
+	
+	<xacro:asus_xtion_eye suffix="laser_optical" parent="${name}">
+		<origin xyz="${eye_x_offset} ${eye_y_offset - 0.09} 0" rpy="${M_PI/2} 0 ${-M_PI/2}" />
 	</xacro:asus_xtion_eye>
 
     
    <!-- for simulation -->
-   <xacro:asus_xtion_gazebo name="${name}"/>
+   <xacro:asus_xtion_camera_gazebo name="${name}" />
 
   </xacro:macro>
 
