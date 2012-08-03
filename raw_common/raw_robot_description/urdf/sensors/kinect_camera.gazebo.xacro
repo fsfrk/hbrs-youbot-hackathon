@@ -22,7 +22,7 @@
         <depthImageTopicName>/camera/depth/image_raw</depthImageTopicName>
         <depthImageInfoTopicName>/camera/depth/camera_info</depthImageInfoTopicName>
         <pointCloudTopicName>/camera/depth/points</pointCloudTopicName>
-        <frameName>${name}_depth_optical_frame</frameName>
+        <frameName>/${name}_depth_optical_frame</frameName>
         <pointCloudCutoff>0.5</pointCloudCutoff>
         <distortion_k1>0.00000001</distortion_k1>
         <distortion_k2>0.00000001</distortion_k2>
@@ -45,7 +45,7 @@
         <updateRate>20.0</updateRate>
         <imageTopicName>/camera/rgb/image_raw</imageTopicName>
         <cameraInfoTopicName>/camera/rgb/camera_info</cameraInfoTopicName>
-        <frameName>${name}_rgb_optical_frame</frameName>
+        <frameName>/${name}_rgb_optical_frame</frameName>
         <pointCloudCutoff>0.5</pointCloudCutoff>
         <distortion_k1>0.00000001</distortion_k1>
         <distortion_k2>0.00000001</distortion_k2>
