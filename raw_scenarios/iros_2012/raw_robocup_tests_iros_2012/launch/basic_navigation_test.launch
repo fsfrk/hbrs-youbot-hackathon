@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+	<rosparam command="load" ns="/script_server/base_orientations" file="$(find raw_default_env_config)/$(env ROBOT_ENV)/navigation_orientations.yaml"/>
+	
+	<!-- base components -->
+	<include file="$(find raw_bringup)/robots/robot.launch" />
+
+	<group>
+		<machine name="pc1" address="youbot-hbrs2-pc1" default="true"/>
+		<!-- navigation -->
+		<include file="$(find raw_2dnav)/ros/launch/2dnav.launch" />
+
+		<!-- script server -->
+		<include file="$(find raw_script_server)/launch/script_server.launch" />
+	</group>
+</launch>
