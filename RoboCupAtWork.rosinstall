@@ -1,0 +1,34 @@
+- git:
+    local-name: rFSM
+    uri: https://github.com/kmarkus/rFSM.git
+    version: master
+
+- git:
+    local-name: fbsched
+    uri: https://github.com/kmarkus/fbsched.git
+    version: master
+
+- git:
+    local-name: youbot_driver
+    uri: https://github.com/youbot/youbot_driver.git
+    version: master
+
+- git:
+    local-name: motion_control
+    uri: http://git.mech.kuleuven.be/robotics/motion_control.git
+    version: devel
+
+- git:
+    local-name: youbot-ros-pkg
+    uri: git@github.com:b-it-bots/youbot-ros-pkg.git
+    version: master
+
+- git:
+    local-name: youbot-manipulation
+    uri: git@github.com:b-it-bots/youbot-manipulation.git
+    version: master
+
+- git:
+    local-name: youbot-stack
+    uri: git@github.com:b-it-bots/youbot-stack.git
+    version: devel
