@@ -170,16 +170,28 @@ void TeleOpJoypad::setAllArmJointVel(double motor_vel)
 
 void TeleOpJoypad::printArmJointStates()
 {
-    std::cout << "[";
+    std::string joint_name_list = "";
+
+	std::cout << "[";
     
-    for(unsigned int i=0; i < (current_joint_states_.position.size() - 2); ++i)
-    {   
-        std::cout << current_joint_states_.position[i];
-        
-        if(i < (current_joint_states_.position.size() - 3))
-            std::cout << ", ";
-    }
-    std::cout << "]" << std::endl;
+    for(unsigned int i =0; i < arm_joint_limits_.size(); i++)
+	{
+		for(unsigned int j=0; j < current_joint_states_.name.size(); ++j)
+		{
+			if(current_joint_states_.name[j] == arm_joint_limits_[i].joint_name)
+			{
+				std::cout << current_joint_states_.position[j];
+				joint_name_list += current_joint_states_.name[j];
+
+				if(i < (arm_joint_limits_.size() - 1))
+				{
+					std::cout << ", ";
+					joint_name_list += ", ";
+				}
+			}
+		}
+	}
+    std::cout << "] \t # current arm joint values (" << joint_name_list << ")" << std::endl;
         
 }
 
