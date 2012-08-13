@@ -1,9 +1,0 @@
-<stack>
-  <description brief="raw_3rd_party">raw_3rd_party</description>
-  <author>Maintained by Fred</author>
-  <license>BSD</license>  
-  <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/raw_3rd_party</url>
-  <depend stack="ros" />
-
-</stack>
