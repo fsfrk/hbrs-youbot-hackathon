@@ -21,8 +21,6 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #uncomment if you have defined services
 #rosbuild_gensrv()
 
-link_directories( /usr/local/lib )
-
 #common commands for building c++ executables and libraries
 #rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
 #target_link_libraries(${PROJECT_NAME} another_library)
@@ -31,6 +29,5 @@ link_directories( /usr/local/lib )
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-find_package(OpenCV REQUIRED)
 rosbuild_add_executable(visual_servoing_node src/visual_servoing.cpp)
-target_link_libraries( visual_servoing_node blob )
+target_link_libraries(visual_servoing_node cvblobs)

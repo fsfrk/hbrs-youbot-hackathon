@@ -8,6 +8,7 @@
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/raw_visual_servoing</url>
+
   <depend package="sensor_msgs"/>
   <depend package="opencv2"/>
   <depend package="cv_bridge"/>
@@ -18,7 +19,7 @@
   <depend package="std_srvs"/>
   <depend package="arm_navigation_msgs"/>
   <depend package="brics_actuator"/>
-
+  <depend package="cvblobs"/>
 </package>
 
 
