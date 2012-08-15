@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import roslib; roslib.load_manifest('raw_basic_manipulation_test_wc2012')
+import roslib; roslib.load_manifest('raw_basic_manipulation_test_iros2012')
 import rospy
 
 import smach
@@ -11,7 +11,7 @@ from generic_navigation_states import *
 from generic_manipulation_states import *
 from generic_perception_states import *
 
-from basic_manipulation_test_wc2012_states import *
+from basic_manipulation_test_iros2012_states import *
 
 # main
 def main():

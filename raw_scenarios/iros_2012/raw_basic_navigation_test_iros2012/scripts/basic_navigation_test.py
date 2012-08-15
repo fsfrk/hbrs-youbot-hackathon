@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import roslib; roslib.load_manifest('raw_basic_navigation_test_wc2012')
+import roslib; roslib.load_manifest('raw_basic_navigation_test_iros2012')
 import rospy
 
 import smach

@@ -1,0 +1,14 @@
+<package>
+  <description brief="raw_basic_transportation_test_iros2012">
+
+     raw_basic_transportation_test_iros2012
+
+  </description>
+  <author>fred</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_basic_transportation_test_iros2012</url>
+
+</package>
+
+

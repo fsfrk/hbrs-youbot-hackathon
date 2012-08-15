@@ -1,0 +1,14 @@
+<package>
+  <description brief="raw_final_iros2012">
+
+     raw_final_iros2012
+
+  </description>
+  <author>fred</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_final_iros2012</url>
+
+</package>
+
+
