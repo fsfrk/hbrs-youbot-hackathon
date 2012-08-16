@@ -26,7 +26,7 @@
 #include <string>
 
 // cvBlobsLib Includes.
-#include <cvblobs/BlobResult.h>
+#include <BlobResult.h>
 
 #include <std_srvs/Empty.h>
 
