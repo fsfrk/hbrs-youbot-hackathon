@@ -32,3 +32,7 @@
     local-name: youbot-stack
     uri: git@github.com:b-it-bots/youbot-stack.git
     version: devel
+
+- svn:
+    local-name: albany_vision
+    uri: http://albany-ros-pkg.googlecode.com/svn/trunk/albany_vision
