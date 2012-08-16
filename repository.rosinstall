@@ -56,3 +56,9 @@
 - svn:
     local-name: albany_vision
     uri: http://albany-ros-pkg.googlecode.com/svn/trunk/albany_vision
+
+- git:
+    local-name: eband_planner
+    uri: https://github.com/bhaskara/eband_planner.git
+    version: master
+
