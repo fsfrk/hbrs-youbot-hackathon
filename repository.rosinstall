@@ -33,6 +33,12 @@
     uri: git@github.com:b-it-bots/youbot-stack.git
     version: devel
 
+
+- git:
+    local-name: ccny_vision
+    uri: http://robotics.ccny.cuny.edu/git/ccny-ros-pkg/ccny_vision.git
+    version: master
+
 - svn:
     local-name: albany_vision
     uri: http://albany-ros-pkg.googlecode.com/svn/trunk/albany_vision
