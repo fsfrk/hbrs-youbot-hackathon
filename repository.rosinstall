@@ -1,4 +1,14 @@
 - git:
+    local-name: hbrs-ros-pkg
+    uri: git@github.com:b-it-bots/hbrs-ros-pkg.git
+    version: master
+
+- git:
+    local-name: third-party-software
+    uri: git@github.com:b-it-bots/third-party-software.git
+    version: master
+
+- git:
     local-name: rFSM
     uri: https://github.com/kmarkus/rFSM.git
     version: master
@@ -32,7 +42,6 @@
     local-name: youbot-stack
     uri: git@github.com:b-it-bots/youbot-stack.git
     version: devel
-
 
 - git:
     local-name: ccny_vision
