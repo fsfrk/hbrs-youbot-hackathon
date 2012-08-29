@@ -9,11 +9,6 @@
     version: master
 
 - git:
-    local-name: RoboCupAtHome
-    uri: git@github.com:b-it-bots/RoboCupAtHome.git
-    version: master
-
-- git:
     local-name: rFSM
     uri: https://github.com/kmarkus/rFSM.git
     version: master
