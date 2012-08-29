@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-	<arg name="use_sim_time" default="false"/>
+	<param name="use_sim_time" value="true"/>
 	<arg name="gazebo_arguments" default=""/>
 
 	<!-- start gazebo with empty world -->
