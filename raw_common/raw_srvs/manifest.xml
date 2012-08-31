@@ -9,7 +9,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/raw_srvs</url>
 
-  <depend package="raw_msgs" />
+  <depend package="hbrs_msgs" />
 </package>
 
 
