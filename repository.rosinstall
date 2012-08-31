@@ -57,3 +57,8 @@
     uri: https://github.com/bhaskara/eband_planner.git
     version: master
 
+- svn:
+    local-name: pcl_trunk
+    uri: http://svn.pointclouds.org/ros/trunk/perception_pcl_electric_unstable/
+    version: -r266
+
