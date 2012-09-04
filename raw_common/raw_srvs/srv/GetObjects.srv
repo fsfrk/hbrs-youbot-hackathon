@@ -3,4 +3,4 @@
 time stamp
 
 # List of all recorded objects
-raw_msgs/Object[] objects
+hbrs_msgs/Object[] objects

@@ -5,7 +5,7 @@
 #include <geometry_msgs/Point.h>
 #include <visualization_msgs/Marker.h>
 
-#include <raw_msgs/BoundingBoxList.h>
+#include <hbrs_msgs/BoundingBoxList.h>
 
 class VisualizerNode
 {
@@ -28,7 +28,7 @@ public:
     ROS_INFO("Publishing markers to \"%s\" topic.", bounding_boxes_visualization_topic.c_str());
   }
 
-  void boundingBoxesCallback(const raw_msgs::BoundingBoxList::ConstPtr &list)
+  void boundingBoxesCallback(const hbrs_msgs::BoundingBoxList::ConstPtr &list)
   {
     visualization_msgs::Marker lines;
     lines.header = list->header;

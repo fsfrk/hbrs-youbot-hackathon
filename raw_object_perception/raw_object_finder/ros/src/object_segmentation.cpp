@@ -1,5 +1,5 @@
 #include "object_segmentation.h"
-#include <raw_msgs/ObjectList.h>
+#include <hbrs_msgs/ObjectList.h>
 
 
 ObjectSegmentation::ObjectSegmentation(const std::string &node_name)
@@ -33,7 +33,7 @@ ObjectSegmentation::ObjectSegmentation(const std::string &node_name)
 	_surfaces_points_pub = pn.advertise<sensor_msgs::PointCloud2>("segmented_surfaces_points", 1);
 	ROS_INFO("Publishing on 'segmented_surfaces_points' topic");
 
-	_objects_pub = pn.advertise<raw_msgs::ObjectList>("segmented_objects", 1);
+	_objects_pub = pn.advertise<hbrs_msgs::ObjectList>("segmented_objects", 1);
 	ROS_INFO("Publishing on 'segmented_objects' topic");
 
 	_get_segmented_objects_srv = pn.advertiseService("get_segmented_objects", &ObjectSegmentation::GetObjects, this);
@@ -77,7 +77,7 @@ void ObjectSegmentation::Segment(const sensor_msgs::PointCloud2 &msg)
 		std::vector<pcl::PointCloud<pcl::PointXYZRGBNormal> > clustered_planes;
 		std::vector<sensor_msgs::PointCloud2> clustered_objects_msgs;
 		std::vector<geometry_msgs::PoseStamped> centroids_msgs;
-		std::vector<raw_msgs::Object> segmented_objects;
+		std::vector<hbrs_msgs::Object> segmented_objects;
 
 		unsigned int object_count = 0;
 		for (unsigned int i = 0; i < hierarchy_planes.size(); i++) {
@@ -95,7 +95,7 @@ void ObjectSegmentation::Segment(const sensor_msgs::PointCloud2 &msg)
 				pcl::toROSMsg(object, cloud);
 				clustered_objects_msgs.push_back(cloud);
 
-                raw_msgs::Object segmented_object;
+                hbrs_msgs::Object segmented_object;
 
 				// find the image corresponding to the cluster
                 if(_extract_obj_in_rgb_img)
@@ -132,7 +132,7 @@ void ObjectSegmentation::Segment(const sensor_msgs::PointCloud2 &msg)
 
 
 		// publish the segmented objects
-		raw_msgs::ObjectList object_list;
+		hbrs_msgs::ObjectList object_list;
 		object_list.objects = segmented_objects;
 		_objects_pub.publish(object_list);
 

@@ -6,9 +6,9 @@
 #include <visualization_msgs/Marker.h>
 #include <visualization_msgs/MarkerArray.h>
 
-#include <raw_msgs/BoundingBox.h>
-#include <raw_msgs/BoundingBoxList.h>
-#include <raw_msgs/Object.h>
+#include <hbrs_msgs/BoundingBox.h>
+#include <hbrs_msgs/BoundingBoxList.h>
+#include <hbrs_msgs/Object.h>
 #include <raw_srvs/GetDominantPlane.h>
 #include <raw_srvs/GetObjects.h>
 #include <raw_srvs/RecognizeObject.h>
@@ -35,7 +35,7 @@ public:
     pn.param("bounding_boxes_topic", bounding_boxes_topic, std::string("bounding_boxes"));
     find_service_ = nh.advertiseService(find_objects_service, &ObjectFinderNode::findObjectsCallback, this);
     clusters_publisher_ = nh.advertise<sensor_msgs::PointCloud2>(found_clusters_topic, 1);
-    bounding_boxes_publisher_ = nh.advertise<raw_msgs::BoundingBoxList>(bounding_boxes_topic, 1);
+    bounding_boxes_publisher_ = nh.advertise<hbrs_msgs::BoundingBoxList>(bounding_boxes_topic, 1);
     object_labels_publisher_ = nh.advertise<visualization_msgs::MarkerArray>("object_labels", 10);
     ROS_INFO("Object finder service started.");
     // Create TabletopClusterExtractor
@@ -86,7 +86,7 @@ public:
     size_t rejected = 0;
     for (const auto& object : tracker_->getObjects())
     {
-      raw_msgs::Object object_msg;
+      hbrs_msgs::Object object_msg;
       PointCloud cloud;
       object->getPoints(cloud.points);
       raw::BoundingBox box = raw::BoundingBox::create<PointT>(cloud.points, planar_polygon_->getCoefficients().head<3>());
@@ -285,14 +285,14 @@ public:
 
   void publishBoundingBoxes(const std_msgs::Header& header)
   {
-    raw_msgs::BoundingBoxList list_msg;
+    hbrs_msgs::BoundingBoxList list_msg;
     list_msg.header = header;
     for (const auto& object : tracker_->getObjects())
     {
       PointCloud::VectorType points;
       object->getPoints(points);
       raw::BoundingBox box = raw::BoundingBox::create<PointT>(points, planar_polygon_->getCoefficients().head<3>());
-      raw_msgs::BoundingBox box_msg;
+      hbrs_msgs::BoundingBox box_msg;
       box_msg.length = box.getLength();
       box_msg.width = box.getWidth();
       box_msg.height = box.getHeight();

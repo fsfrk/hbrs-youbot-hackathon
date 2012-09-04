@@ -18,7 +18,7 @@
   <depend package="geometry_msgs"/>
   <depend package="std_srvs"/>
   <depend package="raw_srvs"/>
-  <depend package="raw_msgs"/>
+  <depend package="hbrs_msgs"/>
   <depend package="object_manipulation_msgs"/>
   
 </package>

@@ -9,8 +9,8 @@
 #include <std_srvs/Empty.h>
 #include <pcl/filters/passthrough.h>
 
-#include <raw_msgs/BoundingBox.h>
-#include <raw_msgs/BoundingBoxList.h>
+#include <hbrs_msgs/BoundingBox.h>
+#include <hbrs_msgs/BoundingBoxList.h>
 #include "bounding_box.h"
 #include "object_tracker.h"
 #include "occupancy_octree_object.h"
@@ -37,7 +37,7 @@ public:
     pn.param("bounding_boxes_topic", bounding_boxes_topic, std::string("bounding_boxes"));
 
     cloud_subscriber_ = nh.subscribe(input_cloud_topic, 5, &TrackerNode::cloudCallback, this);
-    bounding_boxes_publisher_ = nh.advertise<raw_msgs::BoundingBoxList>(bounding_boxes_topic, 1);
+    bounding_boxes_publisher_ = nh.advertise<hbrs_msgs::BoundingBoxList>(bounding_boxes_topic, 1);
     clusters_publisher_ = nh.advertise<sensor_msgs::PointCloud2>(output_clusters_topic, 1);
     reset_service_ = nh.advertiseService("reset", &TrackerNode::resetCallback, this);
     save_service_ = nh.advertiseService("save", &TrackerNode::saveCallback, this);
@@ -136,14 +136,14 @@ public:
 
   void publishBoundingBoxes(const std_msgs::Header& header)
   {
-    raw_msgs::BoundingBoxList list_msg;
+    hbrs_msgs::BoundingBoxList list_msg;
     list_msg.header = header;
     for (const auto& object : tracker_->getObjects())
     {
       PointCloud::VectorType points;
       object->getPoints(points);
       raw::BoundingBox box = raw::BoundingBox::create<PointT>(points, planar_polygon_->getCoefficients().head<3>());
-      raw_msgs::BoundingBox box_msg;
+      hbrs_msgs::BoundingBox box_msg;
       box_msg.length = box.getLength();
       box_msg.width = box.getWidth();
       box_msg.height = box.getHeight();

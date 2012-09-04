@@ -9,8 +9,6 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/raw_msgs</url>
 
-  <depend package="geometry_msgs" />
-  <depend package="sensor_msgs" />
 </package>
 
 
