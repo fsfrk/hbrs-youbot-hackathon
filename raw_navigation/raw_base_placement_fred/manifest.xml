@@ -14,7 +14,7 @@
   <depend package="geometry_msgs" />
   <depend package="std_srvs" />
   <depend package="raw_srvs" />
-  <depend package="brsu_srvs" />
+  <depend package="hbrs_srvs" />
   
 </package>
 

@@ -10,7 +10,7 @@ import tf
 import geometry_msgs.msg
 import std_srvs.srv
 import raw_srvs.srv
-import brsu_srvs.srv
+import hbrs_srvs.srv
 
 from std_srvs.srv import *
 
@@ -31,14 +31,14 @@ class AdjustPoseWrtNearestObject:
     
         # publisher / subscriber
         self.pub_base = rospy.Publisher('/cmd_vel', geometry_msgs.msg.Twist)
-        #self.sub_nearest_obj = rospy.Subscriber("/brsu_nearest_object_detector/nearest_object", geometry_msgs.msg.PoseStamped, self.cb_nearest_obj)
+        #self.sub_nearest_obj = rospy.Subscriber("/hbrs_nearest_object_detector/nearest_object", geometry_msgs.msg.PoseStamped, self.cb_nearest_obj)
     
         #services
         self.srv_server_adjust_pose = rospy.Service('/raw_adjust_pose_wrt_nearest_obj/adjust_pose', std_srvs.srv.Empty, self.adjustPose)
 
-        self.get_nearest_object = rospy.ServiceProxy('/brsu_nearest_object_detector/GetNearestObject', brsu_srvs.srv.GetPose)
-        #self.nearest_object_start = rospy.ServiceProxy('/brsu_nearest_object_detector/start', Empty)
-        #self.nearest_object_stop = rospy.ServiceProxy('/brsu_nearest_object_detector/stop', Empty)
+        self.get_nearest_object = rospy.ServiceProxy('/hbrs_nearest_object_detector/GetNearestObject', hbrs_srvs.srv.GetPose)
+        #self.nearest_object_start = rospy.ServiceProxy('/hbrs_nearest_object_detector/start', Empty)
+        #self.nearest_object_stop = rospy.ServiceProxy('/hbrs_nearest_object_detector/stop', Empty)
 
         self.move_base_rel = rospy.ServiceProxy('/raw_relative_movements/shiftbase', raw_srvs.srv.SetPoseStamped)
     def cb_nearest_obj(self, msg):
@@ -51,11 +51,11 @@ class AdjustPoseWrtNearestObject:
         
         pose = 0
         try:
-            rospy.wait_for_service('/brsu_nearest_object_detector/start', 10)
+            rospy.wait_for_service('/hbrs_nearest_object_detector/start', 10)
             pose = self.get_nearest_object()
             
         except:
-            print "service call <</brsu_nearest_object_detector/start>> failed"     
+            print "service call <</hbrs_nearest_object_detector/start>> failed"     
         
         try:
             rospy.wait_for_service('/raw_relative_movements/shiftbase', 10)
@@ -89,7 +89,7 @@ class AdjustPoseWrtNearestObject:
         
         try:
             #start nearest obj calculation
-            rospy.wait_for_service('/brsu_nearest_object_detector/start', 10)
+            rospy.wait_for_service('/hbrs_nearest_object_detector/start', 10)
             self.nearest_object_start()         
             
             target_reached = False
@@ -135,7 +135,7 @@ class AdjustPoseWrtNearestObject:
                 self.pub_base.publish(base_vel)
             
             #stop calculation
-            rospy.wait_for_service('/brsu_nearest_object_detector/stop', 10)
+            rospy.wait_for_service('/hbrs_nearest_object_detector/stop', 10)
             self.nearest_object_stop()
             
     
