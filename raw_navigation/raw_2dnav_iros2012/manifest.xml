@@ -1,0 +1,16 @@
+<package>
+  <description brief="raw_2dnav_iros2012">
+
+     raw_2dnav_iros2012
+
+  </description>
+  <author>Praveen</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_2dnav_iros2012</url>
+  <depend package="roscpp"/>
+  <depend package="rospy"/>
+
+</package>
+
+
