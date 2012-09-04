@@ -21,7 +21,6 @@
   <depend package="raw_bringup_sim"/>
   <depend package="raw_base_placement_fred"/>
   <depend package="raw_base_placement_matthias_fueller"/>
-
   <depend package="raw_relative_movements"/>
 
 

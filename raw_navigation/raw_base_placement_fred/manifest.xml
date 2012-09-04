@@ -15,6 +15,7 @@
   <depend package="std_srvs" />
   <depend package="raw_srvs" />
   <depend package="hbrs_srvs" />
+  <depend package="hbrs_nearest_object_detector" />
   
 </package>
 
