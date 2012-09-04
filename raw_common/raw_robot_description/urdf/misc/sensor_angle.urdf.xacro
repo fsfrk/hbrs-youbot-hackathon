@@ -5,9 +5,9 @@
        xmlns:xacro="http://ros.org/wiki/xacro">
 
 
-	<property name="width"  value="0.097" />
-	<property name="height" value="0.0015" />
-	<property name="depth"  value="0.0625" />
+	<property name="sensor_angle_width"  value="0.097" />
+	<property name="sensor_angle_height" value="0.0015" />
+	<property name="sensor_angle_depth"  value="0.0625" />
   
 	<xacro:macro name="sensor_angle" params="name parent *origin">
 		<link name="${name}_part1_link">
@@ -20,7 +20,7 @@
 			<visual>
 				<origin xyz="0 0 0" rpy="0 0 0" />
 				<geometry>
-					<box size="${depth} ${width} ${height}"/>
+					<box size="${sensor_angle_depth} ${sensor_angle_width} ${sensor_angle_height}"/>
 				</geometry>
 				<material name="Black" />
 			</visual>
@@ -28,7 +28,7 @@
 			<collision>
 				<origin xyz="0 0 0" rpy="0 0 0" />
 				<geometry>
-					<box size="${depth} ${width} ${height}"/>
+					<box size="${sensor_angle_depth} ${sensor_angle_width} ${sensor_angle_height}"/>
 				</geometry>
 			</collision >
 		</link>
@@ -50,7 +50,7 @@
 			<visual>
 				<origin xyz="0 0 0" rpy="0 0 0" />
 				<geometry>
-					<box size="${depth} ${width} ${height}"/>
+					<box size="${sensor_angle_depth} ${sensor_angle_width} ${sensor_angle_height}"/>
 				</geometry>
 				<material name="Black" />
 			</visual>
@@ -58,13 +58,13 @@
 			<collision>
 				<origin xyz="0 0 0" rpy="0 0 0" />
 				<geometry>
-					<box size="${depth} ${width} ${height}"/>
+					<box size="${sensor_angle_depth} ${sensor_angle_width} ${sensor_angle_height}"/>
 				</geometry>
 			</collision >
 		</link>
 
 		<joint name="${name}_part2_joint" type="fixed">
-			<origin xyz="${-((depth/2) - (height/2))} 0 ${((depth/2) - (height/2))}" rpy="0 ${M_PI/2} 0 "/>
+			<origin xyz="${-((sensor_angle_depth/2) - (sensor_angle_height/2))} 0 ${((sensor_angle_depth/2) - (sensor_angle_height/2))}" rpy="0 ${M_PI/2} 0 "/>
 			<parent link="${name}_part1_link"/>
 			<child link="${name}_part2_link"/>
 		</joint>
