@@ -10,6 +10,18 @@
   <url>http://ros.org/wiki/raw_2dnav_iros2012</url>
   <depend package="roscpp"/>
   <depend package="rospy"/>
+  <depend package="raw_tools"/>
+  <depend package="raw_default_env_config"/>
+  <depend package="map_server"/>
+  <depend package="amcl"/>
+  <depend package="robot_pose_ekf"/>
+  <depend package="youbot_navigation_common"/>
+  <depend package="move_base"/>
+  <depend package="raw_tools"/>
+  <depend package="tf"/>
+  <!--depend package="eband_local_planner"/-->
+ 
+
 
 </package>
 
