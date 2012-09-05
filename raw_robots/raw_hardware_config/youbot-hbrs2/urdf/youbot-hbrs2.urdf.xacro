@@ -55,6 +55,7 @@
   <include filename="$(find raw_robot_description)/urdf/misc/sensor_angle.urdf.xacro" />
   <include filename="$(find raw_robot_description)/urdf/misc/cam3d_tower.urdf.xacro" />
   <include filename="$(find raw_robot_description)/urdf/sensors/kinect_camera.urdf.xacro" />
+  <include filename="$(find raw_robot_description)/urdf/sensors/microsoft_lifecam.urdf.xacro" />
   <!--include filename="$(find raw_robot_description)/urdf/sensors/asus_xtion_camera.urdf.xacro" /-->
   
 
@@ -82,6 +83,11 @@
   <xacro:kinect_camera name="openni" parent="tower_link">
     <origin xyz="0.0509 -0.03 0.49" rpy="0 0.545 0" />
   </xacro:kinect_camera> 
+  
+  <!-- Microsoft LifeCam on gripper -->
+  <xacro:microsoft_lifecam name="microsoft_lifecam" parent="arm_sensor_angle_part2_link">
+    <origin xyz="-0.04 0 -0.03" rpy="0 ${M_PI} 0" />
+  </xacro:microsoft_lifecam> 
   
 
 </robot>
