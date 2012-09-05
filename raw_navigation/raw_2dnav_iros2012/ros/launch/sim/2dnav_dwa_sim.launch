@@ -15,7 +15,7 @@
 	<node name="map_server" pkg="map_server" type="map_server" args="$(arg map)"/>
 
 	<!-- Run AMCL -->
-	<include file="$(find raw_2dnav_iros2012)/ros/launch/amcl.launch" />
+	<include file="$(find raw_2dnav_iros2012)/ros/launch/sim/amcl_sim.launch" />
 	
 	<node pkg="youbot_navigation_common" type="lowpass_filter" respawn="false" name="lowpass_filter" output="screen"/>
 
@@ -28,4 +28,6 @@
 		<rosparam file="$(find raw_2dnav_iros2012)/ros/config/common/global_costmap_params.yaml" 	command="load" />
 		<rosparam file="$(find raw_2dnav_iros2012)/ros/config/dwa/dwa_local_planner_params.yaml" command="load" ns="DWAPlannerROS" />
 	</node>
+       <!-- ekf (no effect on real robot, but need for simulation) -->
+	<include file="$(find raw_2dnav)/ros/launch/ekf.launch" />
 </launch>
