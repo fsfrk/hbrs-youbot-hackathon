@@ -12,14 +12,20 @@ using namespace std;
 
 
 
-KinematicSolver::KinematicSolver()
+KinematicSolver::KinematicSolver(double costmap_resolution)
 {
   
-  x=0;y=0;t=0;t1=0;t2=0;t3=0;t4=0;t5=0;
+  x=y=t=t1=t2=t3=t4=t5 = 0;
+
   JointParameter JP(1,8);
+
   JP << x,y,t,t1,t2,t3,t4,t5;
+
   UpdateDHTable(JP);
+
   T0 = ht_from_eul(deg2rad(180),deg2rad(-90), 0);
+
+  grid_resoultion = costmap_resolution
 
 }
 
@@ -68,6 +74,17 @@ void KinematicSolver::costEstimate(Pose CurrentLocation, Pose PrefferedState)
 {
 
 //Cost to move from Current Pose to Preferred State
+
+}
+
+void KinematicSolver::CalculateBaseOrientation(HomogenousTransform GoalTR)
+{
+    double x_grid = grid_resoultion;
+    
+    t = atan2(GoalTR(1,2),GoalTR(0,2));
+
+    
+   
 
 }
 
@@ -123,6 +140,7 @@ if(isValid == true)
         t2 = tempt2>deg2rad(180)?(deg2rad(360)-tempt2):tempt2;
         ROS_INFO("t2 = %f",t2);
         t3 = prefConfig(5);
+
         t4 = prefConfig(6);
         t = atan2(GoalTR(1,2),GoalTR(0,2));
     }
