@@ -25,7 +25,7 @@ KinematicSolver::KinematicSolver(double costmap_resolution)
 
   T0 = ht_from_eul(deg2rad(180),deg2rad(-90), 0);
 
-  grid_resoultion = costmap_resolution
+  grid_resolution = costmap_resolution;
 
 }
 
@@ -79,7 +79,7 @@ void KinematicSolver::costEstimate(Pose CurrentLocation, Pose PrefferedState)
 
 void KinematicSolver::CalculateBaseOrientation(HomogenousTransform GoalTR)
 {
-    double x_grid = grid_resoultion;
+    double x_grid = grid_resolution;
     
     t = atan2(GoalTR(1,2),GoalTR(0,2));
 
