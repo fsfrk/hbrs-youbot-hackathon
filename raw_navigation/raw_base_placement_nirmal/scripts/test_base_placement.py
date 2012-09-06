@@ -8,7 +8,7 @@ import std_srvs.srv
 import tf
 
 from simple_script_server import *
-sss = simple_script_server()
+##sss = simple_script_server()
         
 # main
 def main():
@@ -17,8 +17,8 @@ def main():
     ### tf listener
     tf_listener = tf.TransformListener()
 
-    sss.move("arm", "initposition")
-    sss.move("arm", "pregrasp_front_init")
+    ##sss.move("arm", "initposition")
+    ##sss.move("arm", "pregrasp_front_init")
     
     # BASE PLACEMENT
     base_placement_srv = rospy.ServiceProxy('/raw_base_placement_nirmal/calculateOptimalBasePose', raw_srvs.srv.GetPoseStamped) 
@@ -26,13 +26,9 @@ def main():
     rospy.wait_for_service('/raw_base_placement_nirmal/calculateOptimalBasePose', 30)
 
     obj_pose = geometry_msgs.msg.PoseStamped()
-    #obj_pose.pose.position.x = 6.59999
-    #obj_pose.pose.position.y = 0.732
-    #obj_pose.pose.position.z = 0.2
-    obj_pose.pose.position.x = -1.8
-    obj_pose.pose.position.y = -0.6
+    obj_pose.pose.position.x = 6.59999
+    obj_pose.pose.position.y = 0.732
     obj_pose.pose.position.z = 0.2
-
     quat = tf.transformations.quaternion_from_euler(0,0,0)
     obj_pose.pose.orientation.x = quat[0]
     obj_pose.pose.orientation.y = quat[1]
@@ -48,8 +44,8 @@ def main():
 
     ## DO MOVEMENT TO CALCULATED BASE POSE
     (roll, pitch, yaw) = tf.transformations.euler_from_quaternion([base_pose.base_pose.pose.orientation.x, base_pose.base_pose.pose.orientation.y, base_pose.base_pose.pose.orientation.z, base_pose.base_pose.pose.orientation.w])
-    sss.move("base", [base_pose.base_pose.pose.position.x, base_pose.base_pose.pose.position.y, yaw])
-    ##sss.move("base", [1.3, 0.7, yaw])
+    ##sss.move("base", [base_pose.base_pose.pose.position.x, base_pose.base_pose.pose.position.y, yaw])
+    ##sss.move("base", [1.24,0,0])
 
 
 if __name__ == '__main__':

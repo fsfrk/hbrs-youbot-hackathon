@@ -20,22 +20,30 @@ bool calculateOptimalBasePose(raw_srvs::GetPoseStamped::Request  &req,
 {
 	  tf::Quaternion q;
 	  double roll_obj, pitch_obj, yaw_obj;
-	  KinematicSolver youBot;
+	  
 	  Pose Goal;
 	  JointParameter prefConfig(1,8);
+
       bool isValid = false;
       
       ros::NodeHandle n;
+
       XmlRpc::XmlRpcValue joint_values;
-      n.getParam("/script_server/arm/pregrasp_laying_mex",joint_values);
+      XmlRpc::XmlRpcValue costmap_resolution;
+      n.getParam("/script_server/arm/pregrasp_laying_mex", joint_values);
+      n.getParam("/move_base/global_costmap/resolution", costmap_resolution);
       prefConfig << 0,0,0,(double) joint_values[1],(double) joint_values[2],(double) joint_values[3],(double) joint_values[4],(double) joint_values[5];
 
+
+
 	  // Request Processing
+      KinematicSolver youBot((double) costmap_resolution);  
+   
 	  float x_obj = req.object_pose.pose.position.x;
 	  float y_obj = req.object_pose.pose.position.y;
 	  float z_obj = req.object_pose.pose.position.z;
 	  tf::quaternionMsgToTF(req.object_pose.pose.orientation, q);
-	  btMatrix3x3(q).getRPY(roll_obj, pitch_obj, yaw_obj);  
+	  btMatrix3x3(q).getRPY(roll_obj, pitch_obj, yaw_obj);   
 
 	  Goal << x_obj,y_obj,z_obj,roll_obj, pitch_obj, yaw_obj;
 
