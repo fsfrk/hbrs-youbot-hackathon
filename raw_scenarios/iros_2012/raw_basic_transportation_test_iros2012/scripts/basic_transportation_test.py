@@ -6,7 +6,11 @@ import smach
 import smach_ros
 
 # import of generic states
-#from generic_robocup_states import *
+# generic states
+from generic_robocup_states import *
+from generic_navigation_states import *
+from generic_manipulation_states import *
+from generic_perception_states import *
 
 
 # main
@@ -16,8 +20,17 @@ def main():
     SM = smach.StateMachine(outcomes=['overall_success', 'overall_failed'])
     
     # world knowledge
-    #SM.userdata.task_spec = 0
+    SM.userdata.task_spec = 0
     
+    SM.userdata.base_pose_to_approach = 0
+    
+    SM.userdata.recognized_objects = []
+    SM.userdata.object_to_grasp = 0
+    
+    SM.userdata.rear_platform_free_poses = ['platform_right', 'platform_centre', 'platform_left']
+    SM.userdata.rear_platform_occupied_poses = []
+    
+    SM.userdata.obj_goal_configuration_poses = []
     
      # open the container
     with SM:
