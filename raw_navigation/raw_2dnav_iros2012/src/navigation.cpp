@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
 	ros::NodeHandle node;
 	double yaw;
 	tf::TransformListener tf(ros::Duration(10));
-	RobotPose pose;
+	RobotController pose;
 	geometry_msgs::Pose robotpose;
 	ros::Rate rate(10.0);
 	while (ros::ok())

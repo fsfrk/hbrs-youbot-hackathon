@@ -10,7 +10,7 @@
 #include "raw_2dnav_iros2012/robotpose.hpp"
 
 
-geometry_msgs::Pose RobotPose::getRobotPose(double &yaw)
+geometry_msgs::Pose RobotController::getRobotPose(double &yaw)
 {
 	  tf::StampedTransform transform;
 	  try
