@@ -1,5 +1,5 @@
 
-class RobotPose
+class RobotController
 {
 private :
 	ros::NodeHandle node;
@@ -9,7 +9,12 @@ private :
 
 
 public:
-	RobotPose(){};
+	RobotController(){};
 	geometry_msgs::Pose getRobotPose(double &);
+	bool isGoalAchievable();
+	void makePlan();
+	void executePlan();
+	void forceRecovery();
+	void isGoalReached();
 };
 
