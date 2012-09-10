@@ -49,7 +49,16 @@ public:
   //---------------------------------------------------------------------------
   raw_visual_servoing( ros::NodeHandle &n ) : node_handler( n ), image_transporter( node_handler )
   {
-    background_image = cvLoadImage( "/home/atwork/RoboCupAtWork/raw_object_perception/raw_visual_servoing/data/background.png" );
+
+    //background_image = cvLoadImage( "/home/atwork/RoboCupAtWork/raw_object_perception/raw_visual_servoing/data/background.png" );
+    try 
+    {
+          background_image = cvLoadImage( "..\\data\\background.png" );
+    }
+    catch ( cv::Exception& e ) 
+    {
+          std::cout << "Could not load background image\t" << " " << e.what() << std::endl;
+    }
 
     //-------------------------------------------------------------------------
     //  Get all of the joint names for the YouBot arm as well as their limits.
