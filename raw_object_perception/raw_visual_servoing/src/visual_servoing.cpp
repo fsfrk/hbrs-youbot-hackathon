@@ -30,6 +30,9 @@
 
 #include <std_srvs/Empty.h>
 
+#include <ros/package.h>
+#include <ros/console.h>
+
 // Arm Movement Stuff
 #include <arm_navigation_msgs/JointLimits.h>
 #include <brics_actuator/JointVelocities.h>
@@ -53,7 +56,11 @@ public:
     //background_image = cvLoadImage( "/home/atwork/RoboCupAtWork/raw_object_perception/raw_visual_servoing/data/background.png" );
     try 
     {
-          background_image = cvLoadImage( "..\\data\\background.png" );
+      std::string package_path = ros::package::getPath("raw_visual_servoing") + "/data/background.png";
+      std::cout << "Package Path:\t" << package_path.c_str() << std::endl;  
+      background_image = cvLoadImage( package_path.c_str() );
+      //background_image = cvLoadImage( "/home/atwork/RoboCupAtWork/raw_object_perception/raw_visual_servoing/data/background.png" );
+      //background_image = cvLoadImage( "/home/badrobot/ros/robocup@work/RoboCupAtWork/raw_object_perception/raw_visual_servoing/data/background.png" );
     }
     catch ( cv::Exception& e ) 
     {
