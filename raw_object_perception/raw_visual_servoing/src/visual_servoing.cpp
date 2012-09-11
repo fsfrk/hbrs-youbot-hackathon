@@ -167,7 +167,10 @@ public:
 
     //    This takes a background image (the gripper on a white background) and removes
     //  it from the current image (cv_image). The results are stored again in cv_image.
-    cvSub( gray, background_threshold, gray, NULL );
+    //
+    //  TODO: Need to automate this as when we switch resolutions the background image is no longer valid.
+    //
+    //cvSub( gray, background_threshold, gray, NULL );
 
     // Find any blobs that are not white. 
     CBlobResult blobs = CBlobResult( gray, NULL, 0 );
@@ -401,6 +404,14 @@ public:
     //-------------------------------------------------------------------------
     //----------------------- END OF VISUAL OUTPUT ----------------------------
     //-------------------------------------------------------------------------
+
+    //cvReleaseImage( &cv_image ); 
+    cvReleaseImage( &background_threshold ); 
+    cvReleaseImage( &gray ); 
+    cvReleaseImage( &blob_image ); 
+    cvReleaseImage( &temp_img ); 
+
+    //403.8mb
 
     //  Wait for user interaction.
     cvWaitKey(3);
