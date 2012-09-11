@@ -48,6 +48,9 @@ class GripperActionServer:
 		# action server
 		self.as_move_joint_direct = actionlib.SimpleActionServer("MoveToJointConfigurationDirect", raw_arm_navigation.msg.MoveToJointConfigurationAction, execute_cb = self.execute_cb_move_joint_config_direct)
 	
+		
+  
+  
 	def joint_states_callback(self, msg):
 		for k in range(len(self.joint_names)):
 			for i in range(len(msg.name)):
@@ -92,6 +95,7 @@ class GripperActionServer:
 	def is_goal_reached(self, goal_pose):
 		for i in range(len(self.joint_names)):
 			#rospy.loginfo("joint: %d -> curr_val: %f --- goal_val: %f", i, goal_pose.positions[i].value, self.current_joint_configuration[i])
+			#rospy.loginfo(self.current_joint_configuration[i])
 			if (abs(goal_pose.positions[i].value - self.current_joint_configuration[i]) > 0.002):   #ToDo: threshold via parameter
 				return False
 		
@@ -104,7 +108,7 @@ if __name__ == "__main__":
 	rospy.init_node("gripper_action_server")
 	
 	action = GripperActionServer()
-	
+		
 	rospy.loginfo("gripper action server started")
 	
 	rospy.spin()
