@@ -6,4 +6,4 @@ UBSYSTEM=="tty", SYSFS{modalias}=="usb:v16D0p059Dd0001dc02dsc00dp00ic02isc02ip01
 
 SUBSYSTEM=="video4linux", BUS=="usb", SYSFS{idVendor}=="046d", SYSFS{idProduct}=="0809", NAME="youbot/logitech_9000_pro_usb_cam"
 
-
+SUBSYSTEM=="video4linux", BUS=="usb", SYSFS{idVendor}=="045e", SYSFS{idProduct}=="0772", NAME="youbot/microsoft_life_cam"
