@@ -30,6 +30,9 @@
 
 #include <std_srvs/Empty.h>
 
+#include <ros/package.h>
+#include <ros/console.h>
+
 // Arm Movement Stuff
 #include <arm_navigation_msgs/JointLimits.h>
 #include <brics_actuator/JointVelocities.h>
@@ -49,7 +52,20 @@ public:
   //---------------------------------------------------------------------------
   raw_visual_servoing( ros::NodeHandle &n ) : node_handler( n ), image_transporter( node_handler )
   {
-    background_image = cvLoadImage( "/home/atwork/RoboCupAtWork/raw_object_perception/raw_visual_servoing/data/background.png" );
+
+    //background_image = cvLoadImage( "/home/atwork/RoboCupAtWork/raw_object_perception/raw_visual_servoing/data/background.png" );
+    try 
+    {
+      std::string package_path = ros::package::getPath("raw_visual_servoing") + "/data/background.png";
+      std::cout << "Package Path:\t" << package_path.c_str() << std::endl;  
+      background_image = cvLoadImage( package_path.c_str() );
+      //background_image = cvLoadImage( "/home/atwork/RoboCupAtWork/raw_object_perception/raw_visual_servoing/data/background.png" );
+      //background_image = cvLoadImage( "/home/badrobot/ros/robocup@work/RoboCupAtWork/raw_object_perception/raw_visual_servoing/data/background.png" );
+    }
+    catch ( cv::Exception& e ) 
+    {
+          std::cout << "Could not load background image\t" << " " << e.what() << std::endl;
+    }
 
     //-------------------------------------------------------------------------
     //  Get all of the joint names for the YouBot arm as well as their limits.
@@ -119,7 +135,9 @@ public:
     IplImage* cv_image = NULL; 
     IplImage* blob_image = NULL; 
 
-    CBlob* currentBlob; 
+    sensor_msgs::CvBridge bridge_;
+
+    CBlob* currentBlob;  
 
     // Covert the image from a ROS image message to a OpenCV Image (IplImage) type.
     try
@@ -151,7 +169,10 @@ public:
 
     //    This takes a background image (the gripper on a white background) and removes
     //  it from the current image (cv_image). The results are stored again in cv_image.
-    cvSub( gray, background_threshold, gray, NULL );
+    //
+    //  TODO: Need to automate this as when we switch resolutions the background image is no longer valid.
+    //
+    //cvSub( gray, background_threshold, gray, NULL );
 
     // Find any blobs that are not white. 
     CBlobResult blobs = CBlobResult( gray, NULL, 0 );
@@ -162,7 +183,7 @@ public:
     blobs.Filter( blobs, B_EXCLUDE, CBlobGetArea(), B_LESS, minimum_blob_area ); 
 
     int blob_number = blobs.GetNumBlobs(); 
-    std::cout << "\nNumber of Blobs Present: " << blob_number << std::endl; 
+    ROS_INFO( "Number of Blobs Present:\t%d",blob_number );  
 
     CBlob largest_blob; 
     blobs.GetNthBlob( CBlobGetPerimeter(), 0, largest_blob ); 
@@ -386,6 +407,13 @@ public:
     //----------------------- END OF VISUAL OUTPUT ----------------------------
     //-------------------------------------------------------------------------
 
+    //403.8mb
+    //cvReleaseImage( &cv_image ); 
+    cvReleaseImage( &background_threshold ); 
+    cvReleaseImage( &gray ); 
+    cvReleaseImage( &blob_image ); 
+    cvReleaseImage( &temp_img );
+
     //  Wait for user interaction.
     cvWaitKey(3);
   }
@@ -411,7 +439,7 @@ public:
     ROS_INFO("Blob Detection Enabled");
 
     while( blob_detection_completed == false && ros::ok() )
-    {
+    { 
       ros::spinOnce();
     }
 
@@ -461,7 +489,6 @@ protected:
   ros::NodeHandle node_handler;
   image_transport::ImageTransport image_transporter;
   image_transport::Subscriber image_subscriber;
-  sensor_msgs::CvBridge bridge_;
 
   // Topics that this node publishes to.
   ros::Publisher base_velocities_publisher;
