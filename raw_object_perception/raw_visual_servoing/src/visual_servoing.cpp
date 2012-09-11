@@ -135,7 +135,9 @@ public:
     IplImage* cv_image = NULL; 
     IplImage* blob_image = NULL; 
 
-    CBlob* currentBlob; 
+    sensor_msgs::CvBridge bridge_;
+
+    CBlob* currentBlob;  
 
     // Covert the image from a ROS image message to a OpenCV Image (IplImage) type.
     try
@@ -181,7 +183,7 @@ public:
     blobs.Filter( blobs, B_EXCLUDE, CBlobGetArea(), B_LESS, minimum_blob_area ); 
 
     int blob_number = blobs.GetNumBlobs(); 
-    std::cout << "\nNumber of Blobs Present: " << blob_number << std::endl; 
+    ROS_INFO( "Number of Blobs Present:\t%d",blob_number );  
 
     CBlob largest_blob; 
     blobs.GetNthBlob( CBlobGetPerimeter(), 0, largest_blob ); 
@@ -405,13 +407,12 @@ public:
     //----------------------- END OF VISUAL OUTPUT ----------------------------
     //-------------------------------------------------------------------------
 
+    //403.8mb
     //cvReleaseImage( &cv_image ); 
     cvReleaseImage( &background_threshold ); 
     cvReleaseImage( &gray ); 
     cvReleaseImage( &blob_image ); 
-    cvReleaseImage( &temp_img ); 
-
-    //403.8mb
+    cvReleaseImage( &temp_img );
 
     //  Wait for user interaction.
     cvWaitKey(3);
@@ -438,7 +439,7 @@ public:
     ROS_INFO("Blob Detection Enabled");
 
     while( blob_detection_completed == false && ros::ok() )
-    {
+    { 
       ros::spinOnce();
     }
 
@@ -488,7 +489,6 @@ protected:
   ros::NodeHandle node_handler;
   image_transport::ImageTransport image_transporter;
   image_transport::Subscriber image_subscriber;
-  sensor_msgs::CvBridge bridge_;
 
   // Topics that this node publishes to.
   ros::Publisher base_velocities_publisher;
