@@ -1,0 +1,24 @@
+<package>
+  <description brief="raw_2dnav_iros">
+
+     raw_2dnav_iros
+
+  </description>
+  <author>Praveen</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_2dnav_iros</url>
+  <depend package="move_base"/>
+  <depend package="roscpp"/>
+  <depend package="rospy"/>
+  <depend package="raw_tools"/>
+  <depend package="raw_default_env_config"/>
+  <depend package="map_server"/>
+  <depend package="amcl"/>
+  <depend package="robot_pose_ekf"/>
+  <depend package="youbot_navigation_common"/>
+  <depend package="tf"/>
+
+</package>
+
+
