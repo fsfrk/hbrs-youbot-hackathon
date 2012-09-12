@@ -1,13 +1,14 @@
 <package>
-  <description brief="raw_2dnav_iros2012">
+  <description brief="raw_2dnav_iros">
 
-     raw_2dnav_iros2012
+     raw_2dnav_iros
 
   </description>
   <author>Praveen</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/raw_2dnav_iros2012</url>
+  <url>http://ros.org/wiki/raw_2dnav_iros</url>
+  <depend package="move_base"/>
   <depend package="roscpp"/>
   <depend package="rospy"/>
   <depend package="raw_tools"/>
@@ -16,12 +17,7 @@
   <depend package="amcl"/>
   <depend package="robot_pose_ekf"/>
   <depend package="youbot_navigation_common"/>
-  <depend package="move_base"/>
-  <depend package="raw_tools"/>
   <depend package="tf"/>
-  <!--depend package="eband_local_planner"/-->
- 
-
 
 </package>
 
