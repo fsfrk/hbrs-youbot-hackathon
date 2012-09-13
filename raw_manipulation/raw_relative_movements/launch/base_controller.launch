@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
         
-  <node pkg="raw_relative_movements" type="base_controller" name="raw_relative_movements" ns="raw_relative_movements"/>
+  <node pkg="raw_relative_movements" type="base_controller" name="raw_relative_movements" ns="raw_relative_movements" output="screen"/>
 
 
 </launch>

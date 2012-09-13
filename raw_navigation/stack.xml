@@ -16,5 +16,5 @@
   <depend stack="ros" /> <!-- rospack -->
   <depend stack="ros_comm" /> <!-- rospy, std_msgs, roscpp, std_srvs -->
   <depend stack="youbot_navigation" /> <!-- youbot_navigation_common -->
-
+  <depend stack="common_rosdeps" />
 </stack>
