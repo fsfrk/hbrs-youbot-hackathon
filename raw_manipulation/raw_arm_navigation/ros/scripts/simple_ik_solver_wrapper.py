@@ -70,7 +70,6 @@ class SimpleIkSolver:
 		req.ik_request.ik_seed_state.joint_state.position = self.configuration
 		req.ik_request.pose_stamped = goal_pose
 		try:
-			rospy.loginfo("call inverse kinematics solver service")
 			resp = self.ciks(req)
 		except rospy.ServiceException, e:
 			rospy.logerr("Service did not process request: %s", str(e))
