@@ -55,10 +55,14 @@ def main():
                                 
         smach.StateMachine.add('PLACE_OBJECT_ON_REAR_PLATFORM', place_obj_on_rear_platform(),
             transitions={'succeeded':'MOVE_BACK_FIXED_DISTANCE', 
-                        'no_more_free_poses':'MOVE_TO_DESTINATION_POSE'})
+                        'no_more_free_poses':'MOVE_BACK_FIXED_DISTANCE3'})
 
         smach.StateMachine.add('MOVE_BACK_FIXED_DISTANCE', move_base_rel(-0.15,0),
             transitions={'succeeded':'SELECT_POSE_TO_APPROACH'})
+
+
+        smach.StateMachine.add('MOVE_BACK_FIXED_DISTANCE3', move_base_rel(-0.15,0),
+            transitions={'succeeded':'MOVE_TO_DESTINATION_POSE'})
 
         
         # place object at destination pose
