@@ -65,9 +65,9 @@ public:
 
 		std::cout << "HHHHH: " << fabs(b) << std::endl;
 		
-        if (fabs(b) > 0.2) 
+        if (fabs(b) > 0.01) 
 		{
-		  cmd.angular.z = -b;
+		  cmd.angular.z = -b/2;
 			//cmd_pub.publish(cmd);
 			//std::cout << "cmd.angular.z:  " << cmd.angular.z << std::endl;
 
@@ -84,11 +84,18 @@ public:
      
 		else if (a > target_distance) 
 		{
-			cmd.linear.x = a / 3;
-			//std::cout << "cmd.linear.x:  " << cmd.linear.x << std::endl;
+			//cmd.linear.x = a / 3;
+			cmd.linear.x = (a - target_distance);
+			std::cout << "cmd.linear.x:  " << cmd.linear.x << std::endl;
 			//cmd_pub.publish(cmd);
 
 		}
+        else if(a < target_distance)
+        {
+           cmd.linear.x = -(target_distance-a);
+           std::cout << "cmd.linear.x:  " << cmd.linear.x << std::endl; 
+
+        }
 
 		if (cmd.linear.x > max_velocity) 
 			cmd.linear.x = max_velocity;
@@ -120,7 +127,7 @@ public:
 
 		target_distance = goal->distance;
 
-		ros::Duration max_time(10.0);
+		ros::Duration max_time(50.0);
 		ros::Time stamp = ros::Time::now();
 		OrientToBaseResult result;
 
@@ -136,12 +143,13 @@ public:
 
 				std::cout << "cmd x:" << cmd.linear.x << ", y: "  << cmd.linear.y << ", z: " << cmd.angular.z << std::endl;
 
-				if (fabs(cmd.linear.x) + fabs(cmd.angular.z) < 0.00001) {
-			    
-					ROS_INFO("Point reached");
+				if ((fabs(cmd.angular.z)  + fabs(cmd.linear.x) ) < 0.0001) {
+			           
+			        ROS_INFO("Point reached");
 					result.succeed = true;
 					as_.setSucceeded(result);
 					break;
+
 				}
 
 				if  (stamp + max_time < ros::Time::now()) {
