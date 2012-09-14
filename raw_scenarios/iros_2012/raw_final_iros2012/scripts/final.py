@@ -22,9 +22,12 @@ def main():
                                             
     SM.userdata.rear_platform_free_poses = ['platform_centre'] # put the only object to be grasped in the centre of the platform
     SM.userdata.rear_platform_occupied_poses = []
+
+    SM.userdata.drawer_pose = ""
     
     source_workstation = "S1"
     destination_workstation = "D1"
+    distance_to_workstation = 0.3
   
     
     # open the container
@@ -48,7 +51,7 @@ def main():
                         'drawer_not_found':'SM_GRASP_DRAWER_AT_SOURCE_TO_PULL',
                         'base_placement_failed':'SM_GRASP_DRAWER_AT_SOURCE_TO_PULL'})
         
-        smach.StateMachine.add('PULL_DRAWER_OUT_AT_SOURCE_WS', move_base_rel(-0.15, 0),
+        smach.StateMachine.add('PULL_DRAWER_OUT_AT_SOURCE_WS', move_base_rel(-distance_to_workstation, 0),
             transitions={'succeeded':'MOVE_ARM_TO_PREGRASP'})
         
         smach.StateMachine.add('MOVE_ARM_TO_PREGRASP', move_arm("pregrasp_laying_mex"),
@@ -70,13 +73,13 @@ def main():
                         'drawer_not_found':'SM_GRASP_DRAWER_AT_SOURCE_TO_PUSH',
                         'base_placement_failed':'SM_GRASP_DRAWER_AT_SOURCE_TO_PUSH'})
         
-        smach.StateMachine.add('PUSH_DRAWER_IN_AT_SOURCE_WS', move_base_rel(0.15, 0),
+        smach.StateMachine.add('PUSH_DRAWER_IN_AT_SOURCE_WS', move_base_rel(distance_to_workstation, 0),
             transitions={'succeeded':'MOVE_ARM_IN_SAFE_POS'})
         
         smach.StateMachine.add('MOVE_ARM_IN_SAFE_POS', move_arm("initposition"),
             transitions={'succeeded':'MOVE_BACK_FIXED_DISTANCE'})
 
-        smach.StateMachine.add('MOVE_BACK_FIXED_DISTANCE', move_base_rel(-0.15,0),
+        smach.StateMachine.add('MOVE_BACK_FIXED_DISTANCE', move_base_rel(-distance_to_workstation,0),
             transitions={'succeeded':'MOVE_TO_DESTINATION_WORKSTATION'})
 
 
@@ -94,7 +97,7 @@ def main():
                         'drawer_not_found':'SM_GRASP_DRAWER_AT_DESTINATION_TO_PULL',
                         'base_placement_failed':'SM_GRASP_DRAWER_AT_DESTINATION_TO_PULL'})
         
-        smach.StateMachine.add('PULL_DRAWER_OUT_AT_DESTINATION_WS', move_base_rel(-0.15, 0),
+        smach.StateMachine.add('PULL_DRAWER_OUT_AT_DESTINATION_WS', move_base_rel(-distance_to_workstation, 0),
             transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF'})
                 
         smach.StateMachine.add('GRASP_OBJECT_FROM_PLTF', grasp_obj_from_pltf(),
@@ -109,13 +112,13 @@ def main():
                         'drawer_not_found':'SM_GRASP_DRAWER_AT_DESTINATION_TO_PUSH',
                         'base_placement_failed':'SM_GRASP_DRAWER_AT_DESTINATION_TO_PUSH'})
         
-        smach.StateMachine.add('PUSH_DRAWER_IN_AT_DESTINATION_WS', move_base_rel(0.15, 0),
+        smach.StateMachine.add('PUSH_DRAWER_IN_AT_DESTINATION_WS', move_base_rel(distance_to_workstation, 0),
             transitions={'succeeded':'MOVE_ARM_IN_SAFE_POS2'})
         
         smach.StateMachine.add('MOVE_ARM_IN_SAFE_POS2', move_arm("initposition"),
             transitions={'succeeded':'MOVE_BACK_FIXED_DISTANCE2'})
         
-        smach.StateMachine.add('MOVE_BACK_FIXED_DISTANCE2', move_base_rel(-0.15, 0),
+        smach.StateMachine.add('MOVE_BACK_FIXED_DISTANCE2', move_base_rel(-distance_to_workstation, 0),
             transitions={'succeeded':'MOVE_TO_EXIT'}) 
         
         smach.StateMachine.add('MOVE_TO_EXIT', approach_pose("EXIT"),
