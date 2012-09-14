@@ -1,12 +1,27 @@
 <?xml version="1.0"?>
 <launch>
-	<rosparam command="load" ns="/script_server/base_orientations" file="$(find raw_default_env_config)/$(env ROBOT_ENV)/navigation_orientations.yaml"/>
-
 	<!-- base components -->
-	<include file="$(find raw_bringup_sim)/robots/robot_no_x.launch" />
-	
-	<!-- script server -->
-	<include file="$(find raw_script_server)/launch/script_server.launch" />
-	
-</launch>
+	<include file="$(find raw_bringup_sim)/robots/robot.launch" />
 
+
+    <!-- navigation -->
+    <include file="$(find raw_2dnav)/ros/launch/sim/2dnav_sim.launch" />	
+    <include file="$(find raw_relative_movements)/launch/base_controller.launch" />
+
+    <!-- behavior -->
+    <include file="$(find raw_base_placement_fred)/ros/launch/adjust_pose_wrt_nearest_obj.launch" />
+    <include file="$(find hbrs_nearest_object_detector)/ros/launch/nearest_object_detector.launch" />
+
+    <!-- manipulation -->
+    <include file="$(find raw_arm_navigation)/ros/launch/simple_manipulation.launch" />	
+
+    <!-- script server -->
+    <include file="$(find raw_script_server)/launch/script_server.launch" />
+	
+	<!-- perception --> 
+	<include file="$(find raw_object_finder)/ros/launch/object_segmentation.launch" />
+
+    <!-- load objects into gazebo -->
+	<include file="$(find raw_gazebo_objects)/ros/launch/simulation_objects.launch" />
+
+</launch>

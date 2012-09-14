@@ -10,6 +10,39 @@ import arm_navigation_msgs.msg
 from simple_script_server import *
 sss = simple_script_server()
 
+import std_srvs.srv
+
+
+class place_object_in_drawer(smach.State):
+
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded'])
+
+    def execute(self, userdata):   
+
+        
+        return 'succeeded'
+
+
+class grasp_drawer(smach.State):
+
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['drawer_pose'])
+
+    def execute(self, userdata):   
+
+        # ToDo: sample range for gripper orientation
+        #sss.move("arm", [userdata.drawer_pose.pose.position.x, userdata.drawer_pose.pose.position.y, userdata.drawer_pose.pose.position.z,
+        #                0, 3.14, 0, 
+        #                "/base_link"])
+
+        sss.move("gripper", "open")
+        sss.move("arm", [0.48, 0, -0.02, 0, 3.1, 1.57, "/base_link"])
+        sss.move("gripper", "close")
+
+        return 'succeeded'
+   
+   
 class grasp_random_object(smach.State):
 
     def __init__(self):
@@ -67,7 +100,7 @@ class grasp_obj_with_visual_servering(smach.State):
             except:
                 visual_done = False
 
-        '''
+        '''        
         print userdata.object_to_grasp
         sss.move("arm", [float(userdata.object_to_grasp.pose.position.x), float(userdata.object_to_grasp.pose.position.y), (float(userdata.object_to_grasp.pose.position.z) + 0.02),"/base_link"])
 
@@ -93,7 +126,7 @@ class grasp_obj_with_visual_servering(smach.State):
         rospy.sleep(3)
 
         sss.move("arm", "zeroposition")
-        
+
         return 'succeeded'
 
 
@@ -130,7 +163,21 @@ class place_obj_on_rear_platform(smach.State):
 
         return 'succeeded'
     
-    
+
+
+class move_arm(smach.State):
+
+    def __init__(self, position = "zeroposition"):
+        smach.State.__init__(self, outcomes=['succeeded'])
+        
+        self.position = position
+
+    def execute(self, userdata):   
+        sss.move("arm", self.position)
+                   
+        return 'succeeded'
+
+  
 class move_arm_out_of_view(smach.State):
 
     def __init__(self):
@@ -198,18 +245,4 @@ class place_object_in_configuration(smach.State):
         sss.move("gripper","open")
         rospy.sleep(2)
                 
-        return 'succeeded'
-
-
-class move_arm(smach.State):
-
-    def __init__(self, pose_name):
-        smach.State.__init__(self, outcomes=['succeeded'])
-       
-        self.pose_name = pose_name
-
-    def execute(self, userdata):   
-
-        sss.move("arm", self.pose_name)
-           
         return 'succeeded'
