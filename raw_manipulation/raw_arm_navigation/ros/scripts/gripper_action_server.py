@@ -8,8 +8,9 @@ import brics_actuator.msg
 import raw_arm_navigation.msg
 import arm_navigation_msgs.msg
 import tf
+from raw_srvs.srv import *
 
-
+isGripperClosed  = None
 class GripperActionServer:
 	def __init__(self):
 		self.received_state = False
@@ -48,6 +49,9 @@ class GripperActionServer:
 		# action server
 		self.as_move_joint_direct = actionlib.SimpleActionServer("MoveToJointConfigurationDirect", raw_arm_navigation.msg.MoveToJointConfigurationAction, execute_cb = self.execute_cb_move_joint_config_direct)
 	
+		
+  
+  
 	def joint_states_callback(self, msg):
 		for k in range(len(self.joint_names)):
 			for i in range(len(msg.name)):
@@ -57,7 +61,12 @@ class GripperActionServer:
 					
 		#print 'joint states received'
 		self.received_state = True
-		
+		if(float(msg.position[14]) <  0.003):
+			global isGripperClosed
+			isGripperClosed = True
+		else:
+			isGripperClosed = False
+		return True
 	
 	def execute_cb_move_joint_config_direct(self, action_msgs):
 		rospy.loginfo("move gripper to joint configuration")
@@ -92,19 +101,26 @@ class GripperActionServer:
 	def is_goal_reached(self, goal_pose):
 		for i in range(len(self.joint_names)):
 			#rospy.loginfo("joint: %d -> curr_val: %f --- goal_val: %f", i, goal_pose.positions[i].value, self.current_joint_configuration[i])
+			#rospy.loginfo(self.current_joint_configuration[i])
 			if (abs(goal_pose.positions[i].value - self.current_joint_configuration[i]) > 0.002):   #ToDo: threshold via parameter
-				return False
-		
+				return False		
 					
 		rospy.loginfo("gripper goal pose reached")
 		return True
-
+	
+	@staticmethod
+	def handle_is_gripper_closed(self):
+		return isGripperClosed
+	
+	def is_gripper_closed_server(self):
+		#is_gripper_closed service
+		s  = rospy.Service('is_gripper_closed',  ReturnBool , self.handle_is_gripper_closed)
+		            
 
 if __name__ == "__main__":
-	rospy.init_node("gripper_action_server")
-	
-	action = GripperActionServer()
-	
+	rospy.init_node("gripper_action_server")	
+	action = GripperActionServer()		
 	rospy.loginfo("gripper action server started")
-	
+	action.is_gripper_closed_server()
+	rospy.loginfo("IsGripperClosed service started!")
 	rospy.spin()
