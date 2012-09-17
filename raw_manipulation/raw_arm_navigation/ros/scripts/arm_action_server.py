@@ -75,13 +75,10 @@ class ArmActionServer:
             #rospy.loginfo("joint: %d -> curr_val: %f --- goal_val: %f", i, goal_pose.positions[i].value, self.current_joint_configuration[i])            
             if (abs(goal_pose.positions[i].value - self.current_joint_configuration[i]) > 0.05):
                 #ToDo: threshold via parameter
-                self.time_now = rospy.get_rostime()#my line        
-                #rospy.loginfo("arm goal pose not reached after " + str(self.time_now-self.time_start))
-                if(int(self.time_now.secs-self.time_start.secs) > 1):
-                    break
+                #self.time_now = rospy.get_rostime()#my line        
+                #if(int(self.time_now.secs-self.time_start.secs) > 1):
+                    #break
                 return False
-        #self.time_reached = rospy.get_rostime()#my line        
-        #rospy.loginfo("arm goal pose reached in " + str(self.time_reached-self.time_start))
         return True
        
        
@@ -92,7 +89,6 @@ class ArmActionServer:
     def execute_cb_move_joint_config_direct(self, action_msgs):
         rospy.loginfo("move arm to joint configuration DIRECT")
         self.time_start = rospy.get_rostime()#my line
-        rospy.loginfo("action started at " + str (self.time_start))#my line
         if not self.is_joint_configuration_not_in_limits(action_msgs.goal):
             result = raw_arm_navigation.msg.MoveToJointConfigurationResult()
             result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.JOINT_LIMITS_VIOLATED
@@ -100,19 +96,11 @@ class ArmActionServer:
             return
 
         self.pub_joint_positions.publish(action_msgs.goal)
-        #wait to reach the goal position
-        #time_end = rospy.get_rostime()#my line
-        #rospy.loginfo(time_end.nsecs)#my line
-        #time_ns = time_end.nsecs - time_start.nsecs
-        #time = time_end.secs - time_start.secs
-        #rospy.loginfo("time taken is " + str(time_ns)+ " nano seconds " + "i.e  " + str(time)+ " seconds")#my line
-        
+        self.duration = 6 # should be replaced with a calculated value if possible   
         while (not rospy.is_shutdown()):
-            if (self.is_goal_reached(action_msgs.goal)):
+            if (self.is_goal_reached(action_msgs.goal) or int(rospy.get_rostime().secs - self.time_start.secs) > self.duration):
                 break
-            #elif (time > 1):
-                  #rospy.loginfo("breaking the while loop!")  
-                 # break  
+          
             
         result = raw_arm_navigation.msg.MoveToJointConfigurationResult()
         result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.SUCCESS
