@@ -39,11 +39,9 @@ ObjectSegmentation::ObjectSegmentation(const std::string &node_name)
 	_get_segmented_objects_srv = pn.advertiseService("get_segmented_objects", &ObjectSegmentation::GetObjects, this);
 	ROS_INFO("Advertised 'get_segmented_objects' service");
 
-	_start_srv = pn.advertiseService("start", &ObjectSegmentation::Start, this);
-	_stop_srv = pn.advertiseService("stop", &ObjectSegmentation::Stop, this);
-	ROS_INFO("Advertised 'start' and 'stop' service");
-
 	ROS_INFO("Object segmentation started");
+
+	_received_new_data = false;
 }
 
 
@@ -54,22 +52,47 @@ ObjectSegmentation::~ObjectSegmentation()
 }
 
 
-void ObjectSegmentation::Segment(const sensor_msgs::PointCloud2 &msg)
+void ObjectSegmentation::PointCloudCallback(const sensor_msgs::PointCloud2 &msg)
 {
+	_input_cloud = msg;
+	_received_new_data = true;
+}
+
+
+bool ObjectSegmentation::GetObjects(
+		raw_srvs::GetObjects::Request &req,
+		raw_srvs::GetObjects::Response &res)
+{
+	_cluster_sub = _nh.subscribe("/camera/rgb/points", 1, &ObjectSegmentation::PointCloudCallback, this);
+
+	pcl::PointCloud<pcl::PointXYZRGB> point_cloud;
+
+	while(!_received_new_data)
+	{
+		ros::spinOnce();
+
+		if (!PreparePointCloud(_input_cloud, point_cloud))
+			_received_new_data = false;
+	}
+
+	std::cout << "1" << std::endl;
+
 	try {
 		// start with an empty set of segmented objects
 		_last_segmented_objects.objects.clear();
 
-		pcl::PointCloud<pcl::PointXYZRGB> point_cloud;
-		if (!PreparePointCloud(msg, point_cloud)) return;
 
 		// point cloud colors to color image
-		IplImage *image = ClusterToImage(msg);
+		IplImage *image = ClusterToImage(_input_cloud);
+
+		std::cout << "2" << std::endl;
 
 		// find planes and objects
 		pcl::PointCloud<pcl::PointXYZRGBNormal> planar_point_cloud;
 		std::vector<structPlanarSurface> hierarchy_planes;
 		_object_candidate_extractor->extractObjectCandidates(point_cloud, planar_point_cloud, hierarchy_planes);
+
+		std::cout << "3" << std::endl;
 
 
 		// extract the clustered planes and objects
@@ -79,15 +102,21 @@ void ObjectSegmentation::Segment(const sensor_msgs::PointCloud2 &msg)
 		std::vector<geometry_msgs::PoseStamped> centroids_msgs;
 		std::vector<hbrs_msgs::Object> segmented_objects;
 
+		std::cout << "4" << std::endl;
+
 		unsigned int object_count = 0;
 		for (unsigned int i = 0; i < hierarchy_planes.size(); i++) {
 			structPlanarSurface plane = hierarchy_planes[i];
+
+			std::cout << "5" << std::endl;
 
 			// save for visualization
 			clustered_planes.push_back(plane.pointCloud);
 
 			// process all objects on the plane
 			for (unsigned int j = 0; j < plane.clusteredObjects.size(); j++) {
+				std::cout << "6" << std::endl;
+
 				pcl::PointCloud<pcl::PointXYZRGBNormal> object = plane.clusteredObjects[j];
 
 				// convert to ROS point cloud for further processing
@@ -95,15 +124,15 @@ void ObjectSegmentation::Segment(const sensor_msgs::PointCloud2 &msg)
 				pcl::toROSMsg(object, cloud);
 				clustered_objects_msgs.push_back(cloud);
 
-                hbrs_msgs::Object segmented_object;
+				hbrs_msgs::Object segmented_object;
 
 				// find the image corresponding to the cluster
-                if(_extract_obj_in_rgb_img)
-                {
-    				sensor_msgs::ImagePtr img = ExtractRegionOfInterest(cloud, image);
-                    segmented_object.rgb_image = *img;
-    				segmented_object.rgb_image.header = msg.header;
-                }
+				if(_extract_obj_in_rgb_img)
+				{
+					sensor_msgs::ImagePtr img = ExtractRegionOfInterest(cloud, image);
+					segmented_object.rgb_image = *img;
+					segmented_object.rgb_image.header = _input_cloud.header;
+				}
 
 
 				// find the centroid
@@ -120,6 +149,8 @@ void ObjectSegmentation::Segment(const sensor_msgs::PointCloud2 &msg)
 				// save for visualization
 				clustered_objects.push_back(object);
 				++object_count;
+
+				std::cout << "7" << std::endl;
 			}
 		}
 
@@ -143,42 +174,18 @@ void ObjectSegmentation::Segment(const sensor_msgs::PointCloud2 &msg)
 	} catch (tf::TransformException &ex) {
 		ROS_WARN("No tf available: %s", ex.what());
 	}
-}
 
 
-bool ObjectSegmentation::GetObjects(
-		raw_srvs::GetObjects::Request &req,
-		raw_srvs::GetObjects::Response &res)
-{
 	res = _last_segmented_objects;
 
-	return true;
-}
-
-
-bool ObjectSegmentation::Start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
-{
-	_last_segmented_objects.objects.clear();	
-	_cluster_sub = _nh.subscribe("/camera/rgb/points", 1, &ObjectSegmentation::Segment, this);
-
-	ROS_INFO("Object segmentation enabled");
-
-	return true;
-}
-
-
-bool ObjectSegmentation::Stop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
-{
-	_last_segmented_objects.objects.clear();
 	_cluster_sub.shutdown();
-
-	ROS_INFO("Object segmentation disabled");
+	_received_new_data = false;
 
 	return true;
 }
 
 
-bool ObjectSegmentation::PreparePointCloud(const sensor_msgs::PointCloud2 &input, pcl::PointCloud<pcl::PointXYZRGB> &output)
+bool ObjectSegmentation::PreparePointCloud(sensor_msgs::PointCloud2 &input, pcl::PointCloud<pcl::PointXYZRGB> &output)
 {
 	if ((input.width <= 0) || (input.height <= 0) || (input.data.empty())) {
 		ROS_INFO("[%s] pointCloud Msg empty", _node_name.c_str());
