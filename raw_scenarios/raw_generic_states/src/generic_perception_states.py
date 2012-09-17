@@ -6,7 +6,26 @@ import smach
 import smach_ros
 import raw_srvs.srv
 import std_srvs.srv
-import tf  
+import tf 
+import geometry_msgs.msg
+
+
+
+class find_drawer(smach.State):
+
+    def __init__(self):
+        smach.State.__init__(
+            self,
+            outcomes=['succeeded', 'failed'], output_keys=["drawer_pose"])
+        
+    def execute(self, userdata): 
+               
+        # find drawer front edge position with sergeys perception component
+               
+        userdata.drawer_pose = geometry_msgs.msg.PoseStamped()
+        
+        return 'succeeded'
+ 
 
 class enable_object_finder(smach.State):
 

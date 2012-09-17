@@ -55,10 +55,14 @@ def main():
                                 
         smach.StateMachine.add('PLACE_OBJECT_ON_REAR_PLATFORM', place_obj_on_rear_platform(),
             transitions={'succeeded':'MOVE_BACK_FIXED_DISTANCE', 
-                        'no_more_free_poses':'MOVE_TO_DESTINATION_POSE'})
+                        'no_more_free_poses':'MOVE_BACK_FIXED_DISTANCE3'})
 
-        smach.StateMachine.add('MOVE_BACK_FIXED_DISTANCE', move_base_rel(-0.2,0),
+        smach.StateMachine.add('MOVE_BACK_FIXED_DISTANCE', move_base_rel(-0.15,0),
             transitions={'succeeded':'SELECT_POSE_TO_APPROACH'})
+
+
+        smach.StateMachine.add('MOVE_BACK_FIXED_DISTANCE3', move_base_rel(-0.15,0),
+            transitions={'succeeded':'MOVE_TO_DESTINATION_POSE'})
 
         
         # place object at destination pose
@@ -91,7 +95,10 @@ def main():
         
         
         smach.StateMachine.add('MOVE_ARM_OUT_OF_VIEW2', move_arm_out_of_view(),
-                transitions={'succeeded':'MOVE_TO_EXIT'})
+                transitions={'succeeded':'MOVE_BACK_FIXED_DISTANCE2'})
+
+        smach.StateMachine.add('MOVE_BACK_FIXED_DISTANCE2', move_base_rel(-0.15,0),
+            transitions={'succeeded':'MOVE_TO_EXIT'})
         
         
         smach.StateMachine.add('MOVE_TO_EXIT', approach_pose("EXIT"),

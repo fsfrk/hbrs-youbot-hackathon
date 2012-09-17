@@ -66,7 +66,7 @@ class ArmActionServer:
         for goal_joint in goal_configuration.positions:
             for joint_limit in self.joint_limits:
                 if ((goal_joint.joint_uri == joint_limit.joint_name) and ((goal_joint.value < joint_limit.min_position) or (goal_joint.value > joint_limit.max_position))):
-                    rospy.logerr("goal configuration has <<%s>> in joint limit: %lf", goal_joint.joint_uri, goal_joint.value)
+                    rospy.logerr("goal configuration has <<%s>> in joint limit: %lf (limit min: %lf, max: %lf)", goal_joint.joint_uri, goal_joint.value, joint_limit.min_position, joint_limit.max_position)
                     return False
         return True
     
@@ -163,8 +163,9 @@ class ArmActionServer:
         pose.goal.pose.position.y = action_msgs.goal.pose.position.y
         pose.goal.pose.position.z = action_msgs.goal.pose.position.z
         
+        joints_not_in_limits = False
         for i in range(100):
-            rand_value = random.randint(0, int(math.pi/0.02))/100.0
+            rand_value = random.randint(int(math.pi/2*100), int(math.pi*100))/100.0
 
             (qx, qy, qz, qw) = tf.transformations.quaternion_from_euler(0, rand_value, 0)
             pose.goal.header.stamp = rospy.Time.now()
@@ -177,22 +178,24 @@ class ArmActionServer:
                                 
             if (joint_config):
                 rospy.loginfo("IK solution found")
-                break
+                
+                jp = brics_actuator.msg.JointPositions()
+                for i in range(len(self.joint_names)):
+                    jv = brics_actuator.msg.JointValue()
+                    jv.joint_uri = self.iks.joint_names[i]
+                    jv.value = joint_config[i]
+                    jv.unit = self.unit
+                    jp.positions.append(jv)
+
+                joints_not_in_limits = self.is_joint_configuration_not_in_limits(jp)
+
+                if joints_not_in_limits:
+                    break
+
 
         result = raw_arm_navigation.msg.MoveToJointConfigurationResult()
         
-        if(joint_config):
-            jp = brics_actuator.msg.JointPositions()
-            for i in range(len(self.joint_names)):
-                jv = brics_actuator.msg.JointValue()
-                jv.joint_uri = self.iks.joint_names[i]
-                jv.value = joint_config[i]
-                jv.unit = self.unit
-                jp.positions.append(jv)
-            if not self.is_joint_configuration_not_in_limits(jp):
-                result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.JOINT_LIMITS_VIOLATED
-                self.as_move_cart_rpy_sampled_direct.set_aborted(result)
-                return
+        if(joint_config and joints_not_in_limits):
 
             self.pub_joint_positions.publish(jp)
             

@@ -17,13 +17,19 @@ int main (int argc, char **argv)
 
   raw_base_placement_matthias_fueller::OrientToBaseActionGoal goal;
 
-  goal.goal.distance = 0.1;
+  goal.goal.distance = 0.4;
 
   ac.sendGoal(goal.goal);
 
   //wait for the action to return
-  bool finished_before_timeout = ac.waitForResult(ros::Duration(10.0));
+  bool finished_before_timeout = ac.waitForResult(ros::Duration(1.0));
 
+  while(!finished_before_timeout)
+  {
+	  finished_before_timeout = ac.waitForResult(ros::Duration(0.5));
+	  
+  }
+  
   if (finished_before_timeout)
   {
     actionlib::SimpleClientGoalState state = ac.getState();

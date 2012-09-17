@@ -52,10 +52,10 @@
 
   <!-- BRSU SPECIFIC STUFF -->
   <include filename="$(find raw_robot_description)/urdf/materials.urdf.xacro" />
-  <include filename="$(find raw_robot_description)/urdf/misc/sensor_angle.urdf.xacro" />
+  <!--include filename="$(find raw_robot_description)/urdf/misc/sensor_angle.urdf.xacro" /-->
   <include filename="$(find raw_robot_description)/urdf/misc/cam3d_tower.urdf.xacro" />
   <include filename="$(find raw_robot_description)/urdf/sensors/kinect_camera.urdf.xacro" />
-  <include filename="$(find raw_robot_description)/urdf/sensors/microsoft_lifecam.urdf.xacro" />
+  <!--include filename="$(find raw_robot_description)/urdf/sensors/microsoft_lifecam.urdf.xacro" /-->
   <!--include filename="$(find raw_robot_description)/urdf/sensors/asus_xtion_camera.urdf.xacro" /-->
   
 
@@ -65,9 +65,9 @@
   </xacro:hokuyo_urg04_laser>
 
   <!-- Sensor angle on arm -->
-  <xacro:sensor_angle name="arm_sensor_angle" parent="arm_link_5">
+  <!--xacro:sensor_angle name="arm_sensor_angle" parent="arm_link_5">
     <origin xyz="-0.002 0.0 -0.023" rpy="0.0 0.0 0.0" />
-  </xacro:sensor_angle>
+  </xacro:sensor_angle-->
   
   <!-- ASUS Xtion on arm sensor angle -->
   <!--xacro:asus_xtion_camera name="openni" parent="arm_sensor_angle_part2_link"  tilt="0.0">
@@ -85,9 +85,9 @@
   </xacro:kinect_camera> 
   
   <!-- Microsoft LifeCam on gripper -->
-  <xacro:microsoft_lifecam name="microsoft_lifecam" parent="arm_sensor_angle_part2_link">
+  <!--xacro:microsoft_lifecam name="microsoft_lifecam" parent="arm_sensor_angle_part2_link">
     <origin xyz="-0.04 0 -0.03" rpy="0 ${M_PI} 0" />
-  </xacro:microsoft_lifecam> 
+  </xacro:microsoft_lifecam--> 
   
 
 </robot>
