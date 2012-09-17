@@ -17,17 +17,17 @@ if __name__ == '__main__':
     rospy.init_node('script_server_test')
     
     
-    #sss.move("base", "intro")
-    #sss.move("gripper", "open")
+    #sss.move("base", "initposition")
+    sss.move("gripper", "open")
     #sss.move("gripper", "close")
     #sss.move("arm", "zeroposition")
     #sss.move("arm", "pregrasp_laying_mex")
     #sss.move("arm","pregrasp_standing_mex")
 
-    sss.move("arm", "left_tower")
-    sss.move("arm", "right_tower")
-    sss.move("arm", "left_tower")
-    
+    #sss.move("arm", "left_tower")
+    #sss.move("arm", "right_tower")
+    #sss.move("arm", "left_tower")
+    #sss.move("arm", "pregrasp_laying_mex", mode="planned")
     '''
     sss.move("arm", "pregrasp_laying_mex", mode="planned")
     sss.move("arm", "platform_left", mode="planned")
