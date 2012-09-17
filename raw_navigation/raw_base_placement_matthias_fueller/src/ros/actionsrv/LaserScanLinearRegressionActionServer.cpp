@@ -60,19 +60,20 @@ public:
 
 
 
-	geometry_msgs::Twist calculateVelocityCommand(double center, double a, double b) {
+	geometry_msgs::Twist calculateVelocityCommand(double center, double a, double b,bool &oriented,int &iterator) {
 		geometry_msgs::Twist cmd;
 
 		std::cout << "HHHHH: " << fabs(b) << std::endl;
 		
-        if (fabs(b) > 0.01) 
+        if ( (fabs(b) > 0.1) && (fabs(center) > 0.0005) &&(!oriented) )
 		{
-		  cmd.angular.z = -b/2;
+
+		      cmd.angular.z = -b/2;
+
 			//cmd_pub.publish(cmd);
 			//std::cout << "cmd.angular.z:  " << cmd.angular.z << std::endl;
 
 		}
-
 		/*
 		else if (fabs(center) > 0.005) 
 		{
@@ -84,17 +85,29 @@ public:
      
 		else if (a > target_distance) 
 		{
+            
+            oriented = true; 
 			//cmd.linear.x = a / 3;
-			cmd.linear.x = (a - target_distance);
+			cmd.linear.x = (a - target_distance)/2;
+            cmd.angular.z = 0;
 			std::cout << "cmd.linear.x:  " << cmd.linear.x << std::endl;
 			//cmd_pub.publish(cmd);
 
 		}
         else if(a < target_distance)
         {
-           cmd.linear.x = -(target_distance-a);
+      
+           cmd.linear.x = -(target_distance-a)/2;
+           cmd.angular.z = 0;
            std::cout << "cmd.linear.x:  " << cmd.linear.x << std::endl; 
-
+           if(iterator<6)
+           {
+              iterator++;   
+           } 
+           else
+           {
+              oriented = true;
+           }
         }
 
 		if (cmd.linear.x > max_velocity) 
@@ -130,6 +143,8 @@ public:
 		ros::Duration max_time(50.0);
 		ros::Time stamp = ros::Time::now();
 		OrientToBaseResult result;
+        bool oriented = false;
+        int  iterator = 0;
 
 		while (true) {
 			ROS_INFO("Call service Client");
@@ -138,12 +153,13 @@ public:
 				ROS_INFO("Called service LaserScanLinearRegressionService");
 				//std::cout << "result: " << srv.response.center << ", " << srv.response.a << ", " << srv.response.b << std::endl;
 
-				geometry_msgs::Twist cmd = calculateVelocityCommand(srv.response.center, srv.response.a, srv.response.b);
+
+				geometry_msgs::Twist cmd = calculateVelocityCommand(srv.response.center, srv.response.a, srv.response.b,oriented,iterator);
 				cmd_pub.publish(cmd);
 
 				std::cout << "cmd x:" << cmd.linear.x << ", y: "  << cmd.linear.y << ", z: " << cmd.angular.z << std::endl;
 
-				if ((fabs(cmd.angular.z)  + fabs(cmd.linear.x) ) < 0.0001) {
+				if ((fabs(cmd.angular.z)  + fabs(cmd.linear.x) ) < 0.001) {
 			           
 			        ROS_INFO("Point reached");
 					result.succeed = true;
