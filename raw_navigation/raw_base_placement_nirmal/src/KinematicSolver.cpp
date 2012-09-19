@@ -84,6 +84,8 @@ void KinematicSolver::CalculateBaseOrientation(HomogenousTransform GoalTR)
     t = atan2(GoalTR(1,2),GoalTR(0,2));
 
     
+
+    
    
 
 }

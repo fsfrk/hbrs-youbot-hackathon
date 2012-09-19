@@ -53,7 +53,7 @@ def main():
         smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM', adjust_pose_wrt_platform(),
             transitions={'succeeded':'MOVE_ARM_OUT_OF_VIEW',
                         'failed':'ADJUST_POSE_WRT_PLATFORM'})
-        '''
+
 
         
         smach.StateMachine.add('MOVE_ARM_OUT_OF_VIEW', move_arm_out_of_view(),
@@ -121,7 +121,7 @@ def main():
                 
         smach.StateMachine.add('MOVE_TO_FINAL_POSE', move_base_rel(1.1),
             transitions={'succeeded':'overall_success'})
-        
+        '''        
        
     # Start SMACH viewer
     smach_viewer = smach_ros.IntrospectionServer('BASIC_MANIPULATION_TEST', SM, 'BASIC_MANIPULATION_TEST')

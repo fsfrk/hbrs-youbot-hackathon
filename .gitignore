@@ -6,6 +6,8 @@
 bin/
 build/
 .pydevproject
+.vim
+.clang_complete
 .metadata
 *.*~
 msg_gen

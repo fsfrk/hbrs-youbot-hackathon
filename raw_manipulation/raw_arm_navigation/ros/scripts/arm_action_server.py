@@ -16,7 +16,7 @@ import random
 from simple_ik_solver_wrapper import SimpleIkSolver
 
 
-class ArmActionServer:
+class ArmActionServer:    
     def __init__(self):
         self.received_state = False
         if (not rospy.has_param("joints")):
@@ -72,11 +72,13 @@ class ArmActionServer:
     
     def is_goal_reached(self, goal_pose):
         for i in range(len(self.joint_names)):
-            #rospy.loginfo("joint: %d -> curr_val: %f --- goal_val: %f", i, goal_pose.positions[i].value, self.current_joint_configuration[i])
+            #rospy.loginfo("joint: %d -> curr_val: %f --- goal_val: %f", i, goal_pose.positions[i].value, self.current_joint_configuration[i])            
             if (abs(goal_pose.positions[i].value - self.current_joint_configuration[i]) > 0.05):
                 #ToDo: threshold via parameter
+                #self.time_now = rospy.get_rostime()#my line        
+                #if(int(self.time_now.secs-self.time_start.secs) > 1):
+                    #break
                 return False
-        rospy.loginfo("arm goal pose reached")
         return True
        
        
@@ -86,7 +88,7 @@ class ArmActionServer:
             
     def execute_cb_move_joint_config_direct(self, action_msgs):
         rospy.loginfo("move arm to joint configuration DIRECT")
-        
+        self.time_start = rospy.get_rostime()#my line
         if not self.is_joint_configuration_not_in_limits(action_msgs.goal):
             result = raw_arm_navigation.msg.MoveToJointConfigurationResult()
             result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.JOINT_LIMITS_VIOLATED
@@ -94,15 +96,16 @@ class ArmActionServer:
             return
 
         self.pub_joint_positions.publish(action_msgs.goal)
-        #wait to reach the goal position
-
+        self.duration = 6 # should be replaced with a calculated value if possible   
         while (not rospy.is_shutdown()):
-            if (self.is_goal_reached(action_msgs.goal)):
+            if (self.is_goal_reached(action_msgs.goal) or int(rospy.get_rostime().secs - self.time_start.secs) > self.duration):
                 break
-
+          
+            
         result = raw_arm_navigation.msg.MoveToJointConfigurationResult()
         result.result.val = arm_navigation_msgs.msg.ArmNavigationErrorCodes.SUCCESS
         self.as_move_joint_direct.set_succeeded(result)
+                  
         return
         
 
