@@ -6,9 +6,14 @@
   </description>
   <author>Sergey</author>
   <license>BSD</license>
-  <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/raw_object_recognition</url>
+
+  <depend package="roscpp"/>
+  <depend package="pcl"/>
   <depend package="rospy"/>
+  <depend package="smach"/>
+  <depend package="smach_ros"/>
+
+  <depend package="hbrs_srvs"/>
   <depend package="raw_srvs"/>
 
 </package>
