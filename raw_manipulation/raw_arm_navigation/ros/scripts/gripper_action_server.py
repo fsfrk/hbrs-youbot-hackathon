@@ -10,7 +10,7 @@ import arm_navigation_msgs.msg
 import tf
 from raw_srvs.srv import *
 
-isGripperClosed  = None
+
 class GripperActionServer:
 	def __init__(self):
 		self.received_state = False
@@ -49,7 +49,8 @@ class GripperActionServer:
 		# action server
 		self.as_move_joint_direct = actionlib.SimpleActionServer("MoveToJointConfigurationDirect", raw_arm_navigation.msg.MoveToJointConfigurationAction, execute_cb = self.execute_cb_move_joint_config_direct)
 	
-		
+		# service server
+		self.srv_gripper_closed = rospy.Service('is_gripper_closed',  ReturnBool , self.is_gripper_closed)
   
   
 	def joint_states_callback(self, msg):
@@ -61,11 +62,7 @@ class GripperActionServer:
 					
 		#print 'joint states received'
 		self.received_state = True
-		if(float(msg.position[14]) <  0.003):
-			global isGripperClosed
-			isGripperClosed = True
-		else:
-			isGripperClosed = False
+			
 		return True
 	
 	def execute_cb_move_joint_config_direct(self, action_msgs):
@@ -108,19 +105,16 @@ class GripperActionServer:
 		rospy.loginfo("gripper goal pose reached")
 		return True
 	
-	@staticmethod
-	def handle_is_gripper_closed(self):
-		return isGripperClosed
-	
-	def is_gripper_closed_server(self):
-		#is_gripper_closed service
-		s  = rospy.Service('is_gripper_closed',  ReturnBool , self.handle_is_gripper_closed)
+
+	def is_gripper_closed(self, req):
+		for gripper_joint_value in self.current_joint_configuration:
+			if(gripper_joint_value > 0.003):
+				return False
+		return True
 		            
 
 if __name__ == "__main__":
 	rospy.init_node("gripper_action_server")	
 	action = GripperActionServer()		
 	rospy.loginfo("gripper action server started")
-	action.is_gripper_closed_server()
-	rospy.loginfo("IsGripperClosed service started!")
 	rospy.spin()
