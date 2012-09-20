@@ -16,7 +16,7 @@
 
 using namespace std;
 
-double Velocity = 0.01;
+double Velocity = 0.1;
 
 
 class BaseMotionController
@@ -91,6 +91,9 @@ class BaseMotionController
    bool moveX()
    {
         bool isReached=false;
+        geometry_msgs::Twist zero_vel; 
+
+        base_velocities_publisher.publish(zero_vel);
 
 	    while(!odom_received)
         {
@@ -100,6 +103,11 @@ class BaseMotionController
         
         x_initodom = x_tempodom;
         y_initodom = y_tempodom;
+
+
+        std::cout << "shift in x: " << xval << std::endl;
+        std::cout << "init odom: x:" << x_initodom << " y: " << y_initodom << std::endl;
+
         theta_initodom = theta_tempodom;
         x_currentodom = x_tempodom;
         y_currentodom = y_tempodom;
@@ -107,6 +115,8 @@ class BaseMotionController
         cout<<x_initodom<<endl;
         while(isReached != true)
         {
+            base_velocities_publisher.publish(zero_vel);
+
             float valuediff = (x_currentodom-x_initodom);
             if( fabs(valuediff) >= fabs(xval))
             {
@@ -130,7 +140,7 @@ class BaseMotionController
             theta_currentodom = theta_tempodom;  
         }   
 
-        geometry_msgs::Twist zero_vel;
+        
         base_velocities_publisher.publish(zero_vel);
 
         cout<<x_currentodom<<endl;
@@ -139,6 +149,9 @@ class BaseMotionController
    }
    bool moveY()
    {
+        geometry_msgs::Twist zero_vel;
+
+        base_velocities_publisher.publish(zero_vel);
 
         bool isReached=false;
 
@@ -163,9 +176,10 @@ class BaseMotionController
         while(isReached != true)
         {
             //ROS_INFO("Run");  
+            base_velocities_publisher.publish(zero_vel);
             float valuediff = (y_currentodom-y_initodom);
             
-            //std::cout << "diff y: " << valuediff << std::endl;
+            std::cout << "diff y: " << valuediff << std::endl;
             
             if( fabs(valuediff) >= fabs(yval))
             {
@@ -191,12 +205,9 @@ class BaseMotionController
             theta_currentodom = theta_tempodom;
   
         }  
-
-        geometry_msgs::Twist zero_vel;
-        base_velocities_publisher.publish(zero_vel);
-
         
-
+        base_velocities_publisher.publish(zero_vel);
+        
         return true; 
 
    }
@@ -263,17 +274,34 @@ class BaseMotionController
    bool moveoptimal()
    {
         ros::spinOnce();
+        while(!odom_received)
+        {
+           	ros::spinOnce();   
+        }
+        odom_received = false;
         x_initodom = x_tempodom;
         y_initodom = y_tempodom;
         theta_initodom = theta_tempodom;
 
         actionlib::SimpleActionClient<raw_base_placement_matthias_fueller::OrientToBaseAction> ac("/scan_front_orientation", true);
+
         ac.waitForServer();
+
         raw_base_placement_matthias_fueller::OrientToBaseActionGoal goal;
+
         goal.goal.distance = 0.1;
+
         ac.sendGoal(goal.goal);
-        bool finished_before_timeout = ac.waitForResult(ros::Duration(10.0));
+        
+        bool finished_before_timeout = ac.waitForResult(ros::Duration(1.0));
+
+        while(!finished_before_timeout)
+        {
+           finished_before_timeout = ac.waitForResult(ros::Duration(0.5));  
+        }
+
         bool base_reached = false;
+
         if (finished_before_timeout)
         {
             actionlib::SimpleClientGoalState state = ac.getState();
@@ -283,13 +311,17 @@ class BaseMotionController
             x_currentodom = x_tempodom;
             y_currentodom = y_tempodom;
             theta_currentodom = theta_tempodom;
+
             HomogenousTransform Objecttf = ht_from_xyzrpy(xval,yval,0,rollval,pitchval,yawval);
+
             float xdiff = x_initodom-y_currentodom;
             float ydiff = y_initodom-y_currentodom;
             float yawdiff = theta_initodom-theta_currentodom;
+
             HomogenousTransform OdomTf = ht_from_xyzrpy(xdiff,ydiff,0,0,0,yawdiff);
             HomogenousTransform finalTf = OdomTf*Objecttf;
             yval = (finalTf.translation())(1); 
+
             base_reached = moveY();
         }
         else  
@@ -345,9 +377,9 @@ bool moveoptimalbase(raw_srvs::SetPoseStamped::Request  &req, raw_srvs::SetPoseS
 
     BaseMotionController bm(node,X,Y,(float)roll,(float)pitch,(float)yaw);
 
-    bool status = bm.moveoptimal();
+    bm.moveoptimal();
 
-    return status;
+    return true;
 }
 
 
