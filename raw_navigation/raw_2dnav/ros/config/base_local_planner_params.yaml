@@ -7,7 +7,7 @@ max_vel_x: 0.3
 min_vel_x: 0.05
 
 max_vel_theta: 0.7
-max_vel_theta: 0.1
+min_vel_theta: 0.1
 
 min_in_place_vel_theta: 0.1
 
@@ -16,7 +16,7 @@ holonomic_robot: true
 
 # Goal Tolerance Parameters
 xy_goal_tolerance: 0.1
-yaw_goal_tolerance: 0.1
+yaw_goal_tolerance: 3.0
 
 # Forward Simulation Parameters
 sim_time: 1.7

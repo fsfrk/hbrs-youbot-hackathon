@@ -5,7 +5,7 @@
 	
 	<node pkg="youbot_navigation_common" type="lowpass_filter" respawn="false" name="lowpass_filter" output="screen"/>
 
-	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+	<node pkg="raw_basic_navigation" type="basic_navigation" respawn="false" name="basic_navigation" output="screen">
 	    <rosparam file="$(find raw_2dnav)/ros/config/move_base_params.yaml"  	command="load" />
 		<rosparam file="$(find raw_2dnav)/ros/config/costmap_common_params.yaml" 	command="load" ns="global_costmap" />
 		<rosparam file="$(find raw_2dnav)/ros/config/costmap_common_params.yaml" 	command="load" ns="local_costmap" />
