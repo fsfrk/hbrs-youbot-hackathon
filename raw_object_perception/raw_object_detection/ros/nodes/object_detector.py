@@ -99,6 +99,7 @@ if __name__ == '__main__':
                          transitions={'done': 'succeeded'})
 
     def detect_objects_cb(request):
+        rospy.loginfo('Received [detect_objects] request.')
         outcome = sm.execute()
         if outcome == 'succeeded':
             return sm.userdata.response
@@ -106,4 +107,5 @@ if __name__ == '__main__':
             raise rospy.ServiceException('Object detection failed')
 
     s = rospy.Service('detect_objects', GetObjects, detect_objects_cb)
+    rospy.loginfo('Started [detect_objects] service.')
     rospy.spin()
