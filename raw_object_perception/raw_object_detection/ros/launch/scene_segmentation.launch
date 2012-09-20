@@ -20,6 +20,6 @@
 
   <!-- This section brings up the object detection node, which "glues" together the pipeline. -->
 
-  <node pkg="raw_object_detection" type="object_detector" name="object_detector" output="screen"/>
+  <node pkg="raw_object_detection" type="object_detector.py" name="object_detector" output="screen"/>
 
 </launch>
