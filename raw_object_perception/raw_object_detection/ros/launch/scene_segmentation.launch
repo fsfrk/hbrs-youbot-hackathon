@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- This section of launch file brings up the complete scene segmentation pipeline.
+       The parameters have been adjusted to work well with @Work scenarios. -->
+
+  <node pkg="hbrs_scene_segmentation" type="workspace_finder" name="workspace_finder" output="screen">
+    <param name="min_z" value="0.3" type="double"/>
+    <param name="max_z" value="1.5" type="double"/>
+    <rosparam command="load" file="$(find raw_object_detection)/ros/config/workspace_constraints.yaml"/>
+  </node>
+
+  <node pkg="hbrs_scene_segmentation" type="tabletop_cloud_accumulator" name="tabletop_cloud_accumulator" output="screen">
+    <param name="accumulate_clouds" value="30" type="int"/>
+  </node>
+
+  <node pkg="hbrs_scene_segmentation" type="tabletop_cloud_clusterer" name="tabletop_cloud_clusterer" output="screen"/>
+
+  <node pkg="hbrs_scene_segmentation" type="bounding_box_maker" name="bounding_box_maker" output="screen"/>
+
+  <!-- This section brings up the object detection node, which "glues" together the pipeline. -->
+
+  <node pkg="raw_object_detection" type="object_detector" name="object_detector" output="screen"/>
+
+</launch>
