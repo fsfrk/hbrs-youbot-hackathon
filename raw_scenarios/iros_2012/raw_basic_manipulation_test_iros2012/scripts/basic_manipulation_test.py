@@ -41,7 +41,7 @@ def main():
             transitions={'task_received':'MOVE_ARM_OUT_OF_VIEW', 
                          'wront_task_format':'GET_TASK'})
         
-	'''
+	
         smach.StateMachine.add('SELECT_SOURCE_POSE', select_base_pose("source_pose"),
             transitions={'succeeded':'PLACE_BASE_IN_FRONT_OF_OBJECT'})
         
@@ -121,7 +121,7 @@ def main():
                 
         smach.StateMachine.add('MOVE_TO_FINAL_POSE', move_base_rel(1.1),
             transitions={'succeeded':'overall_success'})
-        '''        
+                
        
     # Start SMACH viewer
     smach_viewer = smach_ros.IntrospectionServer('BASIC_MANIPULATION_TEST', SM, 'BASIC_MANIPULATION_TEST')
