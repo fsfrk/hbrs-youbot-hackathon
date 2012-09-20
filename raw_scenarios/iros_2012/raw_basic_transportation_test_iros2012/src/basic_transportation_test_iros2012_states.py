@@ -25,6 +25,38 @@ class select_object_to_be_grasped(smach.State):
                 
         return 'succeeded'
 
+class select_task(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, 
+            outcomes=['fetch_object','place_object'],
+            input_keys=['task_spec'],
+            output_keys=[])
+        
+    def execute(self, userdata):
+        
+        if(userdata.task_list[current_task_index].task == 'fetch object workspace'):
+            return 'fetch_object'
+
+        if(userdata.task_list[current_task_index].task == 'place object in workspace'):
+            return 'place_object'
+        
+
+class select_recognized_object(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, 
+            outcomes=['succeeded','no_more_objects'],
+            input_keys=['recognized_objects'],
+            output_keys=['recognized_objects', 'object_to_grasp'])
+        
+    def execute(self, userdata):
+        
+        if(len(userdata.recognized_objects) == 0):
+            return 'no_more_objects'
+        
+        userdata.object_to_grasp = userdata.recognized_objects.pop() 
+                
+        return 'succeeded'
+
 
 class get_obj_poses_for_goal_configuration(smach.State):
     def __init__(self):
