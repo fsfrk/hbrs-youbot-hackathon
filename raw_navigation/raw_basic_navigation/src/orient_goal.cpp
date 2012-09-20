@@ -108,7 +108,7 @@ void OrientGoal::runBehavior(){
       position.y = global_pose.getOrigin().y();
 
       local_costmap_->getOrientedFootprint(position.x, position.y, theta, oriented_footprint);
-
+     
       double footprint_cost = world_model_->footprintCost(position, oriented_footprint, local_costmap_->getInscribedRadius(), local_costmap_->getCircumscribedRadius());
       if(footprint_cost < 0.0){
         ROS_WARN("Rotation towards goal cannot take place because there is a potential collision. Cost: %.2f", footprint_cost);
@@ -125,7 +125,8 @@ void OrientGoal::runBehavior(){
     double vel = sqrt(2 * acc_lim_th_ * fabs(dist_left));
 
     (dist_left <=0.0)?(vel= -vel):(vel = vel);
-    vel = std::min(std::max(vel, -0.8),0.8);
+    vel = std::min(std::max(vel, -0.5),0.5);
+    ROS_INFO("The required orientation is %f but the orientation of the robot is %f\n",yaw_req,current_angle);
     ROS_INFO("Velocity:: %f",vel);
 
     geometry_msgs::Twist cmd_vel;

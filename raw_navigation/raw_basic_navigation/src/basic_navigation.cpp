@@ -52,7 +52,7 @@ BasicNavigation::BasicNavigation(std::string name, tf::TransformListener& tf) :
     		planner_plan_(NULL), latest_plan_(NULL), controller_plan_(NULL),
     		runPlanner_(false), setup_(false), p_freq_change_(false), c_freq_change_(false), new_global_plan_(false) {
 
-	as_ = new MoveBaseActionServer(ros::NodeHandle(), "basic_navigation", boost::bind(&BasicNavigation::executeCb, this, _1), false);
+	as_ = new MoveBaseActionServer(ros::NodeHandle(), "move_base", boost::bind(&BasicNavigation::executeCb, this, _1), false);
 
 	ros::NodeHandle private_nh("~");
 	ros::NodeHandle nh;
@@ -85,7 +85,7 @@ BasicNavigation::BasicNavigation(std::string name, tf::TransformListener& tf) :
 	vel_pub_ = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 	current_goal_pub_ = private_nh.advertise<geometry_msgs::PoseStamped>("current_goal", 0 );
 
-	ros::NodeHandle action_nh("basic_navigation");
+	ros::NodeHandle action_nh("move_base");
 	action_goal_pub_ = action_nh.advertise<move_base_msgs::MoveBaseActionGoal>("goal", 1);
 
 	//we'll provide a mechanism for some people to send goals as PoseStamped messages over a topic
@@ -186,7 +186,7 @@ BasicNavigation::BasicNavigation(std::string name, tf::TransformListener& tf) :
 
 	//if we shutdown our costmaps when we're deactivated... we'll do that now
 	if(shutdown_costmaps_){
-		ROS_DEBUG_NAMED("basic_navigation","Stopping costmaps initially");
+		ROS_DEBUG_NAMED("move_base","Stopping costmaps initially");
 		planner_costmap_ros_->stop();
 		controller_costmap_ros_->stop();
 	}
@@ -213,7 +213,7 @@ BasicNavigation::BasicNavigation(std::string name, tf::TransformListener& tf) :
 }
 
 void BasicNavigation::goalCB(const geometry_msgs::PoseStamped::ConstPtr& goal){
-	ROS_DEBUG_NAMED("basic_navigation","In ROS goal callback, wrapping the PoseStamped in the action message and re-sending to the server.");
+	ROS_DEBUG_NAMED("move_base","In ROS goal callback, wrapping the PoseStamped in the action message and re-sending to the server.");
 	move_base_msgs::MoveBaseActionGoal action_goal;
 	action_goal.header.stamp = ros::Time::now();
 	action_goal.goal.target_pose = *goal;
@@ -718,6 +718,7 @@ void BasicNavigation::executeCb(const move_base_msgs::MoveBaseGoalConstPtr& move
 			goal_orientation = goal.pose.orientation;
 			orientgoal.initialize("rotate_recovery",&tf_, planner_costmap_ros_, controller_costmap_ros_,&goal_orientation);
 			orientgoal.runBehavior();
+            publishZeroVelocity();
 			return;
 		}
 
@@ -1079,7 +1080,7 @@ void BasicNavigation::resetState(){
 
 	//if we shutdown our costmaps when we're deactivated... we'll do that now
 	if(shutdown_costmaps_){
-		ROS_DEBUG_NAMED("basic_navigation","Stopping costmaps");
+		//ROS_DEBUG_NAMED("basic_navigation","Stopping costmaps");
 		planner_costmap_ros_->stop();
 		controller_costmap_ros_->stop();
 	}
@@ -1099,3 +1100,4 @@ int main(int argc, char** argv){
 	return(0);
 
 }
+
