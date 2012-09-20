@@ -8,9 +8,9 @@ import smach_ros
 # import of generic states
 # generic states
 from generic_robocup_states import *
-from generic_navigation_states import *
-from generic_manipulation_states import *
-from generic_perception_states import *
+#from generic_navigation_states import *
+#from generic_manipulation_states import *
+#from generic_perception_states import *
 
 
 # main
@@ -20,14 +20,17 @@ def main():
     SM = smach.StateMachine(outcomes=['overall_success', 'overall_failed'])
     
     # world knowledge
-    SM.userdata.task_spec = 0
-    
+    SM.userdata.task_list = []
+
     SM.userdata.base_pose_to_approach = 0
+
+    SM.userdata.current_task_index = 0
     
     SM.userdata.recognized_objects = []
     SM.userdata.object_to_grasp = 0
     
     SM.userdata.rear_platform_free_poses = ['platform_right', 'platform_centre', 'platform_left']
+
     SM.userdata.rear_platform_occupied_poses = []
     
     SM.userdata.obj_goal_configuration_poses = []
@@ -38,10 +41,10 @@ def main():
         
         # move to the source pose, recognize objects, grasp them and put them on the rear platform
         smach.StateMachine.add('GET_TASK', get_basic_transportation_task(),
-            transitions={'task_received':'MOVE_ARM_OUT_OF_VIEW', 
+            transitions={'task_received':'overall_success', 
                          'wront_task_format':'GET_TASK'})
         
-    '''
+        '''
         smach.StateMachine.add('SELECT_SOURCE_POSE', select_base_pose("source_pose"),
             transitions={'succeeded':'PLACE_BASE_IN_FRONT_OF_OBJECT'})
         
@@ -55,7 +58,7 @@ def main():
                         'failed':'ADJUST_POSE_WRT_PLATFORM'})
         '''
 
-        
+        '''
         smach.StateMachine.add('MOVE_ARM_OUT_OF_VIEW', move_arm_out_of_view(),
             transitions={'succeeded':'RECOGNIZE_OBJECTS'})
                 
@@ -107,6 +110,10 @@ def main():
         smach.StateMachine.add('PLACE_OBJ_IN_CONFIGURATION', place_object_in_configuration(),
             transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF',
                         'no_more_cfg_poses':'SELECT_FINAL_POSE'})
+
+        smach.StateMachine.add('INCREMENT_TASK_INDEX', increment_task_index(),
+            transitions={'succeeded':'SELECT_POSE_TO_APPROACH',
+                         'no_more_tasks':'MOVE_TO_EXIT'})
                
         
         # if everything is done move to final pose
@@ -121,7 +128,8 @@ def main():
                 
         smach.StateMachine.add('MOVE_TO_FINAL_POSE', move_base_rel(1.1),
             transitions={'succeeded':'overall_success'})
-       
+        '''       
+
     # Start SMACH viewer
     smach_viewer = smach_ros.IntrospectionServer('BASIC_TRANSPORTATION_TEST', SM, 'BASIC_TRANSPORTATION_TEST')
     smach_viewer.start()

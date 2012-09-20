@@ -60,9 +60,15 @@ def main():
                 transitions={'succeeded':'SELECT_RECOGNIZED_OBJECT',
                             'failed':'overall_failed'})
 
+'''
             smach.StateMachine.add('SELECT_OBJECT_TO_BE_GRASPED', select_object_to_be_grasped(),
                 transitions={'succeeded':'PLACE_BASE_IN_FRONT_OF_OBJECT',
                             'no_more_objects':'INCREMENT_TASK_INDEX'})            
+'''
+            smach.StateMachine.add('SELECT_RECOGNIZED_OBJECT', select_recognized_object(),
+                transitions={'succeeded':'PLACE_BASE_IN_FRONT_OF_OBJECT',
+                            'no_more_objects':'SELECT_DESTINATION_POSE'})
+
             
             smach.StateMachine.add('PLACE_BASE_IN_FRONT_OF_OBJECT', adjust_pose_wrt_recognized_obj(),
                 transitions={'succeeded':'GRASP_OBJ_WITH_VISUAL_SERVERING',
