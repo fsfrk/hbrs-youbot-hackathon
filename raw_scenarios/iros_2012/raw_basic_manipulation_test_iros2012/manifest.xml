@@ -21,7 +21,6 @@
   <depend package="raw_arm_navigation" />
   <depend package="raw_bringup_sim" />
   <depend package="raw_visual_servoing" />
-  <depend package="raw_2dnav_omni"/>
   <depend package="raw_relative_movements"/>
 
   
