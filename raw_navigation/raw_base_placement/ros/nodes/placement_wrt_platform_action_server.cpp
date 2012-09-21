@@ -164,6 +164,8 @@ public:
 			        ROS_INFO("Point reached");
 					result.succeed = true;
 					as_.setSucceeded(result);
+                    geometry_msgs::Twist zero_vel;
+                    cmd_pub.publish(zero_vel);
 					break;
 
 				}
