@@ -15,7 +15,7 @@
   <depend package="visualization_msgs"/>
   <depend package="pcl_ros"/>
   <depend package="opencv2"/>
-  <depend package="raw_scene_segmentation"/>
+  <depend package="hbrs_scene_segmentation"/>
   <depend package="hbrs_msgs"/>
   <depend package="raw_srvs"/>
   <depend package="hbrs_srvs"/>

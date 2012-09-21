@@ -11,7 +11,7 @@
 #include "geometry_msgs/Twist.h"
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
-#include <raw_base_placement_matthias_fueller/OrientToBaseAction.h>
+#include <raw_base_placement/OrientToBaseAction.h>
 
 
 using namespace std;
@@ -283,11 +283,11 @@ class BaseMotionController
         y_initodom = y_tempodom;
         theta_initodom = theta_tempodom;
 
-        actionlib::SimpleActionClient<raw_base_placement_matthias_fueller::OrientToBaseAction> ac("/scan_front_orientation", true);
+        actionlib::SimpleActionClient<raw_base_placement::OrientToBaseAction> ac("/scan_front_orientation", true);
 
         ac.waitForServer();
 
-        raw_base_placement_matthias_fueller::OrientToBaseActionGoal goal;
+        raw_base_placement::OrientToBaseActionGoal goal;
 
         goal.goal.distance = 0.1;
 
