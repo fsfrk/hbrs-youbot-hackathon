@@ -6,6 +6,7 @@ import smach
 import smach_ros
 
 # generic states
+from generic_basic_states import *
 from generic_robocup_states import *
 from generic_navigation_states import *
 from generic_manipulation_states import *
@@ -38,23 +39,27 @@ def main():
         
         # move to the source pose, recognize objects, grasp them and put them on the rear platform
         smach.StateMachine.add('GET_TASK', get_basic_manipulation_task(),
-            transitions={'task_received':'MOVE_ARM_OUT_OF_VIEW', 
+            transitions={'task_received':'INIT_ROBOT', 
                          'wront_task_format':'GET_TASK'})
         
-	
+        smach.StateMachine.add('INIT_ROBOT', init_robot(),
+            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM'})
+
+
+
         smach.StateMachine.add('SELECT_SOURCE_POSE', select_base_pose("source_pose"),
             transitions={'succeeded':'PLACE_BASE_IN_FRONT_OF_OBJECT'})
         
-        
         smach.StateMachine.add('APPROACH_SOURCE_POSE', approach_pose(),
-            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM'},
-                        {'failed':'APPROACH_SOURCE_POSE'})
+            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM',
+                        'failed':'APPROACH_SOURCE_POSE'})
 	
+
+
+
         smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM', adjust_pose_wrt_platform(),
             transitions={'succeeded':'MOVE_ARM_OUT_OF_VIEW',
                         'failed':'ADJUST_POSE_WRT_PLATFORM'})
-
-
         
         smach.StateMachine.add('MOVE_ARM_OUT_OF_VIEW', move_arm_out_of_view(),
             transitions={'succeeded':'RECOGNIZE_OBJECTS'})
@@ -79,19 +84,18 @@ def main():
         
         smach.StateMachine.add('PLACE_OBJ_ON_REAR_PLATFORM', place_obj_on_rear_platform(),
             transitions={'succeeded':'SELECT_RECOGNIZED_OBJECT',
-                        'no_more_free_poses':'SELECT_DESTINATION_POSE',
-                        'failed':'PLACE_OBJ_ON_REAR_PLATFORM'})
+                        'no_more_free_poses':'SELECT_DESTINATION_POSE'})
         
         # go to the destination pose and place the objects in the desired configuration on the platform
         smach.StateMachine.add('SELECT_DESTINATION_POSE', select_base_pose("destination_pose"),
             transitions={'succeeded':'MOVE_TO_DESTINATION_POSE'})
         
-        smach.StateMachine.add('MOVE_TO_DESTINATION_POSE', move_base_rel(-1.1),
-            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM'})
+        smach.StateMachine.add('MOVE_TO_DESTINATION_POSE', move_base_rel(0.0, -0.7),
+            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM2'})
 
-        smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM', adjust_pose_wrt_platform(),
+        smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM2', adjust_pose_wrt_platform(),
             transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATION',
-                        'failed':'ADJUST_POSE_WRT_PLATFORM'})
+                        'failed':'ADJUST_POSE_WRT_PLATFORM2'})
         
        
         #ToDo: implement state
@@ -119,7 +123,7 @@ def main():
         smach.StateMachine.add('MOVE_ARM_TO_INIT', move_arm("initposition"),
             transitions={'succeeded':'MOVE_TO_FINAL_POSE'})
                 
-        smach.StateMachine.add('MOVE_TO_FINAL_POSE', move_base_rel(1.1),
+        smach.StateMachine.add('MOVE_TO_FINAL_POSE', move_base_rel(0.0, 0.7),
             transitions={'succeeded':'overall_success'})
                 
        
