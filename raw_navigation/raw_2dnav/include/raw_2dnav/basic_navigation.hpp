@@ -52,7 +52,7 @@
 #include <string>
 #include <nav_msgs/GetPlan.h>
 #include <geometry_msgs/Twist.h>
-#include <raw_basic_navigation/GoalCheck.h>
+//#include <raw_basic_navigation/GoalCheck.h>
 #include <pluginlib/class_loader.h>
 #include <std_srvs/Empty.h>
 
