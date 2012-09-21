@@ -121,7 +121,7 @@ namespace basic_navigation {
       bool clearCostmapsService(std_srvs::Empty::Request &req, std_srvs::Empty::Response &resp);
 
 
-      bool goalfeasibilityService(raw_basic_navigation::GoalCheck::Request &req,raw_basic_navigation::GoalCheck::Response &resp);
+   //   bool goalfeasibilityService(raw_basic_navigation::GoalCheck::Request &req,raw_basic_navigation::GoalCheck::Response &resp);
       /**
        * @brief  A service call that can be made when the action is inactive that will return a plan
        * @param  req The goal request
