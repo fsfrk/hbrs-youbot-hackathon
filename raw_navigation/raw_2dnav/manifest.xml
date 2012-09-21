@@ -16,7 +16,7 @@
   <depend package="amcl"/>
   <depend package="robot_pose_ekf"/>
   <depend package="youbot_navigation_common"/>
-  <depend package="raw_basic_navigation"/>
+  <!--depend package="raw_basic_navigation"/-->
   <depend package="move_base"/>
   <depend package="raw_tools"/>
   <depend package="tf"/>
