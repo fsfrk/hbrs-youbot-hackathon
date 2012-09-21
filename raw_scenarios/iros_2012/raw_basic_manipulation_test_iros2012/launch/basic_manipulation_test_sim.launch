@@ -6,13 +6,13 @@
 	<include file="$(find raw_bringup_sim)/robots/robot_no_x.launch" />
 
 	<!-- navigation -->
-	<include file="$(find raw_2dnav)/ros/launch/2dnav_sim.launch" />	
+	<include file="$(find raw_2dnav)/ros/launch/sim/2dnav_sim.launch" />	
 	
 	<!-- manipulation -->
 	<include file="$(find raw_arm_navigation)/ros/launch/simple_manipulation.launch" />	
 	
 	<!-- base placement -->
-	<include file="$(find raw_base_placement_matthias_fueller)/launch/basescan_regression.launch" />
+	<include file="$(find raw_base_placement)/ros/launch/placement_wrt_platform.launch" />
 	
 	<!-- script server -->
 	<include file="$(find raw_script_server)/launch/script_server.launch" />
