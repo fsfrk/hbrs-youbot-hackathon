@@ -6,6 +6,7 @@
  *
  * Author : Praveen Ramanujam
  *          Ravi Kumar Venkat
+            Nemo Giftsun 
  */
 
 
@@ -89,14 +90,16 @@ void OrientGoal::runBehavior(){
   double current_angle = -1.0 * M_PI;
 
   while(n.ok()){
-    local_costmap_->getRobotPose(global_pose);
+    global_costmap_->getRobotPose(global_pose);
 
     current_angle = angles::normalize_angle(tf::getYaw(global_pose.getRotation()));
     double dist_left = angles::shortest_angular_distance(current_angle,yaw_req);
+    ROS_INFO("Current angle = %f Required Angle = %f", current_angle,yaw_req);
     ROS_INFO("Shortest angle = %f",dist_left);
 
     //update the costmap copy that the world model holds
-    local_costmap_->getCostmapCopy(costmap_);
+   // local_costmap_->getCostmapCopy(costmap_);
+    global_costmap_->getCostmapCopy(costmap_);
 
     //check if that velocity is legal by forward simulating
     double sim_angle = 0.0;
@@ -107,7 +110,7 @@ void OrientGoal::runBehavior(){
       position.x = global_pose.getOrigin().x();
       position.y = global_pose.getOrigin().y();
 
-      local_costmap_->getOrientedFootprint(position.x, position.y, theta, oriented_footprint);
+      global_costmap_->getOrientedFootprint(position.x, position.y, theta, oriented_footprint);
      
       double footprint_cost = world_model_->footprintCost(position, oriented_footprint, local_costmap_->getInscribedRadius(), local_costmap_->getCircumscribedRadius());
       if(footprint_cost < 0.0){
