@@ -10,9 +10,6 @@
 
 		<!-- navigation -->
 		<!--<include file="$(find raw_2dnav_omni)/ros/launch/2dnav.launch" />-->
-
-		<!-- manipulation -->
-		<include file="$(find raw_arm_navigation)/ros/launch/simple_manipulation.launch" />	
 	
 		<!-- base placement -->
 		<include file="$(find raw_base_placement)/ros/launch/placement_wrt_platform.launch" />
@@ -31,6 +28,9 @@
   	    <include file="$(find raw_bringup)/components/usb_cam_microsoft.launch" />
 
 	    <include file="$(find raw_object_detection)/ros/launch/scene_segmentation.launch" />
+
+        <!-- manipulation -->
+		<include file="$(find raw_arm_navigation)/ros/launch/planned_manipulation.launch" />	
 <!--
 	    <include file="$(find raw_visual_servoing)/launch/visual_servoing.launch" />
 -->    
