@@ -9,7 +9,7 @@
     	<include file="$(find raw_bringup)/robots/robot.launch" />
 
 		<!-- navigation -->
-		<include file="$(find raw_2dnav_omni)/ros/launch/2dnav.launch" />
+		<include file="$(find raw_2dnav)/ros/launch/2dnav.launch" />
 	
 		<!-- base placement -->
 		<include file="$(find raw_base_placement)/ros/launch/placement_wrt_platform.launch" />
