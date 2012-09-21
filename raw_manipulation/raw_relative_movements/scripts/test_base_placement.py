@@ -23,7 +23,7 @@ def main():
     # BASE PLACEMENT
     ##shiftbase_srv = rospy.ServiceProxy('/raw_relative_movements/shiftbase', raw_srvs.srv.SetPoseStamped)
     moveoptimalbase_srv = rospy.ServiceProxy('/raw_relative_movements/movetooptimalbase', raw_srvs.srv.SetPoseStamped) 
-    ##moveoptimalbase_srv = rospy.ServiceProxy('/raw_base_placement_nirmal/moveoptimalbase', raw_srvs.srv.SetPoseStamped) 
+    ##moveoptimalbase_srv = rospy.ServiceProxy('/raw_base_placement/moveoptimalbase', raw_srvs.srv.SetPoseStamped) 
 
     ##print "wait for service: /raw_relative_movements/shiftbase"   
     ##rospy.wait_for_service('/raw_relative_movements/shiftbase', 30)

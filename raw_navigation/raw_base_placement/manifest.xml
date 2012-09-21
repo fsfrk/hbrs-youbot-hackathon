@@ -1,25 +1,24 @@
 <package>
-  <description brief="raw_relative_movements">
+  <description brief="raw_base_placement">
 
-     raw_relative_movements
+     raw_base_placement
 
   </description>
   <author>Nemo Giftsun</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/raw_relative_movements
-</url>
+  <url>http://ros.org/wiki/raw_base_placement</url>
   <depend package="std_msgs"/>
   <depend package="rospy"/>
   <depend package="roscpp"/>
   <depend package="rospack"/>
-  <depend package="tf"/>  
+  <depend package="urdf"/>
   <depend package="raw_srvs"/>
+  <depend package="tf"/>
+  <depend package="bullet"/>
   <depend package="std_srvs"/>
-  <depend package="actionlib"/>
-  <depend package="nav_msgs"/>
+  <depend package="raw_script_server"/>
   <depend package="geometry_msgs"/>
-  <depend package="raw_base_placement"/>
 
 </package>
 

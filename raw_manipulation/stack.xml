@@ -10,7 +10,7 @@
   <depend stack="common_msgs" /> <!-- nav_msgs, sensor_msgs, trajectory_msgs, geometry_msgs -->
   <depend stack="control" /> <!-- control_msgs -->
   <depend stack="geometry" /> <!-- tf -->
-  <depend stack="raw_behaviors" /> <!-- raw_base_placement_nirmal, raw_base_placement_matthias_fueller -->
+  <depend stack="raw_behaviors" /> <!-- raw_base_placement, raw_base_placement_matthias_fueller -->
   <depend stack="raw_command_tools" /> <!-- raw_script_server -->
   <depend stack="raw_common" /> <!-- raw_srvs -->
   <depend stack="ros" /> <!-- rospack -->

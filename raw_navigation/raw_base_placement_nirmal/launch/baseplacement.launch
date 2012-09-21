@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-        
-  <node pkg="raw_base_placement_nirmal" type="baseplacement" name="raw_base_placement_nirmal" ns="raw_base_placement_nirmal"/>
-
-
-</launch>
