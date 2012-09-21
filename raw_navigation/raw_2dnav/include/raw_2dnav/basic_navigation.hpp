@@ -52,7 +52,7 @@
 #include <string>
 #include <nav_msgs/GetPlan.h>
 #include <geometry_msgs/Twist.h>
-#include <raw_basic_navigation/GoalCheck.h>
+//#include <raw_basic_navigation/GoalCheck.h>
 #include <pluginlib/class_loader.h>
 #include <std_srvs/Empty.h>
 
@@ -121,7 +121,7 @@ namespace basic_navigation {
       bool clearCostmapsService(std_srvs::Empty::Request &req, std_srvs::Empty::Response &resp);
 
 
-      bool goalfeasibilityService(raw_basic_navigation::GoalCheck::Request &req,raw_basic_navigation::GoalCheck::Response &resp);
+   //   bool goalfeasibilityService(raw_basic_navigation::GoalCheck::Request &req,raw_basic_navigation::GoalCheck::Response &resp);
       /**
        * @brief  A service call that can be made when the action is inactive that will return a plan
        * @param  req The goal request
