@@ -18,6 +18,7 @@
   <depend package="raw_scene_segmentation"/>
   <depend package="hbrs_msgs"/>
   <depend package="raw_srvs"/>
+  <depend package="hbrs_srvs"/>
   
   <export>
     <cpp cflags="-I${prefix}/ros/include" />

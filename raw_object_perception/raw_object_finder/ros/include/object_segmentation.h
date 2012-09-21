@@ -3,7 +3,8 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <cv_bridge/CvBridge.h>
 #include <std_srvs/Empty.h>
-#include <raw_srvs/GetObjects.h>
+#include <hbrs_srvs/GetObjects.h>
+#include <ros/topic.h>
 
 #include "roi_extraction.h"
 #include "toolbox_ros.h"
@@ -16,8 +17,8 @@ class ObjectSegmentation {
 		ObjectSegmentation(const std::string &node_name);
 		virtual ~ObjectSegmentation();
 		void PointCloudCallback(const sensor_msgs::PointCloud2 &msg);
-		bool GetObjects(raw_srvs::GetObjects::Request &req,
-				raw_srvs::GetObjects::Response &res);
+		bool GetObjects(hbrs_srvs::GetObjects::Request &req,
+				hbrs_srvs::GetObjects::Response &res);
 		bool Start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 		bool Stop(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
 
@@ -44,12 +45,10 @@ class ObjectSegmentation {
 		std::string _node_name;
 		std::string _camera_frame;
 		double _downsampling_distance;
-		sensor_msgs::PointCloud2 _input_cloud;
-		bool _received_new_data;
 
 		RoiExtraction *_roi_extractor;
 		sensor_msgs::CvBridge _bridge;
-		raw_srvs::GetObjects::Response _last_segmented_objects;
+		hbrs_srvs::GetObjects::Response _last_segmented_objects;
 
         bool _extract_obj_in_rgb_img;
 		double _dist_min_x;

@@ -10,7 +10,7 @@
 #include <hbrs_msgs/BoundingBoxList.h>
 #include <hbrs_msgs/Object.h>
 #include <raw_srvs/GetDominantPlane.h>
-#include <raw_srvs/GetObjects.h>
+#include <hbrs_srvs/GetObjects.h>
 #include <raw_srvs/RecognizeObject.h>
 #include "bounding_box.h"
 #include "object_tracker.h"
@@ -53,7 +53,7 @@ public:
     }
   }
 
-  bool findObjectsCallback(raw_srvs::GetObjects::Request& request, raw_srvs::GetObjects::Response& response)
+  bool findObjectsCallback(hbrs_srvs::GetObjects::Request& request, hbrs_srvs::GetObjects::Response& response)
   {
     ROS_INFO("Find objects service requested.");
     // Get dominant plane to work with. This will block until server responds.
@@ -257,7 +257,7 @@ public:
     clusters_publisher_.publish(cloud_msg);
   }
 
-  void publishObjectLabels(const raw_srvs::GetObjects::Response& response)
+  void publishObjectLabels(const hbrs_srvs::GetObjects::Response& response)
   {
     visualization_msgs::MarkerArray ma;
     int id = 1;

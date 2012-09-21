@@ -14,7 +14,7 @@ from hbrs_srvs.srv import FindWorkspace
 from hbrs_srvs.srv import AccumulateTabletopCloud
 from hbrs_srvs.srv import ClusterTabletopCloud
 from hbrs_srvs.srv import MakeBoundingBoxes, MakeBoundingBoxesRequest
-from raw_srvs.srv import GetObjects, GetObjectsResponse
+from hbrs_srvs.srv import GetObjects, GetObjectsResponse
 from hbrs_msgs.msg import Object
 
 
