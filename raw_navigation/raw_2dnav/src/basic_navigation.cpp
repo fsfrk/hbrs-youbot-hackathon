@@ -172,7 +172,7 @@ BasicNavigation::BasicNavigation(std::string name, tf::TransformListener& tf) :
 	make_plan_srv_ = private_nh.advertiseService("make_plan", &BasicNavigation::planService, this);
 
 	//advertise a service for checking the feasibility of the goal
-	goal_feasibility_srv = private_nh.advertiseService("goal_feasibility_check",&BasicNavigation::goalfeasibilityService,this);
+	//goal_feasibility_srv = private_nh.advertiseService("goal_feasibility_check",&BasicNavigation::goalfeasibilityService,this);
 
 	//advertise a service for clearing the costmaps
 	clear_unknown_srv_ = private_nh.advertiseService("clear_unknown_space", &BasicNavigation::clearUnknownService, this);
@@ -289,7 +289,7 @@ bool BasicNavigation::clearCostmapsService(std_srvs::Empty::Request &req, std_sr
 	controller_costmap_ros_->resetMapOutsideWindow(0,0);
 	return true;
 }
-bool BasicNavigation::goalfeasibilityService(raw_basic_navigation::GoalCheck::Request &req,raw_basic_navigation::GoalCheck::Response &resp)
+/*bool BasicNavigation::goalfeasibilityService(raw_basic_navigation::GoalCheck::Request &req,raw_basic_navigation::GoalCheck::Response &resp)
 {
 	base_local_planner::CostmapModel* world_model_;
 	costmap_2d::Costmap2D costmap_;
@@ -325,7 +325,7 @@ bool BasicNavigation::goalfeasibilityService(raw_basic_navigation::GoalCheck::Re
 	}
 	resp.feasible = true;
 	return true;
-}
+}*/
 bool BasicNavigation::planService(nav_msgs::GetPlan::Request &req, nav_msgs::GetPlan::Response &resp){
 	if(as_->isActive()){
 		ROS_ERROR("basic_navigation must be in an inactive state to make a plan for an external user");
