@@ -205,8 +205,11 @@ int main(int argc, char** argv)
 
   ROS_INFO("Action Service is ready");
 
-  while (ros::ok()) {
+
+  ros::Rate loop_rate(15);
+  while (ros::ok()) {    
      ros::spinOnce();
+     loop_rate.sleep();
   }
   return 0;
 }
