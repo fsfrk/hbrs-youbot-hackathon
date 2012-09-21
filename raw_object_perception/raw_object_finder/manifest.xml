@@ -17,7 +17,7 @@
   <depend package="sensor_msgs"/>
   <depend package="geometry_msgs"/>
   <depend package="std_srvs"/>
-  <depend package="raw_srvs"/>
+  <depend package="hbrs_srvs"/>
   <depend package="hbrs_msgs"/>
   <depend package="object_manipulation_msgs"/>
   
