@@ -49,6 +49,8 @@ if __name__ == '__main__':
     parser.add_argument('object_id', help='id of the object (as in database)')
     parser.add_argument('--dataset', help='dataset name (default "standard")',
                         default='standard')
+    parser.add_argument('--auto', help='do not ask for object confirmation',
+                        action='store_true')
     args = parser.parse_args()
     sm = StateMachine(['succeeded', 'aborted', 'preempted'])
     with sm:
@@ -110,6 +112,7 @@ if __name__ == '__main__':
             r.cloud = userdata.clusters[0]
             return r
 
+        after_analyze = 'STORE_OBJECT' if args.auto else 'CONFIRM_OBJECT'
         StateMachine.add('ANALYZE_CLOUD_COLOR',
                          ServiceState('analyze_cloud_color',
                                       AnalyzeCloudColor,
@@ -117,8 +120,7 @@ if __name__ == '__main__':
                                       response_slots=['mean',
                                                       'median',
                                                       'points']),
-                         transitions={'succeeded': 'CONFIRM_OBJECT'})
-
+                         transitions={'succeeded': after_analyze})
         StateMachine.add('CONFIRM_OBJECT',
                          ConfirmState('Is the detected object correct?'),
                          transitions={'yes': 'STORE_OBJECT',
