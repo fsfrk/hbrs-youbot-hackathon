@@ -1,6 +1,7 @@
 import os
 import yaml
-import numpy
+import numpy as np
+
 
 class Dataset:
     def __init__(self, base_folder, dataset_name):
@@ -22,5 +23,9 @@ class Dataset:
         return os.path.join(self.dataset_folder, object_id + '.dat')
 
     def load(self, objects):
-        for obj in objects:
-            data = numpy.loadtxt(self.object_data_filename(obj), delimiter=' ')
+        data = []
+        for i, obj in enumerate(objects):
+            d = np.loadtxt(self.object_data_filename(obj))
+            d = np.hstack((d, np.ones((len(d), 1)) * i))
+            data.append(d)
+        return np.vstack(data)
