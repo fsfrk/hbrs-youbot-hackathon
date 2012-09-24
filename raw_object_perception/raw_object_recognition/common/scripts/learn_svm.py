@@ -9,20 +9,19 @@ from dataset import Dataset
 
 if __name__ == '__main__':
     dataset = Dataset('../data/', 'standard')
-    x, y = dataset.load()
-    data = np.loadtxt(sys.argv[1], delimiter=' ')
-    x, y = data[:, :5], data[:, 5].astype(np.int)
+    data, ids = dataset.load(['F20_20_G', 'F20_20_B', 'S40_40_B', 'S40_40_G'])
+    x, y = data[:, :6], data[:, 6].astype(np.int)
     print 'Dataset dimensions:', x.shape
-
     # Learn PCA and visualize
     pca = mlpy.PCA(whiten=True)
     pca.learn(x)
     z = pca.transform(x, k=2)
+    #plt.imshow()
+    plot = plt.scatter(z[:, 0], z[:, 1], c=y)
     plt.set_cmap(plt.cm.Paired)
     fig1 = plt.figure(1)
     title = plt.title("PCA on dataset")
-    plot = plt.scatter(z[:, 0], z[:, 1], c=y)
-
+    plt.show()
     # Learn SVM and visualize
     svm = mlpy.LibSvm(kernel=mlpy.KernelGaussian(sigma=1.0))
     svm.learn(z, y)
