@@ -8,6 +8,7 @@ roslib.load_manifest(PACKAGE)
 import sys
 sys.path.append(roslib.packages.get_pkg_dir(PACKAGE) + '/common/src')
 import argparse
+import os
 
 import rospy
 from smach import State, StateMachine, cb_interface
@@ -17,44 +18,26 @@ from hbrs_srvs.srv import FindWorkspace
 from hbrs_srvs.srv import AccumulateTabletopCloud
 from hbrs_srvs.srv import ClusterTabletopCloud
 from hbrs_srvs.srv import MakeBoundingBoxes, MakeBoundingBoxesRequest
-from raw_srvs.srv import AnalyzeCloudColor
-
-SERVICE_NAME = '/find_objects'
+from raw_srvs.srv import AnalyzeCloudColor, AnalyzeCloudColorRequest
 
 from confirm_state import ConfirmState
+from dataset import Dataset
 
 
 class StoreObject(State):
-    def __init__(self, object_id):
+    def __init__(self, dataset, object_id):
         State.__init__(self,
                        outcomes=['stored'],
-                       input_keys=['bounding_boxes', 'clusters'])
-        self.dataset = Dataset(object_id)
+                       input_keys=['bounding_boxes', 'clusters', 'mean',
+                                   'median', 'points'])
+        base = roslib.packages.get_pkg_dir(PACKAGE)
+        self.dataset = Dataset(os.path.join(base, 'common', 'data'), dataset)
+        self.object_id = object_id
 
-    def execute(self, userdata):
-        client = rospy.ServiceProxy('analyze_cloud_color', AnalyzeCloudColor)
-        response = client(userdata.clusters[0])
-        print 'Mean color', response.mean
-        print 'Median color', response.median
-        print 'Points', response.points
-        #self.dataset.store(userdata.bounding_boxes[0].dimensions)
+    def execute(self, ud):
+        self.dataset.store(self.object_id, ud.bounding_boxes[0].dimensions,
+                           ud.points, ud.mean, ud.median)
         return 'stored'
-
-
-class Dataset:
-    def __init__(self, id, rewrite=False):
-        self.object_id = id
-        mode = 'w' if rewrite else 'a'
-        self.file = open('common/data/training/%s.txt' % id, mode)
-        if rewrite:
-            self.file.write('# object_id x y z point color\n')
-
-    def __del__(self):
-        self.file.close()
-
-    def store(self, dim, color, pts, clouds):
-        self.file.write('%s %.4f %.4f %.4f\n' % (self.object_id, dim.x,  dim.y,
-                                                 dim.z))
 
 
 if __name__ == '__main__':
@@ -64,8 +47,10 @@ if __name__ == '__main__':
     To store sample press Enter, to drop press any other key.
     ''')
     parser.add_argument('object_id', help='id of the object (as in database)')
-    parser.add_argument('--rewrite', action='store_true', help='delete any \
-                        existing data for this object')
+    parser.add_argument('--dataset', help='dataset name (default "standard")',
+                        default='standard')
+    parser.add_argument('--auto', help='do not ask for object confirmation',
+                        action='store_true')
     args = parser.parse_args()
     sm = StateMachine(['succeeded', 'aborted', 'preempted'])
     with sm:
@@ -107,19 +92,41 @@ if __name__ == '__main__':
             r.axis.z = userdata.polygon.coefficients[2]
             return r
 
+        @cb_interface(input_keys=['bounding_boxes'],
+                      output_keys=['bounding_boxes'])
+        def make_boxes_response_cb(userdata, response):
+            userdata.bounding_boxes = response.bounding_boxes
+            for b in userdata.bounding_boxes:
+                b.dimensions.x += 0.01
+
         StateMachine.add('MAKE_BOUNDING_BOXES',
                          ServiceState('make_bounding_boxes',
                                       MakeBoundingBoxes,
                                       request_cb=make_boxes_request_cb,
-                                      input_keys=['clusters', 'polygon'],
-                                      response_slots=['bounding_boxes']),
-                         transitions={'succeeded': 'CONFIRM_OBJECT'})
+                                      response_cb=make_boxes_response_cb),
+                         transitions={'succeeded': 'ANALYZE_CLOUD_COLOR'})
+
+        @cb_interface(input_keys=['clusters'])
+        def analyze_color_request_cb(userdata, request):
+            r = AnalyzeCloudColorRequest()
+            r.cloud = userdata.clusters[0]
+            return r
+
+        after_analyze = 'STORE_OBJECT' if args.auto else 'CONFIRM_OBJECT'
+        StateMachine.add('ANALYZE_CLOUD_COLOR',
+                         ServiceState('analyze_cloud_color',
+                                      AnalyzeCloudColor,
+                                      request_cb=analyze_color_request_cb,
+                                      response_slots=['mean',
+                                                      'median',
+                                                      'points']),
+                         transitions={'succeeded': after_analyze})
         StateMachine.add('CONFIRM_OBJECT',
                          ConfirmState('Is the detected object correct?'),
                          transitions={'yes': 'STORE_OBJECT',
                                       'no': 'ACCUMULATE_CLOUD'})
         StateMachine.add('STORE_OBJECT',
-                         StoreObject(args.object_id),
+                         StoreObject(args.dataset, args.object_id),
                          transitions={'stored': 'ACCUMULATE_CLOUD'})
     rospy.loginfo('Starting data collection...')
     outcome = sm.execute()

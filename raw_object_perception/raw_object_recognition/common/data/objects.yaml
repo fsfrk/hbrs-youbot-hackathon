@@ -1,0 +1,23 @@
+id: "F20_20_B"
+name: "small profile"
+color: "black"
+---
+id: "F20_20_G"
+name: "small profile"
+color: "silver"
+---
+id: "S40_40_B"
+name: "big profile"
+color: "black"
+---
+id: "S40_40_G"
+name: "big profile"
+color: "silver"
+---
+id: "BN"
+name: "big nut"
+color: "black"
+---
+id: "R20"
+name: "tube"
+color: "black"

@@ -74,7 +74,7 @@ void OrientGoal::runBehavior(){
   ros::Publisher vel_pub = n.advertise<geometry_msgs::Twist>("cmd_vel", 10);
 
   tf::Stamped<tf::Pose> global_pose;
-  local_costmap_->getRobotPose(global_pose);
+  global_costmap_->getRobotPose(global_pose);
   double yaw_req = angles::normalize_angle(tf::getYaw(*goal_orientation_));
   double yaw_now = angles::normalize_angle(tf::getYaw(global_pose.getRotation()));
   ROS_INFO("The required orientation is %f but the orientation of the robot is %f\n",yaw_req,yaw_now);
@@ -99,7 +99,7 @@ void OrientGoal::runBehavior(){
 
     //update the costmap copy that the world model holds
    // local_costmap_->getCostmapCopy(costmap_);
-    global_costmap_->getCostmapCopy(costmap_);
+    //global_costmap_->getCostmapCopy(costmap_);
 
     //check if that velocity is legal by forward simulating
     double sim_angle = 0.0;

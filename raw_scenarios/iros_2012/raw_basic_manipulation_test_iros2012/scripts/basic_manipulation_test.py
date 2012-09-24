@@ -43,24 +43,19 @@ def main():
                          'wront_task_format':'GET_TASK'})
         
         smach.StateMachine.add('INIT_ROBOT', init_robot(),
-            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM'})
-
-
+            transitions={'succeeded':'SELECT_SOURCE_POSE'})
 
         smach.StateMachine.add('SELECT_SOURCE_POSE', select_base_pose("source_pose"),
-            transitions={'succeeded':'PLACE_BASE_IN_FRONT_OF_OBJECT'})
+            transitions={'succeeded':'APPROACH_SOURCE_POSE'})
         
         smach.StateMachine.add('APPROACH_SOURCE_POSE', approach_pose(),
             transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM',
                         'failed':'APPROACH_SOURCE_POSE'})
 	
-
-
-
         smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM', adjust_pose_wrt_platform(),
             transitions={'succeeded':'MOVE_ARM_OUT_OF_VIEW',
                         'failed':'ADJUST_POSE_WRT_PLATFORM'})
-        
+
         smach.StateMachine.add('MOVE_ARM_OUT_OF_VIEW', move_arm_out_of_view(),
             transitions={'succeeded':'RECOGNIZE_OBJECTS'})
                 
@@ -72,7 +67,6 @@ def main():
             transitions={'succeeded':'PLACE_BASE_IN_FRONT_OF_OBJECT',
                         'no_more_objects':'SELECT_DESTINATION_POSE'})
         
-        
         smach.StateMachine.add('PLACE_BASE_IN_FRONT_OF_OBJECT', adjust_pose_wrt_recognized_obj(),
             transitions={'succeeded':'GRASP_OBJ_WITH_VISUAL_SERVERING',
                         'failed':'PLACE_BASE_IN_FRONT_OF_OBJECT'})     
@@ -81,29 +75,26 @@ def main():
             transitions={'succeeded':'PLACE_OBJ_ON_REAR_PLATFORM',
                         'failed':'GRASP_OBJ_WITH_VISUAL_SERVERING'})
         
-        
         smach.StateMachine.add('PLACE_OBJ_ON_REAR_PLATFORM', place_obj_on_rear_platform(),
             transitions={'succeeded':'SELECT_RECOGNIZED_OBJECT',
                         'no_more_free_poses':'SELECT_DESTINATION_POSE'})
-        
+
         # go to the destination pose and place the objects in the desired configuration on the platform
         smach.StateMachine.add('SELECT_DESTINATION_POSE', select_base_pose("destination_pose"),
-            transitions={'succeeded':'MOVE_TO_DESTINATION_POSE'})
+            transitions={'succeeded':'APPROACH_DESTINATION_POSE'})
         
-        smach.StateMachine.add('MOVE_TO_DESTINATION_POSE', move_base_rel(0.0, -0.7),
-            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM2'})
+        smach.StateMachine.add('APPROACH_DESTINATION_POSE', approach_pose(),
+            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM2',
+                        'failed':'APPROACH_DESTINATION_POSE'})
 
         smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM2', adjust_pose_wrt_platform(),
             transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATION',
                         'failed':'ADJUST_POSE_WRT_PLATFORM2'})
         
-       
-        #ToDo: implement state
         smach.StateMachine.add('GET_OBJ_POSES_FOR_CONFIGURATION', get_obj_poses_for_goal_configuration(),
             transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF',
                          'configuration_poses_not_available':'overall_failed'})
         
-        #ToDo: implement state
         smach.StateMachine.add('GRASP_OBJECT_FROM_PLTF', grasp_obj_from_pltf(),
             transitions={'succeeded':'PLACE_OBJ_IN_CONFIGURATION',
                         'no_more_obj_on_pltf':'SELECT_FINAL_POSE'})
@@ -112,19 +103,19 @@ def main():
             transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF',
                         'no_more_cfg_poses':'SELECT_FINAL_POSE'})
                
-        
         # if everything is done move to final pose
         smach.StateMachine.add('SELECT_FINAL_POSE', select_base_pose("final_pose"),
-            transitions={'succeeded':'MOVE_ARM_TO_ZERO'})
-
-        smach.StateMachine.add('MOVE_ARM_TO_ZERO', move_arm("zeroposition"),
             transitions={'succeeded':'MOVE_ARM_TO_INIT'})
 
-        smach.StateMachine.add('MOVE_ARM_TO_INIT', move_arm("initposition"),
-            transitions={'succeeded':'MOVE_TO_FINAL_POSE'})
-                
-        smach.StateMachine.add('MOVE_TO_FINAL_POSE', move_base_rel(0.0, 0.7),
-            transitions={'succeeded':'overall_success'})
+        #smach.StateMachine.add('MOVE_ARM_TO_ZERO', move_arm("zeroposition"),
+        #    transitions={'succeeded':'MOVE_ARM_TO_INIT'})
+
+        smach.StateMachine.add('MOVE_ARM_TO_INIT', move_arm("initposition", do_blocking = False),
+            transitions={'succeeded':'APPROACH_EXIT_POSE'})
+        
+        smach.StateMachine.add('APPROACH_EXIT_POSE', approach_pose("EXIT"),
+            transitions={'succeeded':'overall_success',
+                         'failed':'APPROACH_EXIT_POSE'})
                 
        
     # Start SMACH viewer
