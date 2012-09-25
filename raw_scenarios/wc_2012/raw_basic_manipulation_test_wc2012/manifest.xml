@@ -22,7 +22,6 @@
   <depend package="raw_object_tracking" />
   <depend package="raw_visual_servoing" />
   <depend package="raw_base_placement" />
-  <depend package="raw_2dnav_omni"/>
   <depend package="raw_relative_movements"/>
 
   
