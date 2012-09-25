@@ -22,10 +22,25 @@ class Dataset:
     def object_data_filename(self, object_id):
         return os.path.join(self.dataset_folder, object_id + '.dat')
 
-    def load(self, objects):
+    def load(self, objects='all'):
+        if objects == 'all':
+            objects = [obj['id'] for obj in self.objects]
+        elif isinstance(objects, str):
+            objects = [objects]
         data = []
-        for i, obj in enumerate(objects):
-            d = np.loadtxt(self.object_data_filename(obj))
-            d = np.hstack((d, np.ones((len(d), 1)) * i))
-            data.append(d)
-        return np.vstack(data)
+        object_ids = []
+        for obj in objects:
+            try:
+                i = len(object_ids)
+                d = np.atleast_2d(np.loadtxt(self.object_data_filename(obj)))
+                d = np.hstack((d, np.ones((len(d), 1)) * i))
+                data.append(d)
+                object_ids.append(obj)
+            except IOError:
+                print 'Unable to read file for %s object.' % obj
+                pass
+        try:
+            return (np.vstack(data), object_ids)
+        except ValueError:
+            print 'Unable to concatenate arrays, different number of features.'
+            return (np.array([]), [])

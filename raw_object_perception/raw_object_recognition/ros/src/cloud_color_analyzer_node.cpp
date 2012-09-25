@@ -1,15 +1,15 @@
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/mean.hpp>
-#include <boost/accumulators/statistics/median.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <sensor_msgs/PointCloud2.h>
 
-#include <pcl/ros/conversions.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
+#include <pcl/ros/conversions.h>
+
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/mean.hpp>
+#include <boost/accumulators/statistics/median.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
 
 #include <raw_srvs/AnalyzeCloudColor.h>
 
