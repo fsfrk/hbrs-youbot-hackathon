@@ -15,7 +15,7 @@
 	<include file="$(find raw_2dnav)/ros/launch/amcl.launch" />
 
 	<!-- launch move_base node -->
-	<include file="$(find raw_2dnav)/dwa/ros/launch/move_base.launch" />
-
-	
+	<include file="$(find raw_2dnav_omni)/ros/launch/move_base.launch" />
+      
+     
 </launch>
