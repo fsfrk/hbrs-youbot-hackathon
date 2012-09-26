@@ -111,8 +111,8 @@ void OrientGoal::runBehavior(){
       position.y = global_pose.getOrigin().y();
 
       global_costmap_->getOrientedFootprint(position.x, position.y, theta, oriented_footprint);
-     
-      double footprint_cost = world_model_->footprintCost(position, oriented_footprint, local_costmap_->getInscribedRadius(), local_costmap_->getCircumscribedRadius());
+     double footprint_cost = 1.0;
+      //double footprint_cost = world_model_->footprintCost(position, oriented_footprint, local_costmap_->getInscribedRadius(), local_costmap_->getCircumscribedRadius());
       if(footprint_cost < 0.0){
         ROS_WARN("Rotation towards goal cannot take place because there is a potential collision. Cost: %.2f", footprint_cost);
         return;
