@@ -40,6 +40,20 @@ class StoreObject(State):
         return 'stored'
 
 
+class Counter(State):
+    def __init__(self, limit):
+        State.__init__(self, outcomes=['trigger', 'pass'])
+        self.limit = limit
+        self.counter = 0
+
+    def execute(self, userdata):
+        self.counter += 1
+        if self.counter == self.limit:
+            self.counter = 0
+            return 'trigger'
+        else:
+            return 'pass'
+
 if __name__ == '__main__':
     rospy.init_node(NODE)
     parser = argparse.ArgumentParser(description='''
@@ -49,8 +63,9 @@ if __name__ == '__main__':
     parser.add_argument('object_id', help='id of the object (as in database)')
     parser.add_argument('--dataset', help='dataset name (default "standard")',
                         default='standard')
-    parser.add_argument('--auto', help='do not ask for object confirmation',
-                        action='store_true')
+    parser.add_argument('--confirm-every', help=('ask for confirmation after'
+                        'this many successful calls to the object detection'
+                        'service'), default=1)
     args = parser.parse_args()
     sm = StateMachine(['succeeded', 'aborted', 'preempted'])
     with sm:
@@ -112,7 +127,6 @@ if __name__ == '__main__':
             r.cloud = userdata.clusters[0]
             return r
 
-        after_analyze = 'STORE_OBJECT' if args.auto else 'CONFIRM_OBJECT'
         StateMachine.add('ANALYZE_CLOUD_COLOR',
                          ServiceState('analyze_cloud_color',
                                       AnalyzeCloudColor,
@@ -120,7 +134,11 @@ if __name__ == '__main__':
                                       response_slots=['mean',
                                                       'median',
                                                       'points']),
-                         transitions={'succeeded': after_analyze})
+                         transitions={'succeeded': 'COUNTER'})
+        StateMachine.add('COUNTER',
+                         Counter(int(args.confirm_every)),
+                         transitions={'trigger': 'CONFIRM_OBJECT',
+                                      'pass': 'STORE_OBJECT'})
         StateMachine.add('CONFIRM_OBJECT',
                          ConfirmState('Is the detected object correct?'),
                          transitions={'yes': 'STORE_OBJECT',
