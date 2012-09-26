@@ -34,9 +34,8 @@ def main():
     with SM:
         # add states to the container
         smach.StateMachine.add('INIT_ROBOT', init_robot(),
-            transitions={'succeeded':'MOVE_TO_SOURCE_WORKSTATION', 
-                         'failed':'overall_failed'})
-        
+            transitions={'succeeded':'SM_GRASP_DRAWER_AT_SOURCE_TO_PULL'})
+        '''
         # go the workstation with the draw, pull it out, grasp the object, put it on the platform and push the drawer back in
         smach.StateMachine.add('MOVE_TO_SOURCE_WORKSTATION', approach_pose(source_workstation),
             transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM_AT_SOURCE_WS', 
@@ -45,12 +44,12 @@ def main():
         smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM_AT_SOURCE_WS', adjust_pose_wrt_platform(),
             transitions={'succeeded':'SM_GRASP_DRAWER_AT_SOURCE_TO_PULL',
                         'failed':'ADJUST_POSE_WRT_PLATFORM_AT_SOURCE_WS'})
-        
+        '''
         smach.StateMachine.add('SM_GRASP_DRAWER_AT_SOURCE_TO_PULL', sm_grasp_drawer(),
-            transitions={'drawer_grasped':'PULL_DRAWER_OUT_AT_SOURCE_WS',
-                        'drawer_not_found':'SM_GRASP_DRAWER_AT_SOURCE_TO_PULL',
-                        'base_placement_failed':'SM_GRASP_DRAWER_AT_SOURCE_TO_PULL'})
-        
+            transitions={'drawer_grasped':'overall_success',
+                        'drawer_not_found':'overall_failed',
+                        'base_placement_failed':'overall_failed'})
+        '''
         smach.StateMachine.add('PULL_DRAWER_OUT_AT_SOURCE_WS', move_base_rel(-distance_to_workstation, 0),
             transitions={'succeeded':'MOVE_ARM_TO_PREGRASP'})
         
@@ -125,7 +124,7 @@ def main():
             transitions={'succeeded':'overall_success', 
                         'failed':'overall_failed'})
      
-        
+        '''
        
     # Start SMACH viewer
     smach_viewer = smach_ros.IntrospectionServer('FINAL', SM, 'FINAL')
