@@ -21,3 +21,7 @@ color: "black"
 id: "R20"
 name: "tube"
 color: "black"
+---
+id: "SS"
+name: "small screw"
+color: "black"
