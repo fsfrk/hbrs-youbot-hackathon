@@ -99,7 +99,7 @@ void OrientGoal::runBehavior(){
 
     //update the costmap copy that the world model holds
    // local_costmap_->getCostmapCopy(costmap_);
-    //global_costmap_->getCostmapCopy(costmap_);
+    global_costmap_->getCostmapCopy(costmap_);
 
     //check if that velocity is legal by forward simulating
     double sim_angle = 0.0;
