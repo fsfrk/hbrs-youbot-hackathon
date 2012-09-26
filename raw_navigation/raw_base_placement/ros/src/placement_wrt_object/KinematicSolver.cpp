@@ -134,17 +134,22 @@ float t,t1,t2,tempt2,t3,t4,t5;
 //t2 = 1.18826;
 //t3 = -1.17518;
 //t4 = 3.15417;
-
+      ROS_INFO("t1 = %f",prefConfig[3]);
+      ROS_INFO("t2 = %f",prefConfig[4]);
+      ROS_INFO("t3 = %f",prefConfig[5]);
+      ROS_INFO("t4 = %f",prefConfig[6]);
+      ROS_INFO("t5 = %f",prefConfig[7]);
 
 if(isValid == true)
     {
-        tempt2=deg2rad(180)+prefConfig(3);
+        tempt2=deg2rad(180)+prefConfig(4);
         t2 = tempt2>deg2rad(180)?(deg2rad(360)-tempt2):tempt2;
         ROS_INFO("t2 = %f",t2);
+        t2 = 
         t3 = prefConfig(5);
-
         t4 = prefConfig(6);
-        t = atan2(GoalTR(1,2),GoalTR(0,2));
+        //t = atan2(GoalTR(1,2),GoalTR(0,2));
+        t = GoalPose(5);
     }
 else
     {
@@ -186,10 +191,9 @@ else
 
 //Base position
 JointParameter tmpconfig(1,8);
-tmpconfig << 0,0,t,0,t2,t3,t4,0;
+tmpconfig << 0,0,t,t1,t2,t3,t4,0;
 HomogenousTransform  TRobot;
 
-//cout<<tmpconfig<<endl;
 TRobot = calculateForwardKinematics(tmpconfig); 
 cout <<"TRobot-1 = "<<TRobot.affine()<<endl;
 float x = GoalPose(0)-TRobot(0,3); 
@@ -204,7 +208,7 @@ Product = (TRobot.rotation().transpose())*GoalTR.rotation();
 //HomogenousTransform  Product = GoalTR;
 t5 = atan2(Product(1,0),Product(0,0));
 //Theta 1 Solution
-t1=0;
+t1=prefConfig(3);
 
 //Final Solution
 
