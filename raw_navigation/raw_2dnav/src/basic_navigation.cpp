@@ -442,9 +442,9 @@ bool BasicNavigation::makePlan(const geometry_msgs::PoseStamped& goal, std::vect
 		ROS_DEBUG_NAMED("basic_navigation","Failed to find a  plan to point (%.2f, %.2f)", goal.pose.position.x, goal.pose.position.y);
 		return false;
 	}
-	basic_navigation::OrientGoal og;
-	geometry_msgs::Quaternion local_orientation;
-	ROS_INFO("In order to generate the plan, Now Orienting towards path ..!\n");
+	//basic_navigation::OrientGoal og;
+	//geometry_msgs::Quaternion local_orientation;
+	//ROS_INFO("In order to generate the plan, Now Orienting towards path ..!\n");
 	//If the control is here, it is believed that the plan is of non-zero length and a valid plan exists
 	/*double xpos = plan.at(1).pose.position.x;
 	double ypos = plan.at(1).pose.position.y;
