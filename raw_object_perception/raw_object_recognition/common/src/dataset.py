@@ -27,20 +27,22 @@ class Dataset:
             objects = [obj['id'] for obj in self.objects]
         elif isinstance(objects, str):
             objects = [objects]
-        data = []
+        X = []
+        Y = []
         object_ids = []
         for obj in objects:
             try:
                 i = len(object_ids)
-                d = np.atleast_2d(np.loadtxt(self.object_data_filename(obj)))
-                d = np.hstack((d, np.ones((len(d), 1)) * i))
-                data.append(d)
+                x = np.atleast_2d(np.loadtxt(self.object_data_filename(obj)))
+                y = (np.ones((len(x), 1)) * i).astype(np.int)
                 object_ids.append(obj)
+                X.append(x)
+                Y.append(y)
             except IOError:
                 print 'Unable to read file for %s object.' % obj
                 pass
         try:
-            return (np.vstack(data), object_ids)
+            return (np.vstack(X), np.vstack(Y), object_ids)
         except ValueError:
             print 'Unable to concatenate arrays, different number of features.'
-            return (np.array([]), [])
+            return (np.array([]), np.array([]), [])
