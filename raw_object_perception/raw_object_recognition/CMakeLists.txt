@@ -40,5 +40,5 @@ include_directories(${PROJECT_SOURCE_DIR}/ros/include)
 
 #...: cloud_color_analyzer
 rosbuild_add_executable(cloud_color_analyzer
-  ros/src/cloud_color_analyzer_node.cpp
+  ros/nodes/cloud_color_analyzer.cpp
 )
