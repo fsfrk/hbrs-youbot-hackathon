@@ -5,15 +5,18 @@ NODE = 'object_detector'
 
 import roslib
 roslib.load_manifest(PACKAGE)
+import sys
+from os.path import join
+
+# Import states for calling services from hbrs_scene_segmentation
+sys.path.append(join(roslib.packages.get_pkg_dir(PACKAGE), 'ros', 'src'))
+import service_states
+
 import rospy
 
 from smach import State, StateMachine, CBState, cb_interface
 from smach_ros import ServiceState
 
-from hbrs_srvs.srv import FindWorkspace
-from hbrs_srvs.srv import AccumulateTabletopCloud
-from hbrs_srvs.srv import ClusterTabletopCloud
-from hbrs_srvs.srv import MakeBoundingBoxes, MakeBoundingBoxesRequest
 from hbrs_srvs.srv import GetObjects, GetObjectsResponse
 from hbrs_msgs.msg import Object
 
@@ -31,6 +34,7 @@ class FindWorkspaceAborted(State):
             self.retries -= 1
             return 'retry'
         else:
+            self.retries = 3
             return 'failed'
 
 
@@ -41,8 +45,6 @@ def pack_response(userdata):
     userdata.response = GetObjectsResponse()
     for c, b in zip(userdata.clusters, userdata.bounding_boxes):
         obj = Object()
-        # TODO: expand the box to account for the fact that the bottom
-        # 1 cm was cut off during cloud accumulation.
         obj.dimensions.vector = b.dimensions
         obj.pose.pose.position = b.center
         obj.name = 'unknown'
@@ -56,9 +58,7 @@ if __name__ == '__main__':
                       output_keys=['response'])
     with sm:
         StateMachine.add('FIND_WORKSPACE',
-                         ServiceState('find_workspace',
-                                      FindWorkspace,
-                                      response_slots=['polygon']),
+                         service_states.find_workspace,
                          transitions={'succeeded': 'ACCUMULATE_CLOUD',
                                       'aborted': 'FIND_WORKSPACE_ABORTED'})
         StateMachine.add('FIND_WORKSPACE_ABORTED',
@@ -66,33 +66,13 @@ if __name__ == '__main__':
                          transitions={'retry': 'FIND_WORKSPACE',
                                       'failed': 'aborted'})
         StateMachine.add('ACCUMULATE_CLOUD',
-                         ServiceState('accumulate_tabletop_cloud',
-                                      AccumulateTabletopCloud,
-                                      request_slots=['polygon'],
-                                      response_slots=['cloud']),
+                         service_states.accumulate_tabletop_cloud,
                          transitions={'succeeded': 'CLUSTER_CLOUD'})
         StateMachine.add('CLUSTER_CLOUD',
-                         ServiceState('cluster_tabletop_cloud',
-                                      ClusterTabletopCloud,
-                                      request_slots=['cloud', 'polygon'],
-                                      response_slots=['clusters']),
+                         service_states.cluster_tabletop_cloud,
                          transitions={'succeeded': 'MAKE_BOUNDING_BOXES'})
-
-        @cb_interface(input_keys=['clusters', 'polygon'])
-        def make_boxes_request_cb(userdata, request):
-            r = MakeBoundingBoxesRequest()
-            r.clouds = userdata.clusters
-            r.axis.x = userdata.polygon.coefficients[0]
-            r.axis.y = userdata.polygon.coefficients[1]
-            r.axis.z = userdata.polygon.coefficients[2]
-            return r
-
         StateMachine.add('MAKE_BOUNDING_BOXES',
-                         ServiceState('make_bounding_boxes',
-                                      MakeBoundingBoxes,
-                                      request_cb=make_boxes_request_cb,
-                                      input_keys=['clusters', 'polygon'],
-                                      response_slots=['bounding_boxes']),
+                         service_states.make_bounding_boxes,
                          transitions={'succeeded': 'PACK_RESPONSE'})
         StateMachine.add('PACK_RESPONSE',
                          CBState(pack_response),
