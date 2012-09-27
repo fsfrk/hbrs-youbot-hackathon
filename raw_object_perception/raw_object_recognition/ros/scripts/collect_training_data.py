@@ -6,20 +6,26 @@ NODE = 'collect_training_data'
 import roslib
 roslib.load_manifest(PACKAGE)
 import sys
-sys.path.append(roslib.packages.get_pkg_dir(PACKAGE) + '/common/src')
-sys.path.append(roslib.packages.get_pkg_dir(PACKAGE) + '/ros/src')
-import argparse
-import os
+from os.path import join
+
+# Import helper states for user input and counting
+sys.path.append(join(roslib.packages.get_pkg_dir(PACKAGE), 'common', 'src'))
+from confirm_state import ConfirmState
+from counter_state import CounterState
+
+# Import states for calling services from hbrs_scene_segmentation
+sys.path.append(join(roslib.packages.get_pkg_dir('raw_object_detection'),
+                     'ros', 'src'))
+import service_states
 
 import rospy
+import argparse
+
 from smach import State, StateMachine, cb_interface
 from smach_ros import ServiceState, ConditionState
 
 from raw_srvs.srv import AnalyzeCloudColor, AnalyzeCloudColorRequest
 
-from confirm_state import ConfirmState
-from counter_state import CounterState
-import service_states
 from dataset import Dataset
 
 
@@ -30,7 +36,7 @@ class StoreObject(State):
                        input_keys=['bounding_boxes', 'clusters', 'mean',
                                    'median', 'points'])
         base = roslib.packages.get_pkg_dir(PACKAGE)
-        self.dataset = Dataset(os.path.join(base, 'common', 'data'), dataset)
+        self.dataset = Dataset(join(base, 'common', 'data'), dataset)
         self.object_id = object_id
 
     def execute(self, ud):
