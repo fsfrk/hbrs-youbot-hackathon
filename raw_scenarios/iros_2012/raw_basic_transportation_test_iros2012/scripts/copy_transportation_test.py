@@ -59,7 +59,7 @@ def main():
 
         # Align the robot
 
-        smach.StateMachine.add('ALIGN_BASE_WRT_PLATFORM', align_base_wrt_platform(),
+        smach.StateMachine.add('ALIGN_BASE_WRT_PLATFORM', adjust_pose_wrt_platform(),
             transitions={'succeeded':'SELECT_TASK',
                         'failed':'ALIGN_BASE_WRT_PLATFORM'}) 
 
@@ -86,17 +86,19 @@ def main():
             transitions={'succeeded':'PLACE_BASE_IN_FRONT_OF_OBJECT',
                         'no_more_objects':'SELECT_DESTINATION_POSE'})
 
-        smach.StateMachine.add('PLACE_BASE_IN_FRONT_OF_OBJECT', move_base_rel(0,userdata.object_to_grasp..pose.position.y),
-            transitions={'succeeded':'GRASP_OBJ_WITH_VISUAL_SERVERING'})    
+        smach.StateMachine.add('PLACE_BASE_IN_FRONT_OF_OBJECT', place_base_in_front_of_object(),
+            transitions={'succeeded':'GRASP_OBJ_WITH_VISUAL_SERVERING'},
+            remapping={'object_pose':'object_to_grasp'})    
 
         smach.StateMachine.add('GRASP_OBJ_WITH_VISUAL_SERVERING', grasp_obj_with_visual_servering(),
             transitions={'succeeded':'PLACE_OBJ_ON_REAR_PLATFORM',
                         'failed':'GRASP_OBJ_WITH_VISUAL_SERVERING'})
-
+        '''
         smach.StateMachine.add('IS_OBJECT_GRASPED', is_object_grasped(),
             transitions={'obj_grasped':'PLACE_OBJ_ON_REAR_PLATFORM',
                         'obj_not_grasped':'GRASP_OBJ_WITH_VISUAL_SERVERING'})                
-
+        ''''
+        
         smach.StateMachine.add('PLACE_OBJ_ON_REAR_PLATFORM', place_obj_on_rear_platform(),
             transitions={'succeeded':'SELECT_RECOGNIZED_OBJECT',
                         'no_more_free_poses':'INCREMENT_TASK_INDEX',
