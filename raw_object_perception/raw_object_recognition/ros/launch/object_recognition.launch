@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- This launch file starts all the nodes that are needed to perform object recognition. -->
+
+  <node pkg="raw_object_recognition" type="cloud_color_analyzer" name="cloud_color_analyzer" output="screen"/>
+  <node pkg="raw_object_recognition" type="object_recognizer.py" name="object_recognizer" output="screen"/>
+
+</launch>

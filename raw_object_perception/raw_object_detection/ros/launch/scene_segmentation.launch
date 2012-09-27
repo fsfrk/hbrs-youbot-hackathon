@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <!-- This section of launch file brings up the complete scene segmentation pipeline.
+  <!-- This launch file brings up the nodes from hbrs_scene_segmentation that are needed for object detection/recognition.
        The parameters have been adjusted to work well with @Work scenarios. -->
 
   <node pkg="hbrs_scene_segmentation" type="workspace_finder" name="workspace_finder" output="screen">
@@ -17,9 +17,5 @@
   <node pkg="hbrs_scene_segmentation" type="tabletop_cloud_clusterer" name="tabletop_cloud_clusterer" output="screen"/>
 
   <node pkg="hbrs_scene_segmentation" type="bounding_box_maker" name="bounding_box_maker" output="screen"/>
-
-  <!-- This section brings up the object detection node, which "glues" together the pipeline. -->
-
-  <node pkg="raw_object_detection" type="object_detector.py" name="object_detector" output="screen"/>
 
 </launch>
