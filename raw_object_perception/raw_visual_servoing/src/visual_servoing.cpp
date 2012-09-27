@@ -138,8 +138,8 @@ public:
     CBlob   temp_tracked_blob; 
     double  temp_tracked_blob_distance = 0; 
 
-    double  x_threshold = 40; 
-    double  y_threshold = 40;
+    double  x_threshold = 30; 
+    double  y_threshold = 30;
     double  rot_threshold = 5; 
 
     double maxx; 
@@ -393,7 +393,7 @@ public:
     if( done_rotational_adjustment == true && done_base_movement_adjustment == true && done_y_base_movement_adjustment == true )
     {
       blob_detection_completed = true; 
-      ROS_INFO( "Graping position has been reached." ); 
+      ROS_INFO( "Grasping position has been reached." ); 
     } 
 
     //-------------------------------------------------------------------------
