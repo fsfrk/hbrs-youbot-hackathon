@@ -23,20 +23,14 @@ def main():
     
     # world knowledge
     SM.userdata.task_list = []
-
     SM.userdata.base_pose_to_approach = 0
-
     SM.userdata.current_task_index = 0
-    
     SM.userdata.recognized_objects = []
-
     SM.userdata.object_to_grasp = 0
-    
     SM.userdata.rear_platform_free_poses = ['platform_right', 'platform_centre', 'platform_left']
-
     SM.userdata.rear_platform_occupied_poses = []
-    
     SM.userdata.obj_goal_configuration_poses = []
+    SM.userdata.destinaton_free_poses = []
     
      # open the container
     with SM:
@@ -73,7 +67,7 @@ def main():
 
         smach.StateMachine.add('SELECT_OBJECT_TO_BE_GRASPED', select_object_to_be_grasped(),
             transitions={'obj_selected':'PLACE_BASE_IN_FRONT_OF_OBJECT',
-                        'no_obj_selected':'SELECT_SOURCE_SUBTASK'})            
+                        'no_obj_selected':'SKIP_SOURCE_POSE'})            
 
         smach.StateMachine.add('PLACE_BASE_IN_FRONT_OF_OBJECT', place_base_in_front_of_object(),
             transitions={'succeeded':'GRASP_OBJ_WITH_VISUAL_SERVERING',
@@ -85,11 +79,17 @@ def main():
                         'failed':'GRASP_OBJ_WITH_VISUAL_SERVERING'})
            
         smach.StateMachine.add('PLACE_OBJ_ON_REAR_PLATFORM', place_obj_on_rear_platform_btt(),
-            transitions={'succeeded':'DELETE_FROM_TASK_LIST',
+            transitions={'succeeded':'SELECT_OBJECT_TO_BE_GRASPED',
                         'no_more_free_poses':'SELECT_DELIVER_WORKSTATION'})
         
-        smach.StateMachine.add('DELETE_FROM_TASK_LIST', delete_grasped_obj_from_task_list(),
-            transitions={'succeeded':'SELECT_OBJECT_TO_BE_GRASPED'})
+        
+        # MISC STATES
+        smach.StateMachine.add('SKIP_SOURCE_POSE', skip_pose('source'),
+            transitions={'pose_skipped':'SELECT_SOURCE_SUBTASK'})  
+        
+        smach.StateMachine.add('SKIP_DESTINATION_POSE', skip_pose('destination'),
+            transitions={'pose_skipped':'SELECT_DELIVER_WORKSTATION'})  
+        
         
 
         # DELIVERY
@@ -117,7 +117,7 @@ def main():
             transitions={'succeeded':'SELECT_DELIVER_WORKSTATION'})
 
         smach.StateMachine.add('CHECK_IF_PLTF_HAS_STILL_OBJS', check_if_platform_has_still_objects(),
-            transitions={'still_objs_on_robot_pltf':'MOVE_ARM_OUT_OF_VIEW_2',
+            transitions={'still_objs_on_robot_pltf':'SKIP_DESTINATION_POSE',
                          'no_more_objs_on_robot_pltf':'SELECT_SOURCE_SUBTASK'})
 
 

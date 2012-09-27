@@ -8,6 +8,27 @@ import smach_ros
 from simple_script_server import *
 sss = simple_script_server()
 
+planning_mode=""
+
+
+def print_task_spec(task_list):
+    
+    rospy.loginfo("task spec")
+    for task in task_list:
+        rospy.loginfo("      %s %s %s ", task.location, task.object_names, task.type)
+    
+    return
+
+def print_occupied_platf_poses(poses):
+    
+    rospy.loginfo("occupied_platform poses: ")
+    for item in poses:
+        rospy.loginfo("     %s", item.obj_name.name)
+    
+    return
+
+
+
 class Bunch:
     def __init__(self, **kwds):
          self.__dict__.update(kwds)
@@ -16,36 +37,20 @@ class select_object_to_be_grasped(smach.State):
     def __init__(self):
         smach.State.__init__(self, 
             outcomes=['obj_selected', 'no_obj_selected'],
-            input_keys=['recognized_objects', 'objects_to_be_grasped'],
+            input_keys=['recognized_objects', 'objects_to_be_grasped', 'object_to_be_grasped'],
             output_keys=['object_to_be_grasped'])
         
     def execute(self, userdata):
+        
         
         for rec_obj in userdata.recognized_objects:
             for obj_grasp in userdata.objects_to_be_grasped:
                 if rec_obj.name == obj_grasp:
                     userdata.object_to_be_grasped = rec_obj
+                    print "selected obj: ", userdata.object_to_be_grasped.name
                     return 'obj_selected'
                 
         return 'no_obj_selected'
-    
-    
-class delete_grasped_obj_from_task_list(smach.State):
-    def __init__(self):
-        smach.State.__init__(self, 
-            outcomes=['succeeded'],
-            input_keys=['object_to_be_grasped', 'base_pose_to_approach', 'task_list'],
-            output_keys=['task_list'])
-        
-    def execute(self, userdata):
-        
-        userdata.objects_to_be_grasped.remove(userdata.object_to_be_grasped)
-        
-        for i in range(len(userdata.task_list)):
-          if userdata.task_list[i].type == "source" and userdata.task_list[i].location == userdata.base_pose_to_approach:
-            rospy.loginfo("task.location: %s  base_pose_to_approach: %s", userdata.task_list[i].location, userdata.base_pose_to_approach)
-            userdata.task_list[i].object_names.remove(userdata.object_to_be_grasped)
-            return 'success'    
 
 
 class select_btt_subtask(smach.State):
@@ -59,10 +64,21 @@ class select_btt_subtask(smach.State):
         
     def execute(self, userdata):
         
-        for task in task_list:
-            if task.type == self.type: 
-                userdata.base_pose_to_approach = task.location
-                userdata.objects_to_be_grasped = task.object_names
+        print_task_spec(userdata.task_list)
+        
+        # check if there is a empty obj_names list for a given locaction and remove it
+        for i in range(len(userdata.task_list)):
+            if len(userdata.task_list[i].object_names) == 0:
+                userdata.task_list.pop(i)
+                break;
+            
+        print_task_spec(userdata.task_list)
+                
+        # select next task
+        for i in range(len(userdata.task_list)):
+            if userdata.task_list[i].type == self.type:     
+                userdata.base_pose_to_approach = userdata.task_list[i].location
+                userdata.objects_to_be_grasped = userdata.task_list[i].object_names
                 return 'task_selected'
             
         return 'no_more_task_for_given_type'
@@ -104,20 +120,28 @@ class select_delivery_workstation(smach.State):
         smach.State.__init__(self, 
             outcomes=['success', 'no_more_dest_tasks'],
             input_keys=['rear_platform_occupied_poses', 'task_list'],
-            output_keys=['base_pose_to_approach', 'objects_to_be_grasped'])
+            output_keys=['base_pose_to_approach', 'objects_to_be_grasped', 'objects_goal_configuration'])
         
         
     def execute(self, userdata):
+        print_task_spec(userdata.task_list)
+        print_occupied_platf_poses(userdata.rear_platform_occupied_poses)
         
-        for obj in userdata.rear_platform_occupied_poses:
-            for task in userdata.task_list:
+        for task in userdata.task_list:
+            for obj in userdata.rear_platform_occupied_poses:
                 if task.type == 'destination':
                     for dest in task.object_names:
-                        if dest == obj.obj_name:
+                        if dest == obj.obj_name.name:
                             userdata.base_pose_to_approach = task.location
                             userdata.objects_goal_configuration = task.object_config
                             return 'success'
                         
+        if len(userdata.task_list) > 0:
+            userdata.base_pose_to_approach = task.location
+            userdata.objects_goal_configuration = task.object_config
+            return 'success'
+        
+        
         return 'no_more_dest_tasks'
                         
 
@@ -125,11 +149,12 @@ class setup_btt(smach.State):
     def __init__(self, type=""):
         smach.State.__init__(self, 
             outcomes=['success'],
-            input_keys=['task_list'],
+            input_keys=['task_list', 'destinaton_free_poses'],
             output_keys=['destinaton_free_poses'])
         
         
     def execute(self, userdata):
+        print_task_spec(userdata.task_list)
         
         for task in userdata.task_list:
             if task.type == 'destination':
@@ -137,6 +162,7 @@ class setup_btt(smach.State):
                 loc_free_poses = Bunch(location = task.location, free_poses = poses)
                 userdata.destinaton_free_poses.append(loc_free_poses)
                 
+        print_task_spec(userdata.task_list)
         return 'success'
         
         
@@ -144,20 +170,39 @@ class grasp_obj_from_pltf_btt(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['object_grasped', 'no_more_obj_for_this_workspace'], 
-                             input_keys=['rear_platform_occupied_poses', 'base_pose_to_approach'],
-                             output_keys=['rear_platform_occupied_poses', 'last_grasped_obj_name'])
+                             input_keys=['rear_platform_occupied_poses', 'rear_platform_free_poses', 'base_pose_to_approach', 'task_list', 'last_grasped_obj'],
+                             output_keys=['rear_platform_occupied_poses', 'rear_platform_free_poses', 'last_grasped_obj'])
 
     def execute(self, userdata):   
         global planning_mode
+        print_occupied_platf_poses(userdata.rear_platform_occupied_poses)
+        print_task_spec(userdata.task_list)
+        
+        #get objects to be placed at current workstation
+        objs_for_this_ws = []
+        for task in userdata.task_list:
+            if task.type == 'destination' and task.location == userdata.base_pose_to_approach:
+                objs_for_this_ws = task.object_names
         
         pltf_obj_pose = 0
+        stop = False
         for i in range(len(userdata.rear_platform_occupied_poses)):
-            if userdata.rear_platform_occupied_poses.location == base_pose_to_approach:
-                pltf_obj_pose = userdata.rear_platform_occupied_poses.free_poses.pop()
-                userdata.last_grasped_obj_name = platform_pose.obj_name
+            for obj_name in objs_for_this_ws:
+                rospy.loginfo("userdata.rear_platform_occupied_poses[i].obj_name: %s     obj_name: %s", userdata.rear_platform_occupied_poses[i].obj_name.name, obj_name)
+                if userdata.rear_platform_occupied_poses[i].obj_name.name == obj_name:
+                    pltf_obj_pose = userdata.rear_platform_occupied_poses.pop(i)
+                    userdata.rear_platform_free_poses.append(pltf_obj_pose)
+                    userdata.last_grasped_obj = pltf_obj_pose.obj_name
+                    print "LAST OBJ: ", userdata.last_grasped_obj.name
+                    stop = True
+                    break;
+            if stop:
+                break
                 
+        print_occupied_platf_poses(userdata.rear_platform_occupied_poses)        
+        
         if pltf_obj_pose == 0:
-            return 'no_more_obj_for_this_pltf'
+            return 'no_more_obj_for_this_workspace'
         
         
         
@@ -183,37 +228,47 @@ class place_object_in_configuration_btt(smach.State):
     def __init__(self):
         smach.State.__init__(self, 
             outcomes=['succeeded', 'no_more_cfg_poses'],
-            input_keys=['base_pose_to_approach', 'objects_goal_configuration', 'rear_platform_occupied_poses', 'last_grasped_obj_name', 'task_list'],
-            output_keys=['destinaton_free_poses', 'rear_platform_occupied_poses', 'task_list'])
+            input_keys=['base_pose_to_approach', 'objects_goal_configuration', 'last_grasped_obj', 'task_list', 'destinaton_free_poses', 'obj_goal_configuration_poses'],
+            output_keys=['destinaton_free_poses', 'task_list'])
         
     def execute(self, userdata):
         global planning_mode
+        
+        print_task_spec(userdata.task_list)
         
         if len(userdata.destinaton_free_poses) == 0:
             rospy.logerr("no more configuration poses")
             return 'no_more_cfg_poses'
         
-        cfg_goal_pose = "/script_server/arm/" + userdata.objects_goal_configuration + "/" + userdata.objects_goal_configuration + "_" + userdata.destinaton_free_poses.pop()
+        pose = 0
+        for i in range(len(userdata.destinaton_free_poses)):
+            if userdata.destinaton_free_poses[i].location == userdata.base_pose_to_approach:
+                pose = userdata.destinaton_free_poses[i].free_poses.pop()
+        
+        
+        cfg_goal_pose = "/script_server/arm/" + userdata.objects_goal_configuration + "/" + userdata.objects_goal_configuration + "_" + pose
         print "goal pose taken: ",cfg_goal_pose
-        print "rest poses: ", userdata.obj_goal_configuration_poses
+        print "rest poses: ", userdata.destinaton_free_poses[i].free_poses
                 
         sss.move("arm", cfg_goal_pose, mode=planning_mode)
         
         sss.move("gripper","open")
         rospy.sleep(2)
         
-        #delete placed obj from occupied poses of platform
-        for i in range(len(userdata.rear_platform_occupied_poses)):            
-           if userdata.rear_platform_occupied_poses[i].location == userdata.base_pose_to_approach and userdata.rear_platform_occupied_poses[i].obj_name == userdata.last_grasped_obj_name:
-               userdata.rear_platform_occupied_poses.remove(userdata.last_grasped_obj_name)
-
+        
         #delete placed obj from task list
         for j in range(len(userdata.task_list)):
-            if userdata.task_list[j].type == 'destination' and task_list.location == userdata.base_pose_to_approach:
-                userdata.task_list[j].object_names.remove(userdata.last_grasped_obj_name)
+            if userdata.task_list[j].type == 'destination' and userdata.task_list[j].location == userdata.base_pose_to_approach:
+                print "lllll: ", userdata.last_grasped_obj.name
+                print "list: ", userdata.task_list[j].object_names 
+                userdata.task_list[j].object_names.remove(userdata.last_grasped_obj.name)
                 
                 if len(userdata.task_list[j].object_names) == 0:
                     userdata.task_list.pop(j)
+                
+                break
+            
+        print_task_spec(userdata.task_list)
         
     
         return 'succeeded'
@@ -223,14 +278,17 @@ class place_obj_on_rear_platform_btt(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded', 'no_more_free_poses'], 
-                                   input_keys=['object_to_be_grasped', 'rear_platform_free_poses', 'rear_platform_occupied_poses', 'task_list'], 
+                                   input_keys=['object_to_be_grasped', 'rear_platform_free_poses', 'rear_platform_occupied_poses', 'task_list', 'base_pose_to_approach'], 
                                    output_keys=['rear_platform_free_poses', 'rear_platform_occupied_poses', 'task_list'])
 
     def execute(self, userdata):   
         global planning_mode
+        print_occupied_platf_poses(userdata.rear_platform_occupied_poses)
+        
         #sss.move("arm", "zeroposition", mode=planning_mode)
         #sss.move("arm", "platform_intermediate", mode=planning_mode)
 
+        print_task_spec(userdata.task_list)
         
         if(len(userdata.rear_platform_free_poses) == 0):
             rospy.logerr("NO more free poses on platform")
@@ -246,15 +304,22 @@ class place_obj_on_rear_platform_btt(smach.State):
         sss.move("gripper", "open")
         rospy.sleep(2)
 
-
+        print "object_to_be_grasped: ", userdata.object_to_be_grasped.name
         #delete from task list
         for i in range(len(userdata.task_list)):
             if userdata.task_list[i].type == 'source' and userdata.task_list[i].location == userdata.base_pose_to_approach:
-                userdata.task_list[i].object_names.remove(object_to_be_grasped)
-
+                print "obj_names:", userdata.task_list[i].object_names
+                userdata.task_list[i].object_names.remove(userdata.object_to_be_grasped.name)
+                print "obj_names after remove from task list: ", userdata.task_list[i].object_names
+                break
+        
+        print_task_spec(userdata.task_list)
+        
         # remember what is on the platform
-        obj_on_platform = Bunch(obj_name=object_to_be_grasped, platform_pose=pltf_pose)
+        obj_on_platform = Bunch(obj_name=userdata.object_to_be_grasped, platform_pose=pltf_pose)
         userdata.rear_platform_occupied_poses.append(obj_on_platform)
+        
+        print_occupied_platf_poses(userdata.rear_platform_occupied_poses)
         
         
         #sss.move("arm", pltf_pose+"_pre")
@@ -271,9 +336,35 @@ class check_if_platform_has_still_objects(smach.State):
                                    input_keys=['rear_platform_occupied_poses'])
 
     def execute(self, userdata):   
-
+        print_occupied_platf_poses(userdata.rear_platform_occupied_poses)
+        
         if len(userdata.rear_platform_occupied_poses) == 0:
             return 'no_more_objs_on_robot_pltf'
 
 
         return 'still_objs_on_robot_pltf'
+
+
+class skip_pose(smach.State):
+
+    def __init__(self, type=""):
+        smach.State.__init__(self, outcomes=['pose_skipped'], 
+                                   input_keys=['task_list', 'base_pose_to_approach'],
+                                   output_keys=['task_list'])
+        self.type = type
+
+    def execute(self, userdata):   
+        
+        print_task_spec(userdata.task_list)
+        
+        for i in range(len(userdata.task_list)):
+            if userdata.task_list[i].type == self.type and userdata.task_list[i].location == userdata.base_pose_to_approach:
+                temp = userdata.task_list.pop(i)
+                userdata.task_list.append(temp)
+                return 'pose_skipped'
+            
+        print_task_spec(userdata.task_list)
+                
+        return 'pose_skipped'
+
+
