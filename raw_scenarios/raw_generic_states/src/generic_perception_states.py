@@ -8,6 +8,7 @@ import hbrs_srvs.srv
 import std_srvs.srv
 import tf 
 import geometry_msgs.msg
+import hbrs_msgs.msg
 
 
 
@@ -16,16 +17,29 @@ class find_drawer(smach.State):
     def __init__(self):
         smach.State.__init__(
             self,
-            outcomes=['succeeded', 'failed'], output_keys=["drawer_pose"])
+            outcomes=['found_drawer', 'no_drawer_found', 'srv_call_failed'], output_keys=["drawer_pose_list"])
+        
+        self.drawer_finder_srv_name = '/hbrs_perception/detect_marker'
+        self.drawer_finder_srv = rospy.ServiceProxy(self.drawer_finder_srv_name, hbrs_srvs.srv.GetObjects)
         
     def execute(self, userdata): 
-               
-        # find drawer front edge position with sergeys perception component
-               
-        userdata.drawer_pose = geometry_msgs.msg.PoseStamped()
         
-        return 'succeeded'
- 
+        try:
+            rospy.wait_for_service(self.drawer_finder_srv_name, 15)
+            resp = self.drawer_finder_srv()
+        except Exception, e:
+            rospy.logerr("could not execute service <<%s>>: %e", self.drawer_finder_srv_name, e)
+            return 'srv_call_failed'
+            
+        if (len(resp.objects) <= 0):
+            rospy.logerr('found no drawer')
+            return 'no_drawer_found'
+        
+        rospy.loginfo('found {0} drawers'.format(len(resp.objects)))
+        
+        userdata.drawer_pose_list = resp.objects
+        
+        return 'found_drawer'
 
 
 class detect_object(smach.State):
@@ -68,7 +82,7 @@ class recognize_objects(smach.State):
     def __init__(self):
         smach.State.__init__(
             self,
-            outcomes=['succeeded', 'failed'],
+            outcomes=['found_objects', 'no_objects_found', 'srv_call_failed'],
             input_keys=['recognized_objects'],
             output_keys=['recognized_objects'])
         
@@ -76,7 +90,7 @@ class recognize_objects(smach.State):
         self.object_finder_srv = rospy.ServiceProxy(self.object_finder_srv_name, hbrs_srvs.srv.GetObjects)
 
     def execute(self, userdata):     
- 
+        '''
 
         for i in range(10): 
             print "find object try: ", i
@@ -85,7 +99,8 @@ class recognize_objects(smach.State):
                 rospy.wait_for_service(self.object_finder_srv_name, 15)
                 resp = self.object_finder_srv()
             except Exception, e:  
-                rospy.logerr("service call %s failed", self.object_finder_srv_name)         
+                rospy.logerr("service call %s failed", self.object_finder_srv_name)     
+                return 'srv_called_failed'    
         
 
             if (len(resp.objects) <= 0):
@@ -96,7 +111,7 @@ class recognize_objects(smach.State):
 
         if len(resp.objects) == 0:
             rospy.loginfo('NO objects in FOV')
-            return 'failed'
+            return 'no_objects_found'
 
         tf_listener = tf.TransformListener()
 
@@ -142,5 +157,18 @@ class recognize_objects(smach.State):
         userdata.recognized_objects = transformed_poses
 
         print "################ OBJECTS TAKEN: ", len(userdata.recognized_objects)
-
-        return 'succeeded'
+        '''
+        
+        #obj_names = ['screw1', 'nut1']
+        for i in range(2):
+            obj_name = raw_input("object_name: ")
+            
+            obj = hbrs_msgs.msg.Object()
+            obj.name = obj_name
+            
+            userdata.recognized_objects.append(obj)
+        
+        
+        
+        
+        return 'found_objects'

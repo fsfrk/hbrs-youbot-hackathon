@@ -15,6 +15,7 @@
 
 bool analyzeCallback(raw_srvs::AnalyzeCloudColor::Request& request, raw_srvs::AnalyzeCloudColor::Response& response)
 {
+  ROS_INFO("Received [analyze_cloud_color] request.");
   typedef boost::accumulators::tag::mean mean;
   typedef boost::accumulators::tag::median median;
   boost::accumulators::accumulator_set<float, boost::accumulators::stats<mean, median>> color;
@@ -33,6 +34,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "cloud_color_analyzer");
   ros::NodeHandle nh;
   ros::ServiceServer analyzer_service = nh.advertiseService("analyze_cloud_color", analyzeCallback);
+  ROS_INFO("Started [analyze_cloud_color] service.");
   ros::spin();
   return 0;
 }

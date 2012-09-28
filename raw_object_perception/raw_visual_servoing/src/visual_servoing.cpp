@@ -52,15 +52,11 @@ public:
   //---------------------------------------------------------------------------
   raw_visual_servoing( ros::NodeHandle &n ) : node_handler( n ), image_transporter( node_handler )
   {
-
-    //background_image = cvLoadImage( "/home/atwork/RoboCupAtWork/raw_object_perception/raw_visual_servoing/data/background.png" );
     try 
     {
       std::string package_path = ros::package::getPath("raw_visual_servoing") + "/data/background.png";
       std::cout << "Package Path:\t" << package_path.c_str() << std::endl;  
       background_image = cvLoadImage( package_path.c_str() );
-      //background_image = cvLoadImage( "/home/atwork/RoboCupAtWork/raw_object_perception/raw_visual_servoing/data/background.png" );
-      //background_image = cvLoadImage( "/home/badrobot/ros/robocup@work/RoboCupAtWork/raw_object_perception/raw_visual_servoing/data/background.png" );
     }
     catch ( cv::Exception& e ) 
     {
@@ -132,17 +128,34 @@ public:
     bool done_base_movement_adjustment = false; 
     bool done_y_base_movement_adjustment = false; 
 
-    IplImage* cv_image = NULL; 
-    IplImage* blob_image = NULL; 
+    IplImage* cv_image  ; 
+    IplImage* blob_image; 
 
-    sensor_msgs::CvBridge bridge_;
+    sensor_msgs::CvBridge opencv_bridge;
+    CBlobGetOrientation get_orientation; 
 
     CBlob* currentBlob;  
+    CBlob   temp_tracked_blob; 
+    double  temp_tracked_blob_distance = 0; 
+
+    double  x_threshold = 30; 
+    double  y_threshold = 30;
+    double  rot_threshold = 5; 
+
+    double maxx; 
+    double minx; 
+    double maxy; 
+    double miny; 
+    double temp_x;
+    double temp_y; 
+    double dist_x; 
+    double dist_y; 
+    double distance;
 
     // Covert the image from a ROS image message to a OpenCV Image (IplImage) type.
     try
     {
-      cv_image = bridge_.imgMsgToCv(msg_ptr, "bgr8");
+      cv_image = opencv_bridge.imgMsgToCv(msg_ptr, "bgr8");
     }
     catch (sensor_msgs::CvBridgeException error)
     {
@@ -180,196 +193,208 @@ public:
     //  Make sure they are big enough to really be considered.
     //  In this case we will use an area of AT LEAST 100 px. 
     int minimum_blob_area = 300; 
+    int maximum_blob_area = ( master_image_height * master_image_width * 0.3 ); 
     blobs.Filter( blobs, B_EXCLUDE, CBlobGetArea(), B_LESS, minimum_blob_area ); 
+    blobs.Filter( blobs, B_EXCLUDE, CBlobGetArea(), B_GREATER, maximum_blob_area ); 
 
-    int blob_number = blobs.GetNumBlobs(); 
-    ROS_INFO( "Number of Blobs Present:\t%d",blob_number );  
+    int blob_number = blobs.GetNumBlobs();  
 
-    CBlob largest_blob; 
-    blobs.GetNthBlob( CBlobGetPerimeter(), 0, largest_blob ); 
-    //  Add the found blobs to the blob_image.
-    for ( int i = 0; i < blobs.GetNumBlobs(); i++ )
+    //  We will only grab the largest blob on the first pass from that point on we will look for the centroid
+    //  of a blob that is closest to the centroid of the largest blob.
+    if( first_pass == true )
     {
-      CBlobGetOrientation get_orientation; 
-      CBlobGetArea get_blob_area; 
+      ROS_INFO( "First Pass" ); 
 
-      currentBlob = blobs.GetBlob(i);
-      currentBlob->FillBlob( blob_image, CV_RGB( 0, 0, 255 ) );
-
-      // Obtain distance information about the blob. This in particular looks at the distance between the
-      // centroid of the blob (est) and the center of the image being captured (intersection of the axis).
-      double maxx = currentBlob->MaxX(); 
-      double minx = currentBlob->MinX(); 
-      double maxy = currentBlob->MaxY(); 
-      double miny = currentBlob->MinY(); 
-      double blob_x = ( ( minx + maxx ) / 2 );
-      double blob_y = ( ( miny + maxy ) / 2 ); 
-      double dist_x = ( blob_x ) - ( master_image_width / 2 ); 
-      double dist_y = ( blob_y ) - ( master_image_height / 2 ); 
-      double distance = sqrt( ( dist_x * dist_x ) + ( dist_y * dist_y ) ); 
-
-      double rotation = 0.0; 
-      rotation = get_orientation( *currentBlob );
-
-      //  DEBUGGING
-      ROS_DEBUG( "Blob #:\t\t\t%d", i ); 
-      ROS_DEBUG( "Blob Center x:\t\t%d", blob_x );
-      ROS_DEBUG( "Blob Center y:\t\t%d", blob_y ); 
-      ROS_DEBUG( "Distance to Center:\t%d", distance ); 
-      ROS_DEBUG( "Horizontal Offset:\t%d", dist_x ); 
-      ROS_DEBUG( "Vertical Offset:\t%d", dist_y ); 
-      ROS_DEBUG( "Rotational Offset:\t%d",rotation );  
-
-      // Base adjustment stuff. This code assumes that the largest blob is the one that you
-      // want to work with. This being the case the arm/camera will need to be guided to the
-      // object in question before it can be turned on as this system will direct the arm to
-      // interact with the largest blob that it can find. This module should only be used once
-      // it is simply the object and its background in the frame of view of the camera. 
-      if( get_blob_area( largest_blob ) == get_blob_area( *currentBlob ) )
-      {
-        x_offset = dist_x; 
-        y_offset = dist_y; 
-        rot_offset = rotation; 
-
-        //---------------------------------------------------------------------
-        //-------------------- base movement control --------------------------
-        //---------------------------------------------------------------------
-        if( x_offset != 0 )
-        {
-          double move_speed = 0.0; 
-
-          // added a buffer for a "good enough" region of interest. [14.06.2012]
-          if( x_offset >= 20 )
-          {
-            // move the robot base right
-            move_speed = -0.005; 
-            done_base_movement_adjustment = false; 
-          }
-          else if( x_offset <= -20 )
-          {
-            // move the robot left
-            move_speed = 0.005; 
-            done_base_movement_adjustment = false; 
-          }
-          else if( x_offset > -10 && x_offset < 10 )
-          {
-            move_speed = 0.0;
-            done_base_movement_adjustment = true;  
-          }
-          else
-          {
-            // should never happen but just in case.
-            move_speed = 0.0; 
-          }
-
-          // Prepare and then send the base movement commands.
-          youbot_base_velocities.linear.y = move_speed; 
-          base_velocities_publisher.publish( youbot_base_velocities ); 
-        }
-
-        //---------------------------------------------------------------------
-        //-------------------- base movement control --------------------------
-        //---------------------------------------------------------------------
-        if( y_offset != 0 )
-        {
-          double move_speed = 0.0; 
-
-          if( y_offset >= 75 )
-          {
-            // move the robot base right
-            move_speed = -0.005; 
-            done_y_base_movement_adjustment = false; 
-          }
-          else if( y_offset <= 55 )
-          {
-            // move the robot left
-            move_speed = 0.005; 
-            done_y_base_movement_adjustment = false; 
-          }
-          else if( y_offset > -10 && y_offset < 10 )
-          {
-            move_speed = 0.0;
-            done_y_base_movement_adjustment = true;  
-          }
-          else
-          {
-            // should never happen but just in case.
-            done_y_base_movement_adjustment = true; 
-            move_speed = 0.0; 
-          }
-
-          // Prepare and then send the base movement commands.
-          youbot_base_velocities.linear.x = move_speed; 
-          base_velocities_publisher.publish( youbot_base_velocities ); 
-        }
-
-        //------------------ END OF BASE MOVEMENT CONTROL ---------------------
-
-        
-        //---------------------------------------------------------------------
-        //--------------------- arm rotation control --------------------------
-        //---------------------------------------------------------------------
-        if( rot_offset != 90 || rot_offset != 270 )
-        {
-          double rotational_speed = 0.0; 
-
-
-          if( rot_offset > 180 )
-          {
-              rot_offset = rot_offset - 180; 
-          }
-
-          if( ( rot_offset < 86 && rot_offset >= 0 ) || ( rot_offset < 266 && rot_offset >= 235 ) )
-
-          {
-            rotational_speed = -0.2; 
-            done_rotational_adjustment = false; 
-          }
-          else if( rot_offset > 94 && rot_offset < 235 )
-          {
-            rotational_speed = 0.1; 
-            done_rotational_adjustment = false; 
-          }
-          else
-          {
-            rotational_speed = 0.0; 
-            done_rotational_adjustment = true; 
-          }
-
-          youbot_arm_velocities.velocities.clear();
-          for(unsigned int i=0; i < arm_joint_names_.size(); ++i)
-          {
-            brics_actuator::JointValue joint_value;
-
-            joint_value.timeStamp = ros::Time::now();
-            joint_value.joint_uri = arm_joint_names_[i];
-            joint_value.unit = to_string(boost::units::si::radian_per_second);
-            
-            if( i == 4 )
-            {
-              joint_value.value = rotational_speed;
-            }
-            else
-            {
-              joint_value.value = 0.0; 
-            }
-
-            youbot_arm_velocities.velocities.push_back(joint_value);
-            arm_velocities_publisher.publish( youbot_arm_velocities );
-          }
-        }
-        //------------------- END OF ARM ROTATION CONTROL ---------------------
-
-        if( done_rotational_adjustment == true && done_base_movement_adjustment == true && done_y_base_movement_adjustment == true )
-        {
-          blob_detection_completed = true; 
-          ROS_DEBUG( "Graping position has been reached." ); 
-        }
-
-        // make sure the last thing we do is paint one centroid for debugging.
-        cvCircle( blob_image, cvPoint( blob_x, blob_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
-      } 
+      CBlob largest_blob; 
+      blobs.GetNthBlob( CBlobGetPerimeter(), 0, largest_blob ); 
+      maxx = largest_blob.MaxX(); 
+      minx = largest_blob.MinX(); 
+      maxy = largest_blob.MaxY(); 
+      miny = largest_blob.MinY(); 
+      tracked_x = ( ( minx + maxx ) / 2 );
+      tracked_y = ( ( miny + maxy ) / 2 ); 
+    
+      first_pass = false; 
     }
+
+    //  Go through all of the blobs and find the one that is the closest to the previously tracked blob.
+    for( int x = 0; x < blobs.GetNumBlobs(); x++ )
+    {
+      CBlob  temp_blob; 
+
+      temp_blob = blobs.GetBlob( x );
+
+      maxx = temp_blob.MaxX(); 
+      minx = temp_blob.MinX(); 
+      maxy = temp_blob.MaxY(); 
+      miny = temp_blob.MinY(); 
+      temp_x = ( ( minx + maxx ) / 2 );
+      temp_y = ( ( miny + maxy ) / 2 ); 
+      dist_x = ( temp_x ) - ( tracked_x ); 
+      dist_y = ( temp_y ) - ( tracked_y ); 
+      distance = sqrt( ( dist_x * dist_x ) + ( dist_y * dist_y ) );
+
+      if( temp_tracked_blob_distance == 0 )
+      {
+        temp_tracked_blob = temp_blob; 
+        temp_tracked_blob_distance = distance; 
+        tracked_x = temp_x; 
+        tracked_y = temp_y;
+      }
+      else
+      {
+        if( distance < temp_tracked_blob_distance )
+        {
+          temp_tracked_blob = temp_blob; 
+          temp_tracked_blob_distance = distance; 
+          tracked_x = temp_x; 
+          tracked_y = temp_y;  
+        }
+      }
+    }
+
+    //  Draw the blob we are tracking as well as a circle to represent the centroid of that object.
+    temp_tracked_blob.FillBlob( blob_image, CV_RGB( 0, 0, 255 ) );
+    cvCircle( blob_image, cvPoint( tracked_x, tracked_y ), 10, CV_RGB( 255, 0, 0 ), 2 );
+
+    double rotation = 0.0; 
+    rotation = get_orientation( temp_tracked_blob );  
+
+    x_offset = ( tracked_x ) - ( master_image_width / 2 ); 
+    y_offset = ( tracked_y ) - ( (master_image_height/2) + 85 ); 
+    rot_offset = rotation; 
+
+    //---------------------------------------------------------------------
+    //-------------------- base movement control --------------------------
+    //---------------------------------------------------------------------
+    if( x_offset != 0 )
+    {
+      double move_speed = 0.0; 
+
+      // added a buffer for a "good enough" region of interest. [14.06.2012]
+      if( x_offset >= x_threshold )
+      {
+        // move the robot base right
+        move_speed = -0.005; 
+        done_base_movement_adjustment = false; 
+      }
+      else if( x_offset <= -x_threshold )
+      {
+        // move the robot left
+        move_speed = 0.005; 
+        done_base_movement_adjustment = false; 
+      }
+      else if( x_offset > -x_threshold && x_offset < x_threshold )
+      {
+        move_speed = 0.0;
+        done_base_movement_adjustment = true;  
+      }
+      else
+      {
+        // should never happen but just in case.
+        move_speed = 0.0; 
+      }
+
+      // Prepare and then send the base movement commands.
+      youbot_base_velocities.linear.y = move_speed; 
+      base_velocities_publisher.publish( youbot_base_velocities ); 
+    }
+
+    //---------------------------------------------------------------------
+    //-------------------- base movement control --------------------------
+    //---------------------------------------------------------------------
+    if( y_offset != 0 )
+    {
+      double move_speed = 0.0; 
+
+      if( y_offset >= y_threshold )
+      {
+        // move the robot base right
+        move_speed = -0.005; 
+        done_y_base_movement_adjustment = false; 
+      }
+      else if( y_offset <= -y_threshold )
+      {
+        // move the robot left
+        move_speed = 0.005; 
+        done_y_base_movement_adjustment = false; 
+      }
+      else if( y_offset > -y_threshold && y_offset < y_threshold )
+      {
+        move_speed = 0.0;
+        done_y_base_movement_adjustment = true;  
+      }
+      else
+      {
+        // should never happen but just in case.
+        done_y_base_movement_adjustment = true; 
+        move_speed = 0.0; 
+      }
+
+      // Prepare and then send the base movement commands.
+      youbot_base_velocities.linear.x = move_speed; 
+      base_velocities_publisher.publish( youbot_base_velocities ); 
+    }
+    //------------------ END OF BASE MOVEMENT CONTROL ---------------------
+
+    //---------------------------------------------------------------------
+    //--------------------- arm rotation control --------------------------
+    //---------------------------------------------------------------------
+    if( rot_offset != 90 || rot_offset != 270 )
+    {
+      double rotational_speed = 0.0; 
+
+
+      if( rot_offset > 180 )
+      {
+          rot_offset = rot_offset - 180; 
+      }
+
+      if( ( rot_offset < 86 && rot_offset >= 0 ) || ( rot_offset < 266 && rot_offset >= 235 ) )
+      {
+        rotational_speed = -0.2; 
+        done_rotational_adjustment = false; 
+      }
+      else if( rot_offset > 94 && rot_offset < 235 )
+      {
+        rotational_speed = 0.1; 
+        done_rotational_adjustment = false; 
+      }
+      else
+      {
+        rotational_speed = 0.0; 
+        done_rotational_adjustment = true; 
+      }
+
+      youbot_arm_velocities.velocities.clear();
+      for(unsigned int i=0; i < arm_joint_names_.size(); ++i)
+      {
+        brics_actuator::JointValue joint_value;
+
+        joint_value.timeStamp = ros::Time::now();
+        joint_value.joint_uri = arm_joint_names_[i];
+        joint_value.unit = to_string(boost::units::si::radian_per_second);
+        
+        if( i == 4 )
+        {
+          joint_value.value = rotational_speed;
+        }
+        else
+        {
+          joint_value.value = 0.0; 
+        }
+
+        youbot_arm_velocities.velocities.push_back(joint_value);
+        arm_velocities_publisher.publish( youbot_arm_velocities );
+      }
+    }
+    //------------------- END OF ARM ROTATION CONTROL ---------------------
+
+    if( done_rotational_adjustment == true && done_base_movement_adjustment == true && done_y_base_movement_adjustment == true )
+    {
+      blob_detection_completed = true; 
+      ROS_INFO( "Grasping position has been reached." ); 
+    } 
 
     //-------------------------------------------------------------------------
     //---------------- VISUAL OUTPUT FOR DEBUGGING ONLY -----------------------
@@ -407,8 +432,6 @@ public:
     //----------------------- END OF VISUAL OUTPUT ----------------------------
     //-------------------------------------------------------------------------
 
-    //403.8mb
-    //cvReleaseImage( &cv_image ); 
     cvReleaseImage( &background_threshold ); 
     cvReleaseImage( &gray ); 
     cvReleaseImage( &blob_image ); 
@@ -426,6 +449,7 @@ public:
   bool start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
   {
     blob_detection_completed = false; 
+    first_pass = true; 
 
      //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
     image_subscriber = image_transporter.subscribe( "/usb_cam/image_raw", 1, &raw_visual_servoing::imageCallback, this );
@@ -508,6 +532,13 @@ protected:
 
   // Node status variable;
   bool blob_detection_completed; 
+
+  //  First pass
+  bool first_pass; 
+
+  //  Tracked Centroid Values
+  double tracked_x; 
+  double tracked_y; 
 
   // background Image.
   IplImage* background_image; 

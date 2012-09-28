@@ -7,4 +7,4 @@ float32 mean
 # Median of all grayscale values
 float32 median
 # Total number of points
-int64 points
+uint64 points
