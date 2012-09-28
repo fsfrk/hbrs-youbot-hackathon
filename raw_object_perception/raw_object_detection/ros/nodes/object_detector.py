@@ -16,6 +16,7 @@ import rospy
 
 from smach import State, StateMachine, CBState, cb_interface
 
+from label_visualizer import LabelVisualizer
 from hbrs_srvs.srv import GetObjects, GetObjectsResponse
 from hbrs_msgs.msg import Object
 from raw_srvs.srv import RecognizeObject
@@ -44,6 +45,7 @@ class RecognizeObjects(State):
                        input_keys=['clusters', 'bounding_boxes', 'names'],
                        output_keys=['names'],
                        outcomes=['done'])
+        self.visualizer = LabelVisualizer('object_labels', 'c')
         try:
             rospy.wait_for_service('recognize_object', timeout=5)
             self.recognize = rospy.ServiceProxy('recognize_object',
@@ -62,6 +64,7 @@ class RecognizeObjects(State):
             else:
                 name = 'unknown'
             ud.names.append(name)
+        self.visualizer.publish(ud.names, [b.center for b in ud.bounding_boxes])
         return 'done'
 
 
