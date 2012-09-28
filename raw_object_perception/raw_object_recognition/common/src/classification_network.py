@@ -22,6 +22,14 @@ class ClassificationNetwork:
         with open(filename + '.yaml', 'w') as f:
             f.write(yaml.dump(params, default_flow_style=False))
 
+    def classify(self, sample):
+        klass = np.argmax(self.net.activate(self.standardize(sample)))
+        label = self.labels[klass]
+        return (klass, label)
+
+    def standardize(self, sample):
+        return (sample - self.mean) / self.std
+
     @classmethod
     def load(cls, filename):
         net = NetworkReader.readFrom(filename + '.xml')
