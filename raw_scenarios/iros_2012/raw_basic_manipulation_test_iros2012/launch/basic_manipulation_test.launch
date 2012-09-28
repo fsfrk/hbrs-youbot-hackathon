@@ -25,7 +25,7 @@
 	    <include file="$(find raw_bringup)/components/cam3d.launch" />
   	    <include file="$(find raw_bringup)/components/usb_cam_microsoft.launch" />
 
-	    <include file="$(find raw_object_detection)/ros/launch/scene_segmentation.launch" />
+	    <include file="$(find raw_object_detection)/ros/launch/perception_pipeline.launch" />
 
         <!-- manipulation -->
 		<include file="$(find raw_arm_navigation)/ros/launch/planned_manipulation.launch" />	

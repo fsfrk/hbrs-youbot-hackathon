@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-  
-  <!-- Object finder node -->
-  <node pkg="raw_object_tracking" name="object_finder_node" type="object_finder_node" output="screen" >
-    <rosparam file="$(find raw_object_tracking)/ros/config/object_finder_params_default.yaml" command="load" />
-  </node>
-
-</launch>
