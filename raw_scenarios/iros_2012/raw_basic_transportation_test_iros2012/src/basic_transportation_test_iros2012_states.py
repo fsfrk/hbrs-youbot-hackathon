@@ -23,7 +23,7 @@ def print_occupied_platf_poses(poses):
     
     rospy.loginfo("occupied_platform poses: ")
     for item in poses:
-        rospy.loginfo("     %s", item.obj_name.name)
+        rospy.loginfo("     %s", item.obj_name)
     
     return
 
@@ -36,12 +36,16 @@ class Bunch:
 class select_object_to_be_grasped(smach.State):
     def __init__(self):
         smach.State.__init__(self, 
-            outcomes=['obj_selected', 'no_obj_selected'],
-            input_keys=['recognized_objects', 'objects_to_be_grasped', 'object_to_be_grasped'],
+            outcomes=['obj_selected', 'no_obj_selected','no_more_free_poses_at_robot_platf'],
+            input_keys=['recognized_objects', 'objects_to_be_grasped', 'object_to_be_grasped', 'rear_platform_free_poses'],
             output_keys=['object_to_be_grasped'])
         
     def execute(self, userdata):
         
+        if(len(userdata.rear_platform_free_poses) == 0):
+            rospy.logerr("NO more free poses on robot rear platform")
+            return 'no_more_free_poses_at_robot_platf'
+
         
         for rec_obj in userdata.recognized_objects:
             for obj_grasp in userdata.objects_to_be_grasped:
@@ -131,7 +135,7 @@ class select_delivery_workstation(smach.State):
             for obj in userdata.rear_platform_occupied_poses:
                 if task.type == 'destination':
                     for dest in task.object_names:
-                        if dest == obj.obj_name.name:
+                        if dest == obj.obj_name:
                             userdata.base_pose_to_approach = task.location
                             userdata.objects_goal_configuration = task.object_config
                             return 'success'
@@ -188,12 +192,12 @@ class grasp_obj_from_pltf_btt(smach.State):
         stop = False
         for i in range(len(userdata.rear_platform_occupied_poses)):
             for obj_name in objs_for_this_ws:
-                rospy.loginfo("userdata.rear_platform_occupied_poses[i].obj_name: %s     obj_name: %s", userdata.rear_platform_occupied_poses[i].obj_name.name, obj_name)
-                if userdata.rear_platform_occupied_poses[i].obj_name.name == obj_name:
-                    pltf_obj_pose = userdata.rear_platform_occupied_poses.pop(i)
+                rospy.loginfo("userdata.rear_platform_occupied_poses[i].obj_name: %s     obj_name: %s", userdata.rear_platform_occupied_poses[i].obj_name, obj_name)
+                if userdata.rear_platform_occupied_poses[i].obj_name == obj_name:
+                    pltf_obj_pose =  userdata.rear_platform_occupied_poses.pop(i)
                     userdata.rear_platform_free_poses.append(pltf_obj_pose)
                     userdata.last_grasped_obj = pltf_obj_pose.obj_name
-                    print "LAST OBJ: ", userdata.last_grasped_obj.name
+                    print "LAST OBJ: ", userdata.last_grasped_obj
                     stop = True
                     break;
             if stop:
@@ -204,21 +208,23 @@ class grasp_obj_from_pltf_btt(smach.State):
         if pltf_obj_pose == 0:
             return 'no_more_obj_for_this_workspace'
         
-        
-        
-        #sss.move("arm", "platform_intermediate")
-        # untested
-        #sss.move("arm", pltf_obj_pose+"_pre")
-        #
-        sss.move("arm", pltf_obj_pose.platform_pose.pose, mode=planning_mode)
+       
+       
+	print "plat_pose: ", pltf_obj_pose.platform_pose
+	print "plat_name: ", pltf_obj_pose.obj_name
+        if planning_mode != "planned":
+            sss.move("arm", "platform_intermediate")
+            sss.move("arm", str(pltf_obj_pose.platform_pose)+"_pre")
+
+        sss.move("arm", str(pltf_obj_pose.platform_pose), mode=planning_mode)
         
         sss.move("gripper", "close")
         rospy.sleep(3)
-        
-        # untested
-        #sss.move("arm", pltf_obj_pose+"_pre")
-        #
-        #sss.move("arm", "platform_intermediate")
+       
+        if planning_mode != "planned":
+            sss.move("arm", str(pltf_obj_pose.platform_pose)+"_pre")
+            sss.move("arm", "platform_intermediate")
+
         sss.move("arm", "zeroposition", mode=planning_mode)
            
         return 'object_grasped'
@@ -246,7 +252,7 @@ class place_object_in_configuration_btt(smach.State):
                 pose = userdata.destinaton_free_poses[i].free_poses.pop()
         
         
-        cfg_goal_pose = "/script_server/arm/" + userdata.objects_goal_configuration + "/" + userdata.objects_goal_configuration + "_" + pose
+        cfg_goal_pose = userdata.objects_goal_configuration + "/" + userdata.objects_goal_configuration + "_" + pose
         print "goal pose taken: ",cfg_goal_pose
         print "rest poses: ", userdata.destinaton_free_poses[i].free_poses
                 
@@ -259,9 +265,9 @@ class place_object_in_configuration_btt(smach.State):
         #delete placed obj from task list
         for j in range(len(userdata.task_list)):
             if userdata.task_list[j].type == 'destination' and userdata.task_list[j].location == userdata.base_pose_to_approach:
-                print "lllll: ", userdata.last_grasped_obj.name
+                print "lllll: ", userdata.last_grasped_obj
                 print "list: ", userdata.task_list[j].object_names 
-                userdata.task_list[j].object_names.remove(userdata.last_grasped_obj.name)
+                userdata.task_list[j].object_names.remove(userdata.last_grasped_obj)
                 
                 if len(userdata.task_list[j].object_names) == 0:
                     userdata.task_list.pop(j)
@@ -285,20 +291,23 @@ class place_obj_on_rear_platform_btt(smach.State):
         global planning_mode
         print_occupied_platf_poses(userdata.rear_platform_occupied_poses)
         
-        #sss.move("arm", "zeroposition", mode=planning_mode)
-        #sss.move("arm", "platform_intermediate", mode=planning_mode)
+        if planning_mode != "planned":
+            sss.move("arm", "zeroposition", mode=planning_mode)
+            sss.move("arm", "platform_intermediate", mode=planning_mode)
 
         print_task_spec(userdata.task_list)
         
         if(len(userdata.rear_platform_free_poses) == 0):
             rospy.logerr("NO more free poses on platform")
             return 'no_more_free_poses'
-            
-        pltf_pose = userdata.rear_platform_free_poses.pop()
-        # untested
-        #sss.move("arm", pltf_pose+"_pre")
-        #
-        sss.move("arm", pltf_pose, mode=planning_mode)
+
+      # Removing free poses          
+        pltf_pose = userdata.rear_platform_free_poses.pop();
+
+        if planning_mode != "planned":
+            sss.move("arm", pltf_pose.platform_pose+"_pre")
+        
+        sss.move("arm", pltf_pose.platform_pose, mode=planning_mode)
         
         
         sss.move("gripper", "open")
@@ -316,13 +325,14 @@ class place_obj_on_rear_platform_btt(smach.State):
         print_task_spec(userdata.task_list)
         
         # remember what is on the platform
-        obj_on_platform = Bunch(obj_name=userdata.object_to_be_grasped, platform_pose=pltf_pose)
-        userdata.rear_platform_occupied_poses.append(obj_on_platform)
+        pltf_pose.obj_name = userdata.object_to_be_grasped.name
+        userdata.rear_platform_occupied_poses.append(pltf_pose)
         
         print_occupied_platf_poses(userdata.rear_platform_occupied_poses)
         
+        if planning_mode != "planned":
+            sss.move("arm", pltf_pose.platform_pose+"_pre")
         
-        #sss.move("arm", pltf_pose+"_pre")
         sss.move("arm", "platform_intermediate", mode=planning_mode)
 
         return 'succeeded'
