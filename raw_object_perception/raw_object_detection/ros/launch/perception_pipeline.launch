@@ -4,7 +4,10 @@
   <!-- This launch file brings up the complete perception pipeline (except to openni node). -->
 
   <include file="$(find raw_object_detection)/ros/launch/scene_segmentation.launch"/>
-  <include file="$(find raw_object_recognition)/ros/launch/object_recognition.launch"/>
+
+  <include file="$(find raw_object_recognition)/ros/launch/object_recognition.launch">
+    <arg name="network" value="all_objects"/>
+  </include>
 
   <node pkg="raw_object_detection" type="object_detector.py" name="object_detector" output="screen"/>
 
