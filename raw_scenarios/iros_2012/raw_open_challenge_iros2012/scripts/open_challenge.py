@@ -73,7 +73,8 @@ def main():
             transitions={'succeeded':'SELECT_FINAL_POSE',
                         'failed':'overall_failed'})
         
-      '''  smach.StateMachine.add('SELECT_RECOGNIZED_OBJECT', select_recognized_object(),
+     
+       '''  smach.StateMachine.add('SELECT_RECOGNIZED_OBJECT', select_recognized_object(),
             transitions={'succeeded':'PLACE_BASE_IN_FRONT_OF_OBJECT',
                         'no_more_objects':'SELECT_DESTINATION_POSE'})
         
@@ -113,7 +114,10 @@ def main():
         smach.StateMachine.add('PLACE_OBJ_IN_CONFIGURATION', place_object_in_configuration(),
             transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF',
                         'no_more_cfg_poses':'SELECT_FINAL_POSE'})
+      
         '''       
+ 
+            
         # if everything is done move to final pose
         smach.StateMachine.add('SELECT_FINAL_POSE', select_base_pose("final_pose"),
             transitions={'succeeded':'MOVE_ARM_TO_INIT'})

@@ -13,6 +13,8 @@ class point_to_recognized_objects(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['object_list', 'recognized_objects'])
         count_recognized = 0
+        #ToDo set path relative to the working directory
+        sss.set_wav_path("/home/jose/atwork/RoboCupAtWork/raw_scenarios/iros_2012/raw_open_challenge_iros2012")
         
     def execute(self, userdata):
        #sss.move("gripper", "open", blocking=False)
