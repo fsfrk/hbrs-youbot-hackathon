@@ -7,7 +7,7 @@ import smach_ros
 
 # import of generic states
 #from generic_robocup_states import *
-rom generic_basic_states import *
+from generic_basic_states import *
 from generic_robocup_states import *
 from generic_navigation_states import *
 from generic_manipulation_states import *
