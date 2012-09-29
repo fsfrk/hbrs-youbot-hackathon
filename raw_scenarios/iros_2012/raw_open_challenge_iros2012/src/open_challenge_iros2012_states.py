@@ -12,7 +12,7 @@ class point_to_recognized_objects(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['object_list', 'recognized_objects'])
-
+        count_recognized = 0
         
     def execute(self, userdata):
        #sss.move("gripper", "open", blocking=False)
@@ -39,8 +39,10 @@ class point_to_recognized_objects(smach.State):
                 #ToDo complete the sss.play with the objects names from recognized_objects and add .wav files to the directory
                 #sss.play(object.name)
                 rospy.sleep(3.0)
-                sss.move("arm", "zeroposition", mode=planning_mode)        
-                return 'succeeded'    
+                sss.move("arm", "zeroposition", mode=planning_mode)
+                count_recognized = conunt_recognized + 1;
+                if (count_recognized >= len(userdata.recognized_objects)):        
+                  return 'succeeded'    
             else:
                 rospy.logerr('could not find IK for current object')
 
