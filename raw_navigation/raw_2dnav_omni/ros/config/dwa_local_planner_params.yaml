@@ -1,9 +1,9 @@
-acc_lim_th: 1.0
-acc_lim_x: 1.0
-acc_lim_y: 1.0
+acc_lim_th: 3.0
+acc_lim_x: 3.0
+acc_lim_y: 3.0
 
-max_vel_x: 0.2
-min_vel_x: -0.1
+max_vel_x: 0.3
+min_vel_x: -0.3
 
 max_vel_y: 0.2
 min_vel_y: -0.2
@@ -15,7 +15,7 @@ max_rot_vel: 0.4
 min_rot_vel: 0.0
 
 sim_time: 1.7
-sim_granularity: 0.04
+sim_granularity: 0.08
 
 goal_distance_bias: 32.0
 path_distance_bias: 24.0
@@ -24,13 +24,13 @@ occdist_scale: 0.01
 stop_time_buffer: 0.2
 oscillation_reset_dist: 0.05
 
-forward_point_distance: 0.1 #  Try.15
+forward_point_distance: 0.15 #  Try.15
 
 scaling_speed: 0.25
 max_scaling_factor: 0.2
 
-vx_samples: 3    # Try 4,5
-vy_samples: 10 
+vx_samples: 4   # Try 4,5
+vy_samples: 10
 vtheta_samples: 20
 
 sim_period: 0.1
