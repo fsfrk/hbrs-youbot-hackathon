@@ -153,8 +153,8 @@ class setup_btt(smach.State):
     def __init__(self, type=""):
         smach.State.__init__(self, 
             outcomes=['success'],
-            input_keys=['task_list', 'destinaton_free_poses'],
-            output_keys=['destinaton_free_poses'])
+            input_keys=['task_list', 'destinaton_free_poses','source_visits'],
+            output_keys=['destinaton_free_poses','source_visits'])
         
         
     def execute(self, userdata):
@@ -165,6 +165,9 @@ class setup_btt(smach.State):
                 poses = ['1', '2', '3', '4', '5']
                 loc_free_poses = Bunch(location = task.location, free_poses = poses)
                 userdata.destinaton_free_poses.append(loc_free_poses)
+            if task.type == 'source':
+                source_loc_visits = Bunch(location = task.location, visits = 0)
+                userdata.source_visits.append(source_loc_visits)
                 
         print_task_spec(userdata.task_list)
         return 'success'
@@ -358,9 +361,9 @@ class check_if_platform_has_still_objects(smach.State):
 class skip_pose(smach.State):
 
     def __init__(self, type=""):
-        smach.State.__init__(self, outcomes=['pose_skipped'], 
-                                   input_keys=['task_list', 'base_pose_to_approach'],
-                                   output_keys=['task_list'])
+        smach.State.__init__(self, outcomes=['pose_skipped','pose_skipped_but_limit_reached'], 
+                                   input_keys=['task_list', 'base_pose_to_approach','source_visits','rear_platform_occupied_poses'],
+                                   output_keys=['task_list','source_visits'])
         self.type = type
 
     def execute(self, userdata):   
@@ -370,8 +373,21 @@ class skip_pose(smach.State):
         for i in range(len(userdata.task_list)):
             if userdata.task_list[i].type == self.type and userdata.task_list[i].location == userdata.base_pose_to_approach:
                 temp = userdata.task_list.pop(i)
-                userdata.task_list.append(temp)
-                return 'pose_skipped'
+                userdata.task_list.append(temp)              
+                sum_visits = 0
+                for j in range(len(userdata.source_visits)):
+                    if userdata.base_pose_to_approach == userdata.source_visits[j].location:
+                        userdata.source_visits[j].visits=userdata.source_visits[j].visits+1
+                    sum_visits = sum_visits+userdata.source_visits[j].visits
+
+                if sum_visits >= len(userdata.source_visits) and len(userdata.rear_platform_occupied_poses) > 0:
+                    for j in range(len(userdata.source_visits)):
+                        for task in userdata.task_list:
+                            source_loc_visits = Bunch(location = task.location, visits = 0)
+                            userdata.source_visits.append(source_loc_visits)
+                    return 'pose_skipped_but_limit_reached'
+                else:
+                    return 'pose_skipped'
             
         print_task_spec(userdata.task_list)
                 
