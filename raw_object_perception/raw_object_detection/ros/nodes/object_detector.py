@@ -13,8 +13,11 @@ sys.path.append(join(roslib.packages.get_pkg_dir(PACKAGE), 'ros', 'src'))
 import service_states
 
 import rospy
+import numpy as np
 
-from smach import State, StateMachine, CBState, cb_interface
+from smach import State, StateMachine
+from tf.transformations import quaternion_from_matrix
+import tf
 
 from label_visualizer import LabelVisualizer
 from hbrs_srvs.srv import GetObjects, GetObjectsResponse
@@ -45,7 +48,7 @@ class RecognizeObjects(State):
                        input_keys=['clusters', 'bounding_boxes', 'names'],
                        output_keys=['names'],
                        outcomes=['done'])
-        self.visualizer = LabelVisualizer('object_labels', 'c')
+        self.label_vis = LabelVisualizer('object_labels', 'teal')
         try:
             rospy.wait_for_service('recognize_object', timeout=5)
             self.recognize = rospy.ServiceProxy('recognize_object',
@@ -64,22 +67,69 @@ class RecognizeObjects(State):
             else:
                 name = 'unknown'
             ud.names.append(name)
-        self.visualizer.publish(ud.names, [b.center for b in ud.bounding_boxes])
+        self.label_vis.publish(ud.names, [b.center for b in ud.bounding_boxes])
         return 'done'
 
 
-@cb_interface(input_keys=['clusters', 'bounding_boxes', 'names', 'response'],
-              output_keys=['response'],
-              outcomes=['done'])
-def pack_response(ud):
-    ud.response = GetObjectsResponse()
-    for c, b, n in zip(ud.clusters, ud.bounding_boxes, ud.names):
-        obj = Object()
-        obj.dimensions.vector = b.dimensions
-        obj.pose.pose.position = b.center
-        obj.name = n
-        ud.response.objects.append(obj)
-    return 'done'
+class PackResponse(State):
+    def __init__(self):
+        State.__init__(self,
+                       input_keys=['clusters',
+                                   'bounding_boxes',
+                                   'names',
+                                   'response'],
+                       output_keys=['response'],
+                       outcomes=['done'])
+
+    def execute(self, ud):
+        ud.response = GetObjectsResponse()
+        for c, b, n in zip(ud.clusters, ud.bounding_boxes, ud.names):
+            obj = Object()
+            q = self.get_orientation(b.vertices)
+            obj.dimensions.vector = b.dimensions
+            obj.pose.header = c.header
+            obj.pose.pose.position = b.center
+            obj.pose.pose.orientation.w = q[0]
+            obj.pose.pose.orientation.x = q[1]
+            obj.pose.pose.orientation.y = q[2]
+            obj.pose.pose.orientation.z = q[3]
+            obj.name = n
+            ud.response.objects.append(obj)
+        return 'done'
+
+    def get_orientation(self, box):
+        to_array = lambda msg: np.array([msg.x, msg.y, msg.z])
+        n1 = to_array(box[4]) - to_array(box[0])
+        n2 = to_array(box[1]) - to_array(box[0])
+        n3 = to_array(box[3]) - to_array(box[0])
+        n1_norm = np.linalg.norm(n1)
+        n2_norm = np.linalg.norm(n2)
+        n3_norm = np.linalg.norm(n3)
+        n1 /= n1_norm
+        n2 = n2 / n2_norm if n2_norm > n3_norm else n3 / n3_norm
+        n3 = np.cross(n1, n2)
+        m = np.array([[n1[0], n2[0], n3[0], 0],
+                      [n1[1], n2[1], n3[1], 0],
+                      [n1[2], n2[2], n3[2], 0],
+                      [0,     0,     0,     1]])
+        return quaternion_from_matrix(m)
+
+
+class PublishTf(State):
+    def __init__(self):
+        State.__init__(self,
+                       outcomes=['done'],
+                       input_keys=['response'])
+        self.tf = tf.TransformBroadcaster()
+
+    def execute(self, ud):
+        for i, obj in enumerate(ud.response.objects):
+            p = obj.pose.pose.position
+            q = obj.pose.pose.orientation
+            self.tf.sendTransform((p.x, p.y, p.z), (q.w, q.x, q.y, q.z),
+                                  rospy.Time.now(), 'object_%i' % i,
+                                  obj.pose.header.frame_id)
+        return 'done'
 
 
 if __name__ == '__main__':
@@ -108,7 +158,10 @@ if __name__ == '__main__':
                          RecognizeObjects(),
                          transitions={'done': 'PACK_RESPONSE'})
         StateMachine.add('PACK_RESPONSE',
-                         CBState(pack_response),
+                         PackResponse(),
+                         transitions={'done': 'PUBLISH_TF'})
+        StateMachine.add('PUBLISH_TF',
+                         PublishTf(),
                          transitions={'done': 'succeeded'})
 
     def detect_objects_cb(request):
