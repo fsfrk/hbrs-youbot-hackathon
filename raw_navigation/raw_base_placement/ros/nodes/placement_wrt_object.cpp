@@ -26,17 +26,23 @@ bool calculateOptimalBasePose(raw_srvs::GetPoseStamped::Request  &req,
 	  Pose Goal;
 	  JointParameter prefConfig(1,8);
 
-      bool isValid = false;
+      bool isValid = true;
       
       ros::NodeHandle n;
 
       XmlRpc::XmlRpcValue joint_values;
       XmlRpc::XmlRpcValue costmap_resolution;
+
       n.getParam("/script_server/arm/pregrasp_laying_mex", joint_values);
+
       n.getParam("/move_base/global_costmap/resolution", costmap_resolution);
-      prefConfig << 0,0,0,(double) joint_values[1],(double) joint_values[2],(double) joint_values[3],(double) joint_values[4],(double) joint_values[5];
+      
 
 
+
+      prefConfig << 0,0,0,(double) joint_values[0],(double) joint_values[1],(double) joint_values[2],(double) joint_values[3],(double) joint_values[4];
+    
+      
 
 	  // Request Processing
       KinematicSolver youBot((double) costmap_resolution);  
@@ -45,14 +51,20 @@ bool calculateOptimalBasePose(raw_srvs::GetPoseStamped::Request  &req,
 	  float y_obj = req.object_pose.pose.position.y;
 	  float z_obj = req.object_pose.pose.position.z;
 	  tf::quaternionMsgToTF(req.object_pose.pose.orientation, q);
-	  btMatrix3x3(q).getRPY(roll_obj, pitch_obj, yaw_obj);   
-
+	  btMatrix3x3(q).getRPY(roll_obj, pitch_obj, yaw_obj); 
+      
+      //Roll and Pitch are not really necessary for evaluating the base position
+      roll_obj  = 0;
+      pitch_obj = 0;
+      
 	  Goal << x_obj,y_obj,z_obj,roll_obj, pitch_obj, yaw_obj;
 
 	  
-	  
-	  // Response 
+
 	  youBot.solveIK(Goal,prefConfig,isValid);
+
+	  // Response 
+
 	  res.base_pose.pose.position.x = prefConfig(0);
 	  res.base_pose.pose.position.y = prefConfig(1);
 	  res.base_pose.pose.position.z = 0;

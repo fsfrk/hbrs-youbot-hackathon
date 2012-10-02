@@ -10,6 +10,7 @@
   <depend package="rospy"/>
   <depend package="smach"/>
   <depend package="smach_ros"/>
+  <depend package="tf"/>
 
   <depend package="hbrs_srvs"/>
   <depend package="hbrs_msgs"/>

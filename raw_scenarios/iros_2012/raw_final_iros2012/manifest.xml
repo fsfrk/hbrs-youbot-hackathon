@@ -13,6 +13,9 @@
   <depend package="smach" />
   <depend package="smach_ros" />
   <depend package="raw_generic_states" />
+  <depend package="raw_arm_navigation" />
+  <depend package="hbrs_marker_detection" />
+
 </package>
 
 

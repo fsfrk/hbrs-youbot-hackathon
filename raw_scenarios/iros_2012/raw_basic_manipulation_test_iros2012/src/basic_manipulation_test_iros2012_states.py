@@ -77,7 +77,53 @@ class get_obj_poses_for_goal_configuration(smach.State):
                 
         return 'succeeded'
 
+class demo_grasp_random_object_vertical(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['object_list'])
+        
+    def execute(self, userdata):
+        sss.move("gripper", "open", blocking=False)
+       # sss.move("arm", "zeroposition")
+        
+        for object in userdata.object_list:         
+            
+            # ToDo: need to be adjusted to correct stuff           
+            if object.pose.pose.position.z <= 0.0 or object.pose.pose.position.z >= 0.10:
+                continue
+    
+            sss.move("arm", "zeroposition", mode="planned")                             
 
+            #object.pose.pose.position.z = object.pose.pose.position.z + 0.02
+            object.pose.pose.position.x = object.pose.pose.position.x + 0.01
+            object.pose.pose.position.y = object.pose.pose.position.y - 0.005
+
+            handle_arm = sss.move("arm", [object.pose.pose.position.x, object.pose.pose.position.y, object.pose.pose.position.z, "/base_link"], mode="planned")
+
+            if handle_arm.get_state() == 3:
+                sss.move("gripper", "close", blocking=False)
+                rospy.sleep(3.0)
+                sss.move("arm", "zeroposition", mode="planned")        
+                return 'succeeded'    
+            else:
+                rospy.logerr('could not find IK for current object')
+
+        return 'failed'
+class demo_grasp_vertical_object(smach.StateMachine):
+    def __init__(self):    
+        smach.StateMachine.__init__(self, 
+            outcomes=['object_grasped', 'failed'])
+        
+        with self:
+            smach.StateMachine.add('MOVE_ARM_OUT_OF_VIEW', move_arm_out_of_view(),
+                transitions={'succeeded':'FIND_OBJECT'})
+                      
+            smach.StateMachine.add('FIND_OBJECT', detect_object(),
+                transitions={'succeeded':'GRASP_OBJECT',  
+                             'failed':'failed'})
+                
+            smach.StateMachine.add('GRASP_OBJECT', demo_grasp_random_object_vertical(),
+                transitions={'succeeded':'object_grasped', 
+                            'failed':'failed'})
 
 
 

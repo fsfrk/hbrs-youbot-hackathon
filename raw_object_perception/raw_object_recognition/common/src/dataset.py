@@ -6,6 +6,7 @@ import numpy as np
 class Dataset:
     def __init__(self, base_folder, dataset_name):
         self.base_folder = base_folder
+        self.dataset_name = dataset_name
         self.dataset_folder = os.path.join(base_folder, dataset_name)
         if not os.path.isdir(self.dataset_folder):
             os.mkdir(self.dataset_folder)
@@ -22,25 +23,60 @@ class Dataset:
     def object_data_filename(self, object_id):
         return os.path.join(self.dataset_folder, object_id + '.dat')
 
-    def load(self, objects='all'):
+    def load(self, objects='all', start_index=0):
         if objects == 'all':
             objects = [obj['id'] for obj in self.objects]
         elif isinstance(objects, str):
             objects = [objects]
-        data = []
+        X = []
+        Y = []
         object_ids = []
         for obj in objects:
             try:
-                i = len(object_ids)
-                d = np.atleast_2d(np.loadtxt(self.object_data_filename(obj)))
-                d = np.hstack((d, np.ones((len(d), 1)) * i))
-                data.append(d)
+                i = len(object_ids) + start_index
+                x = np.atleast_2d(np.loadtxt(self.object_data_filename(obj)))
+                y = (np.ones((len(x), 1)) * i).astype(np.int)
                 object_ids.append(obj)
+                X.append(x)
+                Y.append(y)
             except IOError:
-                print 'Unable to read file for %s object.' % obj
+                print 'Unable to read file for object "%s" in dataset "%s"' % (
+                       obj, self.dataset_name)
                 pass
+        if object_ids:
+            try:
+                return (np.vstack(X), np.vstack(Y), object_ids)
+            except ValueError:
+                print 'Unable to concatenate arrays, different number of features.'
+        return (np.array([]), np.array([]), [])
+
+
+class JointDataset:
+    def __init__(self, datasets):
+        self.datasets = datasets
+        self.objects = datasets[0].objects
+
+    def load(self, objects='all', start_index=0):
+        if objects == 'all':
+            objects = [obj['id'] for obj in self.objects]
+        elif isinstance(objects, str):
+            objects = [objects]
+        X = []
+        Y = []
+        object_ids = []
+        for obj in objects:
+            i = len(object_ids) + start_index
+            loaded = False
+            for ds in self.datasets:
+                x, y, labels = ds.load(obj, i)
+                if labels:
+                    X.append(x)
+                    Y.append(y)
+                    loaded = True
+            if loaded:
+                object_ids.append(obj)
         try:
-            return (np.vstack(data), object_ids)
+            return (np.vstack(X), np.vstack(Y), object_ids)
         except ValueError:
             print 'Unable to concatenate arrays, different number of features.'
-            return (np.array([]), [])
+            return (np.array([]), np.array([]), [])
