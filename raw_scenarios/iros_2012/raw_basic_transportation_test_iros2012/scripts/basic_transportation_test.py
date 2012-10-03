@@ -36,6 +36,7 @@ def main():
     SM.userdata.rear_platform_occupied_poses = []
     SM.userdata.obj_goal_configuration_poses = []
     SM.userdata.destinaton_free_poses = []
+    SM.userdata.source_visits = []
     
      # open the container
     with SM:
@@ -71,7 +72,7 @@ def main():
                         'srv_call_failed':'RECOGNIZE_OBJECTS'})
 
         smach.StateMachine.add('SELECT_OBJECT_TO_BE_GRASPED', select_object_to_be_grasped(),
-            transitions={'obj_selected':'PLACE_BASE_IN_FRONT_OF_OBJECT',
+            transitions={'obj_selected':'GRASP_OBJ_WITH_VISUAL_SERVERING',
                         'no_obj_selected':'SKIP_SOURCE_POSE',
                         'no_more_free_poses_at_robot_platf':'SELECT_DELIVER_WORKSTATION'})            
 
@@ -91,10 +92,12 @@ def main():
         
         # MISC STATES
         smach.StateMachine.add('SKIP_SOURCE_POSE', skip_pose('source'),
-            transitions={'pose_skipped':'SELECT_SOURCE_SUBTASK'})  
+            transitions={'pose_skipped':'SELECT_SOURCE_SUBTASK',
+                         'pose_skipped_but_limit_reached':'SELECT_DELIVER_WORKSTATION'})  
         
         smach.StateMachine.add('SKIP_DESTINATION_POSE', skip_pose('destination'),
-            transitions={'pose_skipped':'SELECT_DELIVER_WORKSTATION'})  
+            transitions={'pose_skipped':'SELECT_DELIVER_WORKSTATION',
+                         'pose_skipped_but_limit_reached':'SELECT_DELIVER_WORKSTATION'})  
         
         
 
