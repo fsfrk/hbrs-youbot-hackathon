@@ -8,8 +8,8 @@ eband_tiny_bubble_distance: 0.01
 eband_tiny_bubble_expansion: 0.01
 
 #optimization - force calculation
-eband_internal_force_gain: 1.0
-eband_external_force_gain: 2.0
+eband_internal_force_gain: 0.4
+eband_external_force_gain: 0.9
 num_iterations_eband_optimization: 3
 
 #recursive approximation of bubble equilibrium position based
@@ -18,7 +18,7 @@ eband_equilibrium_relative_overshoot: 0.75
 eband_significant_force_lower_bound: 0.15
 
 # eband_trajectory_controller parameters
-max_vel_lin: 0.6
+max_vel_lin: 0.4
 max_vel_th: 1.5
 
 min_vel_lin: 0.1
@@ -35,7 +35,7 @@ k_prop: 4.0
 k_damp: 3.5
 Ctrl_Rate: 10.0
 
-max_acceleration: 0.5
+max_acceleration: 1.0
 virtual_mass: 0.75
 
 max_translational_acceleration: 0.5
