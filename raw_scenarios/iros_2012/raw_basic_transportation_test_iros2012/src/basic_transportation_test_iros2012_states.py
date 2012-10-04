@@ -376,7 +376,7 @@ class skip_pose(smach.State):
         for i in range(len(userdata.task_list)):
             if userdata.task_list[i].type == self.type and userdata.task_list[i].location == userdata.base_pose_to_approach:
                 userdata.lasttask = userdata.task_list.pop(i)
-                userdata.task_list.append(userdata.lastreachedpose)              
+                userdata.task_list.append(userdata.lasttask)              
                 sum_visits = 0
                 for j in range(len(userdata.source_visits)):
                     if userdata.base_pose_to_approach == userdata.source_visits[j].location:
