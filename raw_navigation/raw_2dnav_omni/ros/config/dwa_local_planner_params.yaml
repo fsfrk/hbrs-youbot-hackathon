@@ -1,4 +1,4 @@
-rrracc_lim_th: 3.0
+acc_lim_th: 3.0
 acc_lim_x: 3.0
 acc_lim_y: 3.0
 
@@ -27,7 +27,7 @@ oscillation_reset_dist: 0.05
 forward_point_distance: 0.08 #  Try.15
 
 scaling_speed: 0.0
-max_scaling_factor: 0.0
+max_scaling_factor: 0.01
 
 vx_samples: 4   # Try 4,5
 vy_samples: 10
