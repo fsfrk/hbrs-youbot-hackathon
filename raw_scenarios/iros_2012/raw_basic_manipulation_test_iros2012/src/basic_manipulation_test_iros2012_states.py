@@ -42,7 +42,7 @@ class select_recognized_object(smach.State):
         if(len(userdata.recognized_objects) == 0):
             return 'no_more_objects'
         
-        userdata.object_to_grasp = userdata.recognized_objects.pop() 
+        userdata.object_to_grasp = userdata.recognized_objects.pop().pose
                 
         return 'succeeded'
 
