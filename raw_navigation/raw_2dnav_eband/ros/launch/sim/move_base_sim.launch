@@ -14,6 +14,7 @@
 		<rosparam file="$(find raw_2dnav)/ros/config/costmap_common_params.yaml" 	command="load" ns="global_costmap" />
 		<rosparam file="$(find raw_2dnav)/ros/config/costmap_common_params.yaml" 	command="load" ns="local_costmap" />
 		<rosparam file="$(find raw_2dnav_eband)/ros/config/eband_local_planner_params.yaml" command="load" ns="EBandPlannerROS" />
+                <rosparam file="$(find raw_2dnav)/ros/config/base_local_planner_params.yaml" command="load" ns="TrajectoryPlannerROS" />
 	</node>
 </launch>
 
