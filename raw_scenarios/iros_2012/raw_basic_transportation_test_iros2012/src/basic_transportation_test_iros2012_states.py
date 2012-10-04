@@ -60,8 +60,8 @@ class select_object_to_be_grasped(smach.State):
 class select_btt_subtask(smach.State):
     def __init__(self, type=""):
         smach.State.__init__(self, 
-            outcomes=['task_selected','no_more_task_for_given_type'],
-            input_keys=['task_list'],
+            outcomes=['task_selected','no_more_task_for_given_type','task_selected_but_already_in_this_pose'],
+            input_keys=['task_list','lastreachedpose'],
             output_keys=['base_pose_to_approach', 'objects_to_be_grasped'])
         
         self.type = type
@@ -83,7 +83,10 @@ class select_btt_subtask(smach.State):
             if userdata.task_list[i].type == self.type:     
                 userdata.base_pose_to_approach = userdata.task_list[i].location
                 userdata.objects_to_be_grasped = userdata.task_list[i].object_names
-                return 'task_selected'
+                if userdata.lastreachedpose == userdata.base_pose_to_approach:
+                    return 'task_selected_but_already_in_this_pose'
+                else
+                    return 'task_selected'
             
         return 'no_more_task_for_given_type'
                      
@@ -362,8 +365,8 @@ class skip_pose(smach.State):
 
     def __init__(self, type=""):
         smach.State.__init__(self, outcomes=['pose_skipped','pose_skipped_but_limit_reached'], 
-                                   input_keys=['task_list', 'base_pose_to_approach','source_visits','rear_platform_occupied_poses'],
-                                   output_keys=['task_list','source_visits'])
+                                   input_keys=['task_list', 'base_pose_to_approach','source_visits','rear_platform_occupied_poses','lastreachedpose'],
+                                   output_keys=['task_list','source_visits','lastreachedpose'])
         self.type = type
 
     def execute(self, userdata):   
@@ -372,8 +375,8 @@ class skip_pose(smach.State):
         
         for i in range(len(userdata.task_list)):
             if userdata.task_list[i].type == self.type and userdata.task_list[i].location == userdata.base_pose_to_approach:
-                temp = userdata.task_list.pop(i)
-                userdata.task_list.append(temp)              
+                userdata.lastreachedpose = userdata.task_list.pop(i)
+                userdata.task_list.append(userdata.lastreachedpose)              
                 sum_visits = 0
                 for j in range(len(userdata.source_visits)):
                     if userdata.base_pose_to_approach == userdata.source_visits[j].location:
