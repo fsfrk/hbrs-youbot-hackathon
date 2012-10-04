@@ -61,7 +61,7 @@ class select_btt_subtask(smach.State):
     def __init__(self, type=""):
         smach.State.__init__(self, 
             outcomes=['task_selected','no_more_task_for_given_type','task_selected_but_already_in_this_pose'],
-            input_keys=['task_list','lasttask'],
+            input_keys=['task_list','lasttask','base_pose_to_approach'],
             output_keys=['base_pose_to_approach', 'objects_to_be_grasped'])
         
         self.type = type
