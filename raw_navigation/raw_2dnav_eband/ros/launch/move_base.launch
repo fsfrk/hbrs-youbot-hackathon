@@ -7,22 +7,15 @@
 
 	<node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
 	        
-                <param name="base_local_planner" value="eband_local_planner/EBandPlannerROS" />
-<<<<<<< HEAD
-	        <rosparam file="$(find raw_2dnav)/ros/config/move_base_params.yaml"  	command="load" />
-                <rosparam file="$(find raw_2dnav)/ros/config/global_costmap_params.yaml" 	command="load" />
+         <param name="base_local_planner" value="eband_local_planner/EBandPlannerROS" />
+	    <rosparam file="$(find raw_2dnav)/ros/config/move_base_params.yaml"  	command="load" />
+        <rosparam file="$(find raw_2dnav)/ros/config/global_costmap_params.yaml" 	command="load" />
 		<rosparam file="$(find raw_2dnav_eband)/ros/config/local_costmap_params.yaml" 	command="load" />
 		<rosparam file="$(find raw_2dnav)/ros/config/costmap_common_params.yaml" 	command="load" ns="global_costmap" />
 		<rosparam file="$(find raw_2dnav)/ros/config/costmap_common_params.yaml" 	command="load" ns="local_costmap" />
-=======
-	        <rosparam file="$(find raw_2dnav_eband)/ros/config/move_base_params.yaml"  	command="load" />
-		<rosparam file="$(find raw_2dnav_eband)/ros/config/costmap_common_params.yaml" 	command="load" ns="global_costmap" />
-		<rosparam file="$(find raw_2dnav_eband)/ros/config/costmap_common_params.yaml" 	command="load" ns="local_costmap" />
-		<rosparam file="$(find raw_2dnav_eband)/ros/config/local_costmap_params.yaml" 	command="load" />
-		<rosparam file="$(find raw_2dnav_eband)/ros/config/global_costmap_params.yaml" 	command="load" />
->>>>>>> 21b7ced3d1f81f27182daa0552e295363a01bd9f
 		<rosparam file="$(find raw_2dnav_eband)/ros/config/eband_local_planner_params.yaml" command="load" ns="EBandPlannerROS" />
 	</node>
 </launch>
+
 
 
