@@ -24,7 +24,7 @@ def main():
     # world knowledge
     SM.userdata.task_list = []
     SM.userdata.base_pose_to_approach = 0
-    SM.userdata.lastreachedpose = 0
+    SM.userdata.lasttask = 0
     SM.userdata.current_task_index = 0
     SM.userdata.recognized_objects = []
     SM.userdata.object_to_grasp = 0
