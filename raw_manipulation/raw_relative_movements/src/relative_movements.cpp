@@ -3,7 +3,9 @@
 #include <iostream>
 #include <sstream>
 #include <raw_srvs/SetPoseStamped.h>
+#include <raw_srvs/SetMarkerFrame.h>
 #include <tf/transform_datatypes.h>
+#include "tf/transform_listener.h"
 #include <LinearMath/btMatrix3x3.h>
 #include <XmlRpcValue.h>
 #include "HomogenousTransform.h"
@@ -56,7 +58,7 @@ class BaseMotionController
    // Odometry subscriber and Base Velocity Publisher
    ros::Publisher   base_velocities_publisher;   
    ros::Subscriber  base_odom;
-   
+
    //base velcoity topic message
    geometry_msgs::Twist youbot_base_velocities;
 
@@ -382,6 +384,81 @@ bool moveoptimalbase(raw_srvs::SetPoseStamped::Request  &req, raw_srvs::SetPoseS
     return true;
 }
 
+bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarkerFrame::Response &res)
+{
+    ros::NodeHandle alignmarker;
+
+    ros::Publisher base_velocities_publisher = alignmarker.advertise<geometry_msgs::Twist>( "/cmd_vel", 1 );
+    
+    tf::TransformListener listener;
+  
+    ros::Rate rate(10.0);
+
+           
+
+    while (alignmarker.ok()){
+
+    tf::StampedTransform transform;
+    double roll, pitch, yaw;
+
+       try
+       {
+          listener.lookupTransform(req.marker_frame, "/base_link", ros::Time(0), transform);
+
+
+       }
+       catch (tf::TransformException ex)
+       {
+          ROS_ERROR("%s",ex.what());
+       }
+       
+       geometry_msgs::Twist cmd;
+
+       btMatrix3x3(transform.getRotation()).getRPY(roll, pitch, yaw);
+
+       double x = transform.getOrigin().x();
+       double y = transform.getOrigin().y();
+
+       if(fabs(yaw) > 0.01)
+       {
+            if(yaw>0)
+            cmd.angular.z = -0.01;
+            else
+            cmd.angular.z = 0.01;
+       }
+       else if(x>0.01)
+       {
+            if(x>0)
+            cmd.linear.x = 0.1;
+            else
+            cmd.linear.x = -0.1;
+
+       } 
+       else if(y>0.01)
+       {
+            if(y>0)
+            cmd.linear.y = 0.1;
+            else
+            cmd.linear.y = -0.1;
+       }
+       else
+       {
+            geometry_msgs::Twist zero;
+            
+            base_velocities_publisher.publish(zero);
+        
+            return true;
+ 
+       }
+
+       base_velocities_publisher.publish(cmd);
+
+       rate.sleep();
+
+    }
+
+}
+
 
  
 
@@ -394,6 +471,8 @@ int main(int argc, char **argv)
   ros::ServiceServer shift_base = n.advertiseService( "shiftbase", shiftbase);
 
   ros::ServiceServer move_optimal_base = n.advertiseService( "movetooptimalbase", moveoptimalbase);
+
+  ros::ServiceServer align_with_marker = n.advertiseService( "alignwithmarker", alignwithmarker);
 
   ROS_INFO("Ready to move base position");
 

@@ -24,6 +24,7 @@ def main():
     # world knowledge
     SM.userdata.task_list = []
     SM.userdata.base_pose_to_approach = 0
+    SM.userdata.lastreachedpose = 0
     SM.userdata.current_task_index = 0
     SM.userdata.recognized_objects = []
     SM.userdata.object_to_grasp = 0
@@ -53,6 +54,7 @@ def main():
         
         smach.StateMachine.add('SELECT_SOURCE_SUBTASK', select_btt_subtask(type="source"),
             transitions={'task_selected':'MOVE_TO_SOURCE_LOCATION', 
+                         'task_selected_but_already_in_this_pose':'ADJUST_POSE_WRT_TO_PLATFORM_AT_SOURCE',
                          'no_more_task_for_given_type':'SELECT_DELIVER_WORKSTATION'})
 
         smach.StateMachine.add('MOVE_TO_SOURCE_LOCATION', approach_pose(),
