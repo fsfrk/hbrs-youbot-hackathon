@@ -5,16 +5,16 @@ acc_lim_y: 3.0
 max_vel_x: 0.3
 min_vel_x: -0.3
 
-max_vel_y: 0.2
-min_vel_y: -0.2
+max_vel_y: 0.3
+min_vel_y: -0.3
 
-max_trans_vel: 0.2
-min_trans_vel: 0.01
+max_trans_vel: 0.3
+min_trans_vel: 0.0
 
 max_rot_vel: 0.4
 min_rot_vel: 0.0
 
-sim_time: 3.0
+sim_time: 2.5
 sim_granularity: 0.04
 
 goal_distance_bias: 32.0
@@ -26,17 +26,18 @@ oscillation_reset_dist: 0.05
 
 forward_point_distance: 0.08 #  Try.15
 
-scaling_speed: 0.01
-max_scaling_factor: 0.15
+scaling_speed: 0.25
+max_scaling_factor: 0.2
 
 vx_samples: 4   # Try 4,5
 vy_samples: 10
 vtheta_samples: 20
-
+controller_frequency: 10
 sim_period: 0.1
 
 xy_goal_tolerance: 0.1
-yaw_goal_tolerance: 0.17
+yaw_goal_tolerance: 3.0
+latch_xy_goal_tolerance : true
 
 rot_stopped_vel: 0.0
 trans_stopped_vel: 0.0

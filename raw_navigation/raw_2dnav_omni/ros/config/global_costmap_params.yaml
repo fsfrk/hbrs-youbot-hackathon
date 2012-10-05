@@ -4,3 +4,4 @@ global_costmap:
   update_frequency: 5.0
   static_map: true
   rolling window: false
+  inflation_radius: 0.45
