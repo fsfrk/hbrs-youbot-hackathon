@@ -61,7 +61,7 @@ class select_btt_subtask(smach.State):
     def __init__(self, type=""):
         smach.State.__init__(self, 
             outcomes=['task_selected','no_more_task_for_given_type','task_selected_but_already_in_this_pose'],
-            input_keys=['task_list','lasttask','base_pose_to_approach'],
+            input_keys=['task_list','lasttask','base_pose_to_approach','objects_to_be_grasped'],
             output_keys=['base_pose_to_approach', 'objects_to_be_grasped'])
         
         self.type = type
@@ -69,24 +69,51 @@ class select_btt_subtask(smach.State):
     def execute(self, userdata):
         
         print_task_spec(userdata.task_list)
-        
-        # check if there is a empty obj_names list for a given locaction and remove it
+
+        # check if there is a empty obj_names list for a given location and remove it
         for i in range(len(userdata.task_list)):
-            if len(userdata.task_list[i].object_names) == 0:
-                userdata.task_list.pop(i)
-                break;
-            
+            if len(userdata.task_list[i].object_names) == 0 and userdata.task_list[i].type == 'source': 
+                userdata.task_list.pop(i)     
+                break;     
+        for i in range(len(userdata.task_list)):
+            if len(userdata.task_list[i].object_names) == 0 and userdata.task_list[i].type == 'destination': 
+                userdata.task_list.pop(i)   
+                break;                     
         print_task_spec(userdata.task_list)
-                
+              
+        selected = 'false'  
         # select next task
         for i in range(len(userdata.task_list)):
             if userdata.task_list[i].type == self.type:     
-                userdata.base_pose_to_approach = userdata.task_list[i].location
-                userdata.objects_to_be_grasped = userdata.task_list[i].object_names
-                if userdata.lasttask.location == userdata.base_pose_to_approach:
-                    return 'task_selected_but_already_in_this_pose'
-                else:
-                    return 'task_selected'
+                userdata.base_pose_to_approach = userdata.task_list[i].location  
+                userdata.objects_to_be_grasped = userdata.task_list[i].object_names          
+                selected_task_index = i
+                selected = 'true'
+                break;
+
+        if selected == 'true':
+            temp_task_list = userdata.task_list
+           
+            for i in range(len(userdata.task_list)):
+                if userdata.task_list[i].type == "destination" and userdata.base_pose_to_approach == userdata.task_list[i].location:
+                    for destobj in range(len(userdata.task_list[i].object_names)):                      
+                        for graspobj in range(len(userdata.task_list[selected_task_index].object_names)):  
+                            print "source objects",userdata.task_list[selected_task_index].object_names[0]
+                            print "dest object set",userdata.task_list[i].object_names[0]                           
+                            print "grasp obj",graspobj
+                            print "dest obj",destobj
+                            if (userdata.task_list[i].object_names[destobj] == userdata.task_list[selected_task_index].object_names[graspobj]):    
+                                userdata.task_list[selected_task_index].object_names.pop(graspobj)  
+                                userdata.task_list[i].object_names.pop(destobj)
+                                userdata.objects_to_be_grasped = userdata.task_list[selected_task_index].object_names  
+                            print_task_spec(userdata.task_list)
+                            break;                                                
+                                         
+                                         
+            if userdata.lasttask.location == userdata.base_pose_to_approach:
+                return 'task_selected_but_already_in_this_pose'
+            else:
+                return 'task_selected'
             
         return 'no_more_task_for_given_type'
                      
@@ -142,12 +169,12 @@ class select_delivery_workstation(smach.State):
                             userdata.base_pose_to_approach = task.location
                             userdata.objects_goal_configuration = task.object_config
                             return 'success'
-                        
+        '''                
         if len(userdata.task_list) > 0:
             userdata.base_pose_to_approach = task.location
             userdata.objects_goal_configuration = task.object_config
             return 'success'
-        
+        '''
         
         return 'no_more_dest_tasks'
                         
@@ -349,12 +376,18 @@ class check_if_platform_has_still_objects(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['still_objs_on_robot_pltf', 'no_more_objs_on_robot_pltf'], 
-                                   input_keys=['rear_platform_occupied_poses'])
+                                   input_keys=['rear_platform_occupied_poses','source_visits','task_list'],
+                                   output_keys=['source_visits','lasttask'])
 
     def execute(self, userdata):   
         print_occupied_platf_poses(userdata.rear_platform_occupied_poses)
         
         if len(userdata.rear_platform_occupied_poses) == 0:
+            for j in range(len(userdata.source_visits)):
+                for task in userdata.task_list:
+                    source_loc_visits = Bunch(location = task.location, visits = 0)
+                    userdata.source_visits.append(source_loc_visits)
+            userdata.lasttask = Bunch(location="", obj_names="")
             return 'no_more_objs_on_robot_pltf'
 
 
