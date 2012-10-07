@@ -1,0 +1,14 @@
+<package>
+  <description brief="raw_2dnav_omni">
+
+     raw_2dnav_omni
+
+  </description>
+  <author>Praveen</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_2dnav_omni</url>
+
+</package>
+
+

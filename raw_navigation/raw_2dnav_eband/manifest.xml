@@ -1,0 +1,14 @@
+<package>
+  <description brief="raw_2dnav_eband">
+This package depends on eband local planner package.
+  <depend package="eband_local_planner"/>
+
+  </description>
+  <author>Ravi</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_2dnav_eband</url>
+
+</package>
+
+

@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-	<rosparam command="load" ns="/script_server/base_orientations" file="$(find raw_default_env_config)/$(env ROBOT_ENV)/navigation_orientations.yaml"/>
-
 	<group>
 		<machine name="pc1" address="youbot-hbrs2-pc1" default="true"/>
 
@@ -27,7 +25,7 @@
 	    <include file="$(find raw_bringup)/components/cam3d.launch" />
   	    <include file="$(find raw_bringup)/components/usb_cam_microsoft.launch" />
 
-	    <include file="$(find raw_object_detection)/ros/launch/scene_segmentation.launch" />
+	    <include file="$(find raw_object_detection)/ros/launch/perception_pipeline.launch" />
 
         <!-- manipulation -->
 		<include file="$(find raw_arm_navigation)/ros/launch/planned_manipulation.launch" />	

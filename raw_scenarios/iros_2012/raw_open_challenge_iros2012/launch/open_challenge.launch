@@ -6,15 +6,56 @@
         <!-- base components -->
     	<include file="$(find raw_bringup)/robots/robot.launch" />
 
+		<!-- navigation -->
+		<include file="$(find raw_2dnav)/ros/launch/2dnav.launch" />
+	
+		<!-- base placement -->
+		<include file="$(find raw_base_placement)/ros/launch/placement_wrt_platform.launch" />
+		
+        <!-- motion controller -->
+        <include file="$(find raw_relative_movements)/launch/base_controller.launch" />
+
 		<!-- script server -->
 		<include file="$(find raw_script_server)/launch/script_server.launch" />
 	</group>
 
 	<group>
 	    <machine name="pc2" address="youbot-hbrs2-pc2" default="true"/>
+
+	    <include file="$(find raw_bringup)/components/cam3d.launch" />
+  	    <include file="$(find raw_bringup)/components/usb_cam_microsoft.launch" />
+
+	    <include file="$(find raw_object_detection)/ros/launch/perception_pipeline.launch" />
+
+        <!-- manipulation -->
+		<include file="$(find raw_arm_navigation)/ros/launch/planned_manipulation.launch" />	
+<!--
+	    <include file="$(find raw_visual_servoing)/launch/visual_servoing.launch" />
+-->    
+         
+   	</group>
+</launch><?xml version="1.0"?>
+<launch>
+	 <!--<group>
+		<machine name="pc1" address="youbot-hbrs2-pc1" default="true"/> -->
+
+        <!-- base components -->
+    	<include file="$(find raw_bringup)/robots/robot.launch" />
+
+        <include file="$(find raw_arm_navigation)/ros/launch/planned_manipulation.launch"/>
+
+		<!-- script server -->
+		<include file="$(find raw_script_server)/launch/script_server.launch" />
+                <param name="pathWav" value="$(find raw_open_challenge_iros2012)" type="string"/>
+
+
+	 <!--</group>
+
+	<group> -->
+	  <!--   <machine name="pc2" address="youbot-hbrs2-pc2" default="true"/>
         
-        <!-- cameras -->
+        <!-- cameras -->  <!--
 	    <include file="$(find raw_bringup)/components/cam3d.launch" />
   	    <include file="$(find raw_bringup)/components/usb_cam.launch" />
-   	</group>
-</launch>
+   	</group> -->
+</launch> 
