@@ -69,54 +69,23 @@ def main():
             transitions={'succeeded':'POINT_TO_RECOGNIZED_OBJECTS',
                         'failed':'overall_failed'})
 
-        smach.StateMachine.add('POINT_TO_RECOGNIZED_OBJECTS', point_to_recognized_objects(),
-            transitions={'succeeded':'SELECT_FINAL_POSE',
-                        'failed':'overall_failed'})
+       # smach.StateMachine.add('POINT_TO_RECOGNIZED_OBJECTS', point_to_recognized_objects(),
+       #     transitions={'succeeded':'SELECT_FINAL_POSE',
+       #                 'failed':'overall_failed'})
         
      
-       '''  smach.StateMachine.add('SELECT_RECOGNIZED_OBJECT', select_recognized_object(),
+        smach.StateMachine.add('SELECT_RECOGNIZED_OBJECT', select_recognized_object(),
             transitions={'succeeded':'PLACE_BASE_IN_FRONT_OF_OBJECT',
-                        'no_more_objects':'SELECT_DESTINATION_POSE'})
+                        'no_more_objects':'SELECT_FINAL_POSE'})
         
         smach.StateMachine.add('PLACE_BASE_IN_FRONT_OF_OBJECT', adjust_pose_wrt_recognized_obj(),
-            transitions={'succeeded':'GRASP_OBJ_WITH_VISUAL_SERVERING',
+            transitions={'succeeded':'POINT_TO_SELECTED_OBJECT',
                         'failed':'PLACE_BASE_IN_FRONT_OF_OBJECT'})     
 
-        smach.StateMachine.add('GRASP_OBJ_WITH_VISUAL_SERVERING', grasp_obj_with_visual_servering(),
-            transitions={'succeeded':'PLACE_OBJ_ON_REAR_PLATFORM',
-                        'failed':'GRASP_OBJ_WITH_VISUAL_SERVERING'})
-        
-        smach.StateMachine.add('PLACE_OBJ_ON_REAR_PLATFORM', place_obj_on_rear_platform(),
+        smach.StateMachine.add('POINT_TO_SELECTED_OBJECT', point_to_selected_object(),
             transitions={'succeeded':'SELECT_RECOGNIZED_OBJECT',
-                        'no_more_free_poses':'SELECT_DESTINATION_POSE'})
-      
-
-        # go to the destination pose and place the objects in the desired configuration on the platform
-        smach.StateMachine.add('SELECT_DESTINATION_POSE', select_base_pose("destination_pose"),
-            transitions={'succeeded':'APPROACH_DESTINATION_POSE'})
+                        'failed':'POINT_TO_SELECTED_OBJECT'})
         
-        smach.StateMachine.add('APPROACH_DESTINATION_POSE', approach_pose(),
-            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM2',
-                        'failed':'APPROACH_DESTINATION_POSE'})
-
-        smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM2', adjust_pose_wrt_platform(),
-            transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATION',
-                        'failed':'ADJUST_POSE_WRT_PLATFORM2'})
-        
-        smach.StateMachine.add('GET_OBJ_POSES_FOR_CONFIGURATION', get_obj_poses_for_goal_configuration(),
-            transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF',
-                         'configuration_poses_not_available':'overall_failed'})
-        
-        smach.StateMachine.add('GRASP_OBJECT_FROM_PLTF', grasp_obj_from_pltf(),
-            transitions={'succeeded':'PLACE_OBJ_IN_CONFIGURATION',
-                        'no_more_obj_on_pltf':'SELECT_FINAL_POSE'})
-        
-        smach.StateMachine.add('PLACE_OBJ_IN_CONFIGURATION', place_object_in_configuration(),
-            transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF',
-                        'no_more_cfg_poses':'SELECT_FINAL_POSE'})
-      
-        '''       
- 
             
         # if everything is done move to final pose
         smach.StateMachine.add('SELECT_FINAL_POSE', select_base_pose("final_pose"),
