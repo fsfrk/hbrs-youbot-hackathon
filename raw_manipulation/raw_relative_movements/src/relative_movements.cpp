@@ -392,9 +392,10 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
     
     tf::TransformListener listener;
   
-    ros::Rate rate(10.0);
-
-           
+    ros::Duration rate(50.0);
+		
+    ros::Time stamp = ros::Time::now();
+         
 
     while (alignmarker.ok()){
 
@@ -404,7 +405,7 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
        try
        {
           listener.lookupTransform(req.marker_frame, "/base_link", ros::Time(0), transform);
-
+          //listener.lookupTransform("/drawer_1", "/base_link", ros::Time(0), transform);
 
        }
        catch (tf::TransformException ex)
