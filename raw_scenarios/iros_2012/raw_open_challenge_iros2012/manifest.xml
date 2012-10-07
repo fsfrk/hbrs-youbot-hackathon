@@ -14,7 +14,6 @@
   <depend package="smach_ros" />
   <depend package="raw_generic_states" />
   <depend package="raw_basic_manipulation_test_iros2012" />
-  <depend package="raw_open_challenge_iros2012" />
   <depend package="raw_default_env_config" />
   <depend package="raw_bringup" />
   <depend package="raw_2dnav" />

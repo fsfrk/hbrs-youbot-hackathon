@@ -7,7 +7,7 @@
   <node pkg="hbrs_scene_segmentation" type="workspace_finder" name="workspace_finder" output="screen">
     <param name="min_z" value="0.3" type="double"/>
     <param name="max_z" value="1.5" type="double"/>
-    <rosparam command="load" file="$(find raw_object_detection)/ros/config/workspace_constraints_macbooks.yaml"/>
+    <rosparam command="load" file="$(find raw_object_detection)/ros/config/workspace_constraints.yaml"/>
   </node>
 
   <node pkg="hbrs_scene_segmentation" type="tabletop_cloud_accumulator" name="tabletop_cloud_accumulator" output="screen">
