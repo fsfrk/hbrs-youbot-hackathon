@@ -16,6 +16,8 @@
     <depend package="raw_generic_states"/>
     <depend package="raw_bringup"/>
     <depend package="raw_2dnav"/>
+    <depend package="raw_2dnav_omni"/>
+     <depend package="raw_2dnav_eband"/>
     <depend package="raw_script_server"/>
     <depend package="raw_bringup_sim"/>
 
