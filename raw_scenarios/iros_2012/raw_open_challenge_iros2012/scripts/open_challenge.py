@@ -13,8 +13,9 @@ from generic_navigation_states import *
 from generic_manipulation_states import *
 from generic_perception_states import *
 
-from basic_manipulation_test_iros2012_states import *
 from open_challenge_test_iros2012_states import *
+from basic_manipulation_test_iros2012_states import *
+
 
 
 

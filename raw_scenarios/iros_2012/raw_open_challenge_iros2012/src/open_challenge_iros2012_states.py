@@ -44,7 +44,7 @@ class point_to_recognized_objects(smach.State):
                 
                 #sss.play takes as input the name of the .wav file to play, the .wav file should be in the /common/files/en directory 
                 ##sss.play(object.name)
-                rospy.sleep(5.0)
+                rospy.sleep(4.0)
                 sss.move("arm", "zeroposition", mode=planning_mode)
                 count_recognized = count_recognized + 1
                 if (count_recognized >= len(userdata.recognized_objects)):        
@@ -89,7 +89,7 @@ class point_to_selected_object(smach.State):
                 
                 #sss.play takes as input the name of the .wav file to play, the .wav file should be in the /common/files/en directory 
                 ##sss.play(object.name)
-                rospy.sleep(5.0)
+                rospy.sleep(4.0)
                 sss.move("arm", "zeroposition", mode=planning_mode)
                 return 'succeeded'    
             else:
