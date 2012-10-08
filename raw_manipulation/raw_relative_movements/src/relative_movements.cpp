@@ -392,12 +392,17 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
     
     tf::TransformListener listener;
   
-    ros::Duration rate(50.0);
+    ros::Duration rate(20.0);
 		
     ros::Time stamp = ros::Time::now();
+
+    bool isreached = false;
+
+    geometry_msgs::Twist zero;
          
 
-    while (alignmarker.ok()){
+    while (!isreached)
+   {
 
     tf::StampedTransform transform;
     double roll, pitch, yaw;
@@ -419,46 +424,55 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
 
        double x = transform.getOrigin().x();
        double y = transform.getOrigin().y();
+       cmd = zero;
 
        if(fabs(yaw) > 0.01)
        {
+            
             if(yaw>0)
-            cmd.angular.z = -0.01;
+            cmd.angular.z = -0.01; 
             else
             cmd.angular.z = 0.01;
+
+            ROS_INFO("Anglular displacement"); 
+
        }
-       else if(x>0.01)
+       else if(fabs(x)>0.01)
        {
+            
             if(x>0)
             cmd.linear.x = 0.1;
             else
             cmd.linear.x = -0.1;
 
+            ROS_INFO("X displacement");
+
        } 
-       else if(y>0.01)
-       {
+       else if(fabs(y)>0.01)
+       {          
             if(y>0)
             cmd.linear.y = 0.1;
             else
             cmd.linear.y = -0.1;
+
+            ROS_INFO("Y displacement");
        }
        else
-       {
-            geometry_msgs::Twist zero;
-            
+       {    
             base_velocities_publisher.publish(zero);
         
-            return true;
- 
+            isreached =  true;
+
+            ROS_INFO("Iam here");
        }
 
-       base_velocities_publisher.publish(cmd);
-
-       rate.sleep();
-
+        base_velocities_publisher.publish(cmd);
+        
     }
 
-}
+    return true; 
+
+ }
 
 
  
