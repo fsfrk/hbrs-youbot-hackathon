@@ -15,7 +15,8 @@
   <depend package="raw_generic_states" />
   <depend package="raw_arm_navigation" />
   <depend package="hbrs_marker_detection" />
-
+  <depend package="raw_base_placement" />
+  <depend package="raw_relative_movements" />
 </package>
 
 
