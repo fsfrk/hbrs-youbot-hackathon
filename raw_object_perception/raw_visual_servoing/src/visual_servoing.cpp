@@ -52,6 +52,7 @@ public:
   //---------------------------------------------------------------------------
   raw_visual_servoing( ros::NodeHandle &n ) : node_handler( n ), image_transporter( node_handler )
   {
+    /**
     try 
     {
       std::string package_path = ros::package::getPath("raw_visual_servoing") + "/data/background.png";
@@ -62,6 +63,7 @@ public:
     {
           std::cout << "Could not load background image\t" << " " << e.what() << std::endl;
     }
+    **/
 
     //-------------------------------------------------------------------------
     //  Get all of the joint names for the YouBot arm as well as their limits.
@@ -117,6 +119,8 @@ public:
   //---------------------------------------------------------------------------
   void imageCallback( const sensor_msgs::ImageConstPtr& msg_ptr )
   {
+    // TODO: output all the stages of visualization.
+
     int master_image_width = 0; 
     int master_image_height = 0; 
 
@@ -134,13 +138,11 @@ public:
     sensor_msgs::CvBridge opencv_bridge;
     CBlobGetOrientation get_orientation; 
 
-    CBlob* currentBlob;  
     CBlob   temp_tracked_blob; 
     double  temp_tracked_blob_distance = 0; 
 
     double  x_threshold = 30; 
     double  y_threshold = 30;
-    double  rot_threshold = 5; 
 
     double maxx; 
     double minx; 
@@ -160,32 +162,19 @@ public:
     catch (sensor_msgs::CvBridgeException error)
     {
       ROS_ERROR( "Error converting from ROS image message to OpenCV IplImage" );
-    }
-
-    IplImage* background_threshold = cvCreateImage( cvGetSize( background_image ), 8, 1 ); 
-    cvCvtColor( background_image, background_threshold, CV_BGR2GRAY ); 
-    cvSmooth( background_threshold, background_threshold, CV_GAUSSIAN, 7, 7 );
-    cvThreshold( background_threshold, background_threshold, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU );   
+    }  
 
     //  Obtain image properties that we require. 
     master_image_width = cv_image->width; 
     master_image_height = cv_image->height; 
 
-    blob_image = cvCreateImage( cvGetSize( cv_image ), 8, 3 ); 
+    blob_image = cvCreateImage( cvGetSize( cv_image ), IPL_DEPTH_8U, cv_image->nChannels ); 
 
-    IplImage* gray = cvCreateImage( cvGetSize( cv_image ), 8, 1 );
+    IplImage* gray = cvCreateImage( cvGetSize( cv_image ), IPL_DEPTH_8U, 1 );
     cvCvtColor( cv_image, gray, CV_BGR2GRAY );
     cvSmooth( gray, gray, CV_GAUSSIAN, 7, 7 );
-    cvThreshold( gray, gray, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU );
-    
-    IplImage* temp_img = cvCreateImage( cvGetSize( background_image ), 8, 1); 
-
-    //    This takes a background image (the gripper on a white background) and removes
-    //  it from the current image (cv_image). The results are stored again in cv_image.
-    //
-    //  TODO: Need to automate this as when we switch resolutions the background image is no longer valid.
-    //
-    //cvSub( gray, background_threshold, gray, NULL );
+    cvEqualizeHist( gray, gray ); 
+    cvThreshold( gray, gray, 10, 255, CV_THRESH_BINARY_INV  );
 
     // Find any blobs that are not white. 
     CBlobResult blobs = CBlobResult( gray, NULL, 0 );
@@ -196,8 +185,6 @@ public:
     int maximum_blob_area = ( master_image_height * master_image_width * 0.3 ); 
     blobs.Filter( blobs, B_EXCLUDE, CBlobGetArea(), B_LESS, minimum_blob_area ); 
     blobs.Filter( blobs, B_EXCLUDE, CBlobGetArea(), B_GREATER, maximum_blob_area ); 
-
-    int blob_number = blobs.GetNumBlobs();  
 
     //  We will only grab the largest blob on the first pass from that point on we will look for the centroid
     //  of a blob that is closest to the centroid of the largest blob.
@@ -251,6 +238,8 @@ public:
           tracked_y = temp_y;  
         }
       }
+      
+      //temp_blob.FillBlob( blob_image, CV_RGB( 255, 0, 0 ) ); 
     }
 
     //  Draw the blob we are tracking as well as a circle to represent the centroid of that object.
@@ -418,7 +407,7 @@ public:
 
     std::string y_str = "Y: "; 
     y_str += boost::lexical_cast<std::string>( y_offset ); 
-
+ 
     std::string rot_str = "Rotation: "; 
     rot_str += boost::lexical_cast<std::string>( rot_offset ); 
 
@@ -426,19 +415,30 @@ public:
     cvPutText( blob_image, y_str.c_str(),  cvPoint( 185, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
     cvPutText( blob_image, rot_str.c_str(), cvPoint( 350, blob_image->height - 10 ), &font, CV_RGB( 255, 0, 0 ) );
 
-    cvShowImage( "Found Blobs", blob_image );                             
+    cvShowImage( "Found Blobs", blob_image );   
+
+    /**
+    * DEBUGGING
+    **/                          
+
+    cvShowImage( "Original Image", cv_image ); 
+    cvShowImage( "Gray Scale Image", gray ); 
 
     //-------------------------------------------------------------------------
     //----------------------- END OF VISUAL OUTPUT ----------------------------
     //-------------------------------------------------------------------------
-
-    cvReleaseImage( &background_threshold ); 
-    cvReleaseImage( &gray ); 
-    cvReleaseImage( &blob_image ); 
-    cvReleaseImage( &temp_img );
+    //cvSetZero( blob_image ); 
+    
 
     //  Wait for user interaction.
-    cvWaitKey(3);
+    cvWaitKey( 10 );
+
+    cvSetZero( gray ); 
+    cvSetZero( cv_image );
+    cvSetZero( blob_image );
+
+    cvReleaseImage( &gray ); 
+    cvReleaseImage( &blob_image ); 
   }
 
   //--------------------------------------------------------------------- start
@@ -455,7 +455,7 @@ public:
     image_subscriber = image_transporter.subscribe( "/usb_cam/image_raw", 1, &raw_visual_servoing::imageCallback, this );
 
     // Velocity control for the YouBot base.
-    base_velocities_publisher = node_handler.advertise<geometry_msgs::Twist>( "/cmd_vel", 1 ); 
+    base_velocities_publisher = node_handler.advertise<geometry_msgs::Twist>( "/safe_cmd_vel", 1 ); 
 
     // Velocity Control for the YouBot arm. 
     arm_velocities_publisher = node_handler.advertise<brics_actuator::JointVelocities>( "/arm_1/arm_controller/velocity_command", 1 );
@@ -539,9 +539,6 @@ protected:
   //  Tracked Centroid Values
   double tracked_x; 
   double tracked_y; 
-
-  // background Image.
-  IplImage* background_image; 
 };
 
 //------------------------------------------------------------------------ main
