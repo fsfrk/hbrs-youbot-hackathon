@@ -6,7 +6,7 @@
   <include file="$(find raw_object_detection)/ros/launch/scene_segmentation.launch"/>
 
   <include file="$(find raw_object_recognition)/ros/launch/object_recognition.launch">
-    <arg name="network" value="all_objects"/>
+    <arg name="network" value="portugal"/>
   </include>
 
   <node pkg="raw_object_detection" type="object_detector.py" name="object_detector" output="screen"/>

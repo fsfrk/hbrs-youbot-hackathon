@@ -713,12 +713,6 @@ void MoveBaseAdapted::executeCb(const move_base_msgs::MoveBaseGoalConstPtr& move
 
 		//if we're done, then we'll return from execute
 		if(done){
-			basic_navigation::OrientGoal orientgoal;
-			geometry_msgs::Quaternion goal_orientation;
-			goal_orientation = goal.pose.orientation;
-			orientgoal.initialize("rotate_recovery",&tf_, planner_costmap_ros_, controller_costmap_ros_,&goal_orientation);
-			orientgoal.runBehavior();
-            publishZeroVelocity();
 			return;
 		}
 
@@ -844,6 +838,13 @@ bool MoveBaseAdapted::executeCycle(geometry_msgs::PoseStamped& goal, std::vector
 			boost::unique_lock<boost::mutex> lock(planner_mutex_);
 			runPlanner_ = false;
 			lock.unlock();
+
+			basic_navigation::OrientGoal orientgoal;
+			geometry_msgs::Quaternion goal_orientation;
+			goal_orientation = goal.pose.orientation;
+			orientgoal.initialize("rotate_recovery",&tf_, planner_costmap_ros_, controller_costmap_ros_,&goal_orientation);
+			orientgoal.runBehavior();
+			publishZeroVelocity();
 
 			as_->setSucceeded(move_base_msgs::MoveBaseResult(), "Goal reached.");
 			return true;
