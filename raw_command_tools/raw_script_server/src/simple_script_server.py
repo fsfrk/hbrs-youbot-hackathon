@@ -1080,12 +1080,11 @@ class simple_script_server:
         else:
             ah.set_active()
 
-        language = rospy.get_param(self.ns_global_prefix + "/" + component_name + "/language", "en")
         if self.wav_path == "":
-            wav_path = commands.getoutput("rospack find cob_script_server")
+            wav_path = commands.getoutput("rospack find raw_script_server")
         else:
             wav_path = self.wav_path
-        filename = wav_path + "/common/files/" + language + "/" + parameter_name + ".wav"
+        filename = wav_path + "/common/files/" + parameter_name + ".wav"
 
         rospy.loginfo("Playing <<%s>>", filename)
         #self.soundhandle.playWave(filename)
