@@ -27,7 +27,7 @@ def main():
     SM.userdata.lasttask = Bunch(location="", obj_names="")
     SM.userdata.current_task_index = 0
     SM.userdata.recognized_objects = []
-    SM.userdata.object_to_be_grasped = 0
+    SM.userdata.object_to_grasp = 0
 
     SM.userdata.rear_platform_free_poses = []
     SM.userdata.rear_platform_free_poses.append(Bunch(obj_name="", platform_pose='platform_right'))
@@ -74,7 +74,7 @@ def main():
                         'no_objects_found':'RECOGNIZE_OBJECTS',
                         'srv_call_failed':'RECOGNIZE_OBJECTS'})
 
-        smach.StateMachine.add('SELECT_OBJECT_TO_BE_GRASPED', select_object_to_be_grasped_bmt(),
+        smach.StateMachine.add('SELECT_OBJECT_TO_BE_GRASPED', select_recognized_object(),
             transitions={'obj_selected':'GRASP_OBJ_WITH_VISUAL_SERVERING',
                         'no_obj_selected':'SKIP_SOURCE_POSE',
                         'no_more_free_poses_at_robot_platf':'SELECT_DELIVER_WORKSTATION'})            
@@ -82,7 +82,7 @@ def main():
         smach.StateMachine.add('PLACE_BASE_IN_FRONT_OF_OBJECT', place_base_in_front_of_object(),
             transitions={'succeeded':'GRASP_OBJ_WITH_VISUAL_SERVERING',
                          'srv_call_failed':'PLACE_BASE_IN_FRONT_OF_OBJECT'},
-            remapping={'object_pose':'object_to_be_grasped'})    
+            remapping={'object_pose':'object_to_grasp'})    
 
         smach.StateMachine.add('GRASP_OBJ_WITH_VISUAL_SERVERING', grasp_obj_with_visual_servering(),
             transitions={'succeeded':'PLACE_OBJ_ON_REAR_PLATFORM',
