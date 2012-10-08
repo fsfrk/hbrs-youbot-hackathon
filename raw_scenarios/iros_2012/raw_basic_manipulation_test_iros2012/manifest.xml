@@ -22,8 +22,8 @@
   <depend package="raw_bringup_sim" />
   <depend package="raw_visual_servoing" />
   <depend package="raw_relative_movements"/>
+  <depend package="hbrs_safe_cmd_vel"/>
 
-  
 </package>
 
 
