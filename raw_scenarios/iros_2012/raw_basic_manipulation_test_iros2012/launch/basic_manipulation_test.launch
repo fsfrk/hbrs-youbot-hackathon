@@ -29,9 +29,8 @@
 
         <!-- manipulation -->
 		<include file="$(find raw_arm_navigation)/ros/launch/planned_manipulation.launch" />	
-<!--
+
 	    <include file="$(find raw_visual_servoing)/launch/visual_servoing.launch" />
--->    
          
    	</group>
 </launch>

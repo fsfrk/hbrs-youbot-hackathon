@@ -31,17 +31,10 @@ def main():
     print "wait for service: /raw_relative_movements/alignwithmarker"   
     rospy.wait_for_service('/raw_relative_movements/alignwithmarker', 30)
 
-    goalframe = "/drawer_1"
+    goalframe = "/base_link"
     
     # call base placement service
-    base_align = alignbase_srv(goalpose)  
-
-    if base_align:
-        rospy.loginfo("Action finished: %s", self.ac_base_adj.get_state())
-        return 'succeeded'    
-    else:
-        rospy.logerr("Action did not finish before the time out!")
-        return 'failed'  
+    base_align = alignbase_srv(goalframe)  
 
 if __name__ == '__main__':
     main()
