@@ -37,8 +37,8 @@ class select_object_to_be_grasped(smach.State):
     def __init__(self):
         smach.State.__init__(self, 
             outcomes=['obj_selected', 'no_obj_selected','no_more_free_poses_at_robot_platf'],
-            input_keys=['recognized_objects', 'objects_to_be_grasped', 'object_to_be_grasped', 'rear_platform_free_poses'],
-            output_keys=['object_to_be_grasped'])
+            input_keys=['recognized_objects', 'objects_to_be_grasped', 'object_to_grasp', 'rear_platform_free_poses'],
+            output_keys=['object_to_grasp'])
         
     def execute(self, userdata):
         
@@ -50,12 +50,11 @@ class select_object_to_be_grasped(smach.State):
         for rec_obj in userdata.recognized_objects:
             for obj_grasp in userdata.objects_to_be_grasped:
                 if rec_obj.name == obj_grasp:
-                    userdata.object_to_be_grasped = rec_obj
-                    print "selected obj: ", userdata.object_to_be_grasped.name
+                    userdata.object_to_grasp = rec_obj
+                    print "selected obj: ", userdata.object_to_grasp.name
                     return 'obj_selected'
                 
         return 'no_obj_selected'
-
 
 class select_btt_subtask(smach.State):
     def __init__(self, type=""):
@@ -317,7 +316,7 @@ class place_obj_on_rear_platform_btt(smach.State):
 
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded', 'no_more_free_poses'], 
-                                   input_keys=['object_to_be_grasped', 'rear_platform_free_poses', 'rear_platform_occupied_poses', 'task_list', 'base_pose_to_approach'], 
+                                   input_keys=['object_to_grasp', 'rear_platform_free_poses', 'rear_platform_occupied_poses', 'task_list', 'base_pose_to_approach'], 
                                    output_keys=['rear_platform_free_poses', 'rear_platform_occupied_poses', 'task_list'])
 
     def execute(self, userdata):   
@@ -346,19 +345,19 @@ class place_obj_on_rear_platform_btt(smach.State):
         sss.move("gripper", "open")
         rospy.sleep(2)
 
-        print "object_to_be_grasped: ", userdata.object_to_be_grasped.name
+        print "object_to_grasp: ", userdata.object_to_grasp.name
         #delete from task list
         for i in range(len(userdata.task_list)):
             if userdata.task_list[i].type == 'source' and userdata.task_list[i].location == userdata.base_pose_to_approach:
                 print "obj_names:", userdata.task_list[i].object_names
-                userdata.task_list[i].object_names.remove(userdata.object_to_be_grasped.name)
+                userdata.task_list[i].object_names.remove(userdata.object_to_grasp.name)
                 print "obj_names after remove from task list: ", userdata.task_list[i].object_names
                 break
         
         print_task_spec(userdata.task_list)
         
         # remember what is on the platform
-        pltf_pose.obj_name = userdata.object_to_be_grasped.name
+        pltf_pose.obj_name = userdata.object_to_grasp.name
         userdata.rear_platform_occupied_poses.append(pltf_pose)
         
         print_occupied_platf_poses(userdata.rear_platform_occupied_poses)
