@@ -140,7 +140,7 @@ public:
 
 		target_distance = goal->distance;
 
-		ros::Duration max_time(50.0);
+		ros::Duration max_time(15.0);
 		ros::Time stamp = ros::Time::now();
 		OrientToBaseResult result;
         bool oriented = false;

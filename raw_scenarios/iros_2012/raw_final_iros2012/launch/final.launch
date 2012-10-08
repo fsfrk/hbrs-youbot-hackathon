@@ -9,6 +9,13 @@
 
 		<!-- script server -->
 		<include file="$(find raw_script_server)/launch/script_server.launch" />
+		
+		<!-- base placement -->
+		<include file="$(find raw_base_placement)/ros/launch/placement_wrt_platform.launch" />
+		
+        <!-- motion controller -->
+        <include file="$(find raw_relative_movements)/launch/base_controller.launch" />
+		
 	<!--
 	</group>
 	-->

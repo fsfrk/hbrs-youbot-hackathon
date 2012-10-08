@@ -3,30 +3,29 @@
 	<!-- base components -->
 	<include file="$(find raw_bringup)/robots/robot.launch" />
 
-    <group>
+	<group>
     	<machine name="pc1" address="youbot-hbrs2-pc1" default="true"/>
 
-	    <!-- navigation -->
-	    <include file="$(find raw_2dnav)/ros/launch/2dnav.launch" />
-	    <include file="$(find raw_relative_movements)/launch/base_controller.launch" />
-	
-	    <!-- behavior -->
-	    <include file="$(find raw_base_placement_fred)/ros/launch/adjust_pose_wrt_nearest_obj.launch" />
-	    <include file="$(find hbrs_nearest_object_detector)/ros/launch/nearest_object_detector.launch" />
+		<!-- navigation -->
+		<include file="$(find raw_2dnav)/ros/launch/2dnav.launch" />
+		<include file="$(find raw_relative_movements)/launch/base_controller.launch" />
 
-	    <!-- manipulation -->
-	    <include file="$(find raw_arm_navigation)/ros/launch/simple_manipulation.launch" />	
+		<!-- behavior -->
+		<include file="$(find raw_base_placement)/ros/launch/placement_wrt_platform.launch" />
 
-	    <!-- script server -->
-	    <include file="$(find raw_script_server)/launch/script_server.launch" />
-    </group>
+		<!-- manipulation -->
+		<include file="$(find raw_arm_navigation)/ros/launch/simple_manipulation.launch" />	
 
-    <group>
+		<!-- script server -->
+		<include file="$(find raw_script_server)/launch/script_server.launch" />
+	</group>
+ 
+	<group>
 		<machine name="pc2" address="youbot-hbrs2-pc2" default="true"/>
 
-	    <!-- perception -->
-	    <include file="$(find raw_bringup)/components/cam3d.launch" />
-	    <include file="$(find raw_object_finder)/ros/launch/object_segmentation.launch" />
-    </group>
-
+		<!-- perception -->
+		<include file="$(find raw_bringup)/components/cam3d.launch" />
+		<include file="$(find raw_object_finder)/ros/launch/object_segmentation.launch" />
+	</group>
+ 
 </launch>
