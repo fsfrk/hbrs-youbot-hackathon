@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import roslib; roslib.load_manifest('raw_basic_transportation_test_iros2012')
+import roslib; roslib.load_manifest('raw_basic_manipulation_test_iros2012')
 import rospy
 
 import smach
@@ -17,7 +17,7 @@ from basic_transportation_test_iros2012_states import *
 
 # main
 def main():
-    rospy.init_node('basic_transportation_test')
+    rospy.init_node('basic_manipulation_test')
 
     SM = smach.StateMachine(outcomes=['overall_success', 'overall_failed'])
     
@@ -27,7 +27,7 @@ def main():
     SM.userdata.lasttask = Bunch(location="", obj_names="")
     SM.userdata.current_task_index = 0
     SM.userdata.recognized_objects = []
-    SM.userdata.object_to_grasp = 0
+    SM.userdata.object_to_be_grasped = 0
 
     SM.userdata.rear_platform_free_poses = []
     SM.userdata.rear_platform_free_poses.append(Bunch(obj_name="", platform_pose='platform_right'))
@@ -38,7 +38,7 @@ def main():
     SM.userdata.obj_goal_configuration_poses = []
     SM.userdata.destinaton_free_poses = []
     SM.userdata.source_visits = []
-    SM.final_pose = 0
+    SM.userdata.final_pose = 0
     
      # open the container
     with SM:
@@ -46,7 +46,7 @@ def main():
         smach.StateMachine.add('INIT_ROBOT', init_robot(),
             transitions={'succeeded':'GET_TASK'})
 
-        smach.StateMachine.add('GET_TASK', get_basic_transportation_task(),
+        smach.StateMachine.add('GET_TASK', get_basic_manipulation_task_modified(),
             transitions={'task_received':'SETUP_BTT', 
                          'wront_task_format':'GET_TASK'})
         
@@ -74,7 +74,7 @@ def main():
                         'no_objects_found':'RECOGNIZE_OBJECTS',
                         'srv_call_failed':'RECOGNIZE_OBJECTS'})
 
-        smach.StateMachine.add('SELECT_OBJECT_TO_BE_GRASPED', select_object_to_be_grasped(),
+        smach.StateMachine.add('SELECT_OBJECT_TO_BE_GRASPED', select_object_to_be_grasped_bmt(),
             transitions={'obj_selected':'GRASP_OBJ_WITH_VISUAL_SERVERING',
                         'no_obj_selected':'SKIP_SOURCE_POSE',
                         'no_more_free_poses_at_robot_platf':'SELECT_DELIVER_WORKSTATION'})            
@@ -107,7 +107,7 @@ def main():
         # DELIVERY
         smach.StateMachine.add('SELECT_DELIVER_WORKSTATION', select_delivery_workstation(),
             transitions={'success':'MOVE_TO_DESTINATION_LOCATION',
-                         'no_more_dest_tasks':'MOVE_TO_EXIT'})
+                         'no_more_dest_tasks':'MOVE_TO_FINAL'})
         
         smach.StateMachine.add('MOVE_TO_DESTINATION_LOCATION', approach_pose(),
             transitions={'succeeded':'ADJUST_POSE_WRT_TO_PLATFORM_AT_DESTINATION', 
@@ -137,7 +137,7 @@ def main():
                          'no_more_objs_on_robot_pltf':'SELECT_SOURCE_SUBTASK'})
 
 
-        smach.StateMachine.add('MOVE_TO_FINAL', approach_pose(final_pose),
+        smach.StateMachine.add('MOVE_TO_FINAL', approach_pose(SM.userdata.final_pose),
             transitions={'succeeded':'overall_success', 
                         'failed':'MOVE_TO_FINAL'})
        
