@@ -14,7 +14,11 @@ id: "S40_40_G"
 name: "big profile"
 color: "silver"
 ---
-id: "BN"
+id: "M20"
+name: "small nut"
+color: "black"
+---
+id: "M30"
 name: "big nut"
 color: "black"
 ---
@@ -22,10 +26,10 @@ id: "R20"
 name: "tube"
 color: "black"
 ---
-id: "SS"
+id: "M20_100"
 name: "small screw"
 color: "black"
 ---
-id: "BS"
+id: "M20_180"
 name: "big screw"
 color: "black"
