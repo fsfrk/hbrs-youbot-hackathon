@@ -17,6 +17,8 @@
 #include <opencv/highgui.h>
 #include "geometry_msgs/Twist.h"
 
+#include <raw_srvs/ReturnBool.h>
+
 // BOOST
 #include <boost/units/systems/si.hpp>
 
@@ -296,6 +298,12 @@ public:
     {
       double move_speed = 0.0; 
 
+      if( !safe_cmd_vel_service.call( service_msg ) )
+      {
+        ROS_ERROR( "Visual Servoing call to is_robot_to_close_to_wall has failed" );
+        service_msg.response.value = true; 
+      }
+
       if( y_offset >= y_threshold )
       {
         // move the robot base right
@@ -312,6 +320,13 @@ public:
       {
         move_speed = 0.0;
         done_y_base_movement_adjustment = true;  
+      }
+      else if( service_msg.response.value == true )
+      {
+        // This will only be set when the safe_cmd_vel is telling us that it cannot 
+        //  allow for movement any longer in this direction.
+        move_speed = 0.0; 
+        done_y_base_movement_adjustment = true; 
       }
       else
       {
@@ -421,8 +436,8 @@ public:
     * DEBUGGING
     **/                          
 
-    cvShowImage( "Original Image", cv_image ); 
-    cvShowImage( "Gray Scale Image", gray ); 
+    //cvShowImage( "Original Image", cv_image ); 
+    //cvShowImage( "Gray Scale Image", gray ); 
 
     //-------------------------------------------------------------------------
     //----------------------- END OF VISUAL OUTPUT ----------------------------
@@ -453,6 +468,8 @@ public:
 
      //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
     image_subscriber = image_transporter.subscribe( "/usb_cam/image_raw", 1, &raw_visual_servoing::imageCallback, this );
+
+    safe_cmd_vel_service = node_handler.serviceClient<raw_srvs::ReturnBool>("/is_robot_to_close_to_wall ");
 
     // Velocity control for the YouBot base.
     base_velocities_publisher = node_handler.advertise<geometry_msgs::Twist>( "/safe_cmd_vel", 1 ); 
@@ -513,6 +530,10 @@ protected:
   ros::NodeHandle node_handler;
   image_transport::ImageTransport image_transporter;
   image_transport::Subscriber image_subscriber;
+
+  ros::ServiceClient  safe_cmd_vel_service;
+
+  raw_srvs::ReturnBool service_msg; 
 
   // Topics that this node publishes to.
   ros::Publisher base_velocities_publisher;
