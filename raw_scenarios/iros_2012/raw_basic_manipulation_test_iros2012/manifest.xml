@@ -24,6 +24,7 @@
   <depend package="raw_visual_servoing" />
   <depend package="raw_relative_movements"/>
   <depend package="hbrs_safe_cmd_vel"/>
+  <depend package="raw_object_detection"/>
 
 
 </package>
