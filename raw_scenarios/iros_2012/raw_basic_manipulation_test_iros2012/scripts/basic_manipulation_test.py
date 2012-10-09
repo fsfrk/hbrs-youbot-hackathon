@@ -62,10 +62,10 @@ def main():
                 
         smach.StateMachine.add('RECOGNIZE_OBJECTS', recognize_objects(),
             transitions={'found_objects':'SELECT_RECOGNIZED_OBJECT',
-                        'srv_call_failed':'overall_failed',
-                        'no_objects_found':'overall_failed'})
+                        'srv_call_failed':'RECOGNIZE_OBJECTS',
+                        'no_objects_found':'RECOGNIZE_OBJECTS'})
         
-        smach.StateMachine.add('SELECT_RECOGNIZED_OBJECT', select_recognized_object(),
+        smach.StateMachine.add('SELECT_RECOGNIZED_OBJECT', select_recognized_object_bmt(),
             transitions={'succeeded':'PLACE_BASE_IN_FRONT_OF_OBJECT',
                         'no_more_objects':'SELECT_DESTINATION_POSE'})
         
