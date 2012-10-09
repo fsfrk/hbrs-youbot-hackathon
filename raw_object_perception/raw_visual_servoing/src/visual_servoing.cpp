@@ -143,8 +143,8 @@ public:
     CBlob   temp_tracked_blob; 
     double  temp_tracked_blob_distance = 0; 
 
-    double  x_threshold = 30; 
-    double  y_threshold = 30;
+    double  x_threshold = 35; 
+    double  y_threshold = 35;
 
     double maxx; 
     double minx; 
@@ -180,8 +180,8 @@ public:
     IplImage* gray = cvCreateImage( cvGetSize( cv_image ), IPL_DEPTH_8U, 1 );
     cvCvtColor( cv_image, gray, CV_BGR2GRAY );
     cvSmooth( gray, gray, CV_GAUSSIAN, 7, 7 );
-    cvEqualizeHist( gray, gray ); 
-    cvThreshold( gray, gray, 10, 255, CV_THRESH_BINARY_INV  );
+    //cvEqualizeHist( gray, gray ); 
+    cvThreshold( gray, gray, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU );
 
      IplImage* temp_img = cvCreateImage( cvGetSize( background_image ), 8, 1); 
 
@@ -194,11 +194,11 @@ public:
 
     //  Make sure they are big enough to really be considered.
     //  In this case we will use an area of AT LEAST 100 px. 
-    int minimum_blob_area = 300; 
-    int maximum_blob_area = ( master_image_height * master_image_width * 0.3 ); 
+    int minimum_blob_area = ( master_image_height * master_image_width * 0.005 ); 
+    int maximum_blob_area = ( master_image_height * master_image_width * 0.2 ); 
     blobs.Filter( blobs, B_EXCLUDE, CBlobGetArea(), B_LESS, minimum_blob_area ); 
     blobs.Filter( blobs, B_EXCLUDE, CBlobGetArea(), B_GREATER, maximum_blob_area ); 
-
+	    
     //  We will only grab the largest blob on the first pass from that point on we will look for the centroid
     //  of a blob that is closest to the centroid of the largest blob.
     if( first_pass == true )
@@ -263,7 +263,7 @@ public:
     rotation = get_orientation( temp_tracked_blob );  
 
     x_offset = ( tracked_x ) - ( master_image_width / 2 ); 
-    y_offset = ( tracked_y ) - ( (master_image_height/2) + 85 ); 
+    y_offset = ( tracked_y ) - ( (master_image_height/2) + 65 ); 
     rot_offset = rotation; 
 
     //---------------------------------------------------------------------
@@ -365,7 +365,7 @@ public:
           rot_offset = rot_offset - 180; 
       }
 
-      if( ( rot_offset < 86 && rot_offset >= 0 ) || ( rot_offset < 266 && rot_offset >= 235 ) )
+      if( ( rot_offset < 85 && rot_offset >= 0 ) || ( rot_offset < 265 && rot_offset >= 235 ) )
       {
         rotational_speed = -0.2; 
         done_rotational_adjustment = false; 
@@ -424,7 +424,7 @@ public:
     CvFont font;
     cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 1.0, 1.0, 0, 1, CV_AA);
 
-    cvLine( blob_image,   cvPoint( 0, (master_image_height/2) + 85 ), cvPoint( master_image_width, (master_image_height/2) + 85 ), CV_RGB( 255, 0, 0 ), 2, 0 ); 
+    cvLine( blob_image,   cvPoint( 0, (master_image_height/2) + 65 ), cvPoint( master_image_width, (master_image_height/2) + 65 ), CV_RGB( 255, 0, 0 ), 2, 0 ); 
     cvLine( blob_image,   cvPoint( (master_image_width/2), 0 ), cvPoint( (master_image_width/2), master_image_height ), CV_RGB( 255, 0, 0 ), 2, 0 );
     cvRectangle( blob_image, cvPoint( 0, blob_image->height-40 ), cvPoint( blob_image->width, blob_image->height ), CV_RGB( 0, 0, 0 ), -1 );
 
@@ -481,7 +481,7 @@ public:
      //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
     image_subscriber = image_transporter.subscribe( "/usb_cam/image_raw", 1, &raw_visual_servoing::imageCallback, this );
 
-    safe_cmd_vel_service = node_handler.serviceClient<raw_srvs::ReturnBool>("/is_robot_to_close_to_wall ");
+    safe_cmd_vel_service = node_handler.serviceClient<raw_srvs::ReturnBool>("/is_robot_to_close_to_wall");
 
     // Velocity control for the YouBot base.
     base_velocities_publisher = node_handler.advertise<geometry_msgs::Twist>( "/safe_cmd_vel", 1 ); 
