@@ -49,21 +49,22 @@ class select_recognized_object(smach.State):
 class select_recognized_object_bmt(smach.State):
     def __init__(self):
         smach.State.__init__(self, 
-            outcomes=['obj_selected', 'no_obj_selected','no_more_free_poses_at_robot_platf'],
-            input_keys=['recognized_objects', 'objects_to_be_grasped', 'object_to_grasp', 'rear_platform_free_poses'],
-            output_keys=['object_to_grasp'])
+            outcomes=['succeeded','no_more_objects'],
+            input_keys=['recognized_objects','task_spec'],
+            output_keys=['recognized_objects', 'object_to_grasp'])
         
     def execute(self, userdata):
-        
-        if(len(userdata.rear_platform_free_poses) == 0):
-            rospy.logerr("NO more free poses on robot rear platform")
-            return 'no_more_free_poses_at_robot_platf'
-
         if(len(userdata.recognized_objects) == 0):
-            return 'no_obj_selected'
+            return 'no_more_objects'
         else:
-            userdata.object_to_grasp = userdata.recognized_objects.pop().pose
-            return 'obj_selected'
+            for rec_obj in userdata.recognized_objects:
+                for obj_grasp in userdata.task_spec.object_names:
+                    if rec_obj.name == obj_grasp:
+                        userdata.object_to_grasp = rec_obj
+                        print "selected obj: ", userdata.object_to_grasp.name
+                        return 'obj_selected'
+                
+           
 
 
 class get_obj_poses_for_goal_configuration(smach.State):
