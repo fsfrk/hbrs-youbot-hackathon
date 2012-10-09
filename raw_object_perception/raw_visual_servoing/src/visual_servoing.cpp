@@ -40,6 +40,8 @@
 #include <brics_actuator/JointVelocities.h>
 #include <brics_actuator/JointPositions.h>
 
+#define VS_TIMEOUT 20
+
 class raw_visual_servoing 
 {
 
@@ -183,7 +185,7 @@ public:
     //cvEqualizeHist( gray, gray ); 
     cvThreshold( gray, gray, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU );
 
-     IplImage* temp_img = cvCreateImage( cvGetSize( background_image ), 8, 1); 
+    IplImage* temp_img = cvCreateImage( cvGetSize( background_image ), 8, 1); 
 
     //    This takes a background image (the gripper on a white background) and removes
     //  it from the current image (cv_image). The results are stored again in cv_image.
@@ -473,10 +475,12 @@ public:
   //   Used to start up the processing of the web camera images once the node 
   //  has been told to start.
   //--------------------------------------------------------------------------- 
-  bool start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+  bool start( raw_srvs::ReturnBool::Request &req, raw_srvs::ReturnBool::Response &res )
   {
     blob_detection_completed = false; 
     first_pass = true; 
+
+    raw_srvs::ReturnBoolResponse response; 
 
      //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
     image_subscriber = image_transporter.subscribe( "/usb_cam/image_raw", 1, &raw_visual_servoing::imageCallback, this );
@@ -489,11 +493,24 @@ public:
     // Velocity Control for the YouBot arm. 
     arm_velocities_publisher = node_handler.advertise<brics_actuator::JointVelocities>( "/arm_1/arm_controller/velocity_command", 1 );
 
+    ros::Time start_time = ros::Time::now(); 
+
     ROS_INFO("Blob Detection Enabled");
 
-    while( blob_detection_completed == false && ros::ok() )
+    while( ( blob_detection_completed == false ) && ros::ok() && ( (ros::Time::now() - start_time).toSec() < VS_TIMEOUT ) )
     { 
       ros::spinOnce();
+    }
+
+    if( (ros::Time::now() - start_time).toSec() < VS_TIMEOUT )
+    {
+      ROS_INFO( "Visual Servoing Sucessful." ); 
+      response.value = true; 
+    }
+    else
+    {
+      ROS_ERROR( "Visual Servoing Failure due to Timeout" ); 
+      response.value = false; 
     }
 
      // Turn off the image subscriber for the web camera.
