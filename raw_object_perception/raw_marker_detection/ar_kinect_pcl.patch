@@ -1,0 +1,45 @@
+Index: include/ar_kinect/ar_kinect.h
+===================================================================
+--- include/ar_kinect/ar_kinect.h	(revision 311)
++++ include/ar_kinect/ar_kinect.h	(working copy)
+@@ -47,6 +47,7 @@
+ #include <pcl/point_types.h>
+ #include <pcl/registration/icp.h>
+ #include <pcl/registration/registration.h>
++#include <pcl/registration/transformation_estimation_svd.h>
+ 
+ #include <opencv/cv.h>
+ #include <cv_bridge/CvBridge.h>
+@@ -59,6 +60,7 @@
+ 
+ const double AR_TO_ROS = 0.001;
+ typedef pcl::PointCloud<pcl::PointXYZRGB> PointCloud;
++typedef pcl::registration::TransformationEstimationSVD<pcl::PointXYZRGB, pcl::PointXYZRGB> TransformationEstimationSVD;
+ 
+ namespace ar_pose
+ {
+Index: src/ar_kinect.cpp
+===================================================================
+--- src/ar_kinect.cpp	(revision 311)
++++ src/ar_kinect.cpp	(working copy)
+@@ -217,6 +217,10 @@
+       marker.push_back( cloud.at( (int)marker_info[k].vertex[(6-d)%4][0], (int)marker_info[k].vertex[(6-d)%4][1] ) ); // lower right
+       marker.push_back( cloud.at( (int)marker_info[k].vertex[(7-d)%4][0], (int)marker_info[k].vertex[(7-d)%4][1] ) );
+ 
++      if (!pcl::isFinite(marker.points[0]) || !pcl::isFinite(marker.points[1]) ||
++          !pcl::isFinite(marker.points[2]) || !pcl::isFinite(marker.points[3]))
++        continue;
++
+       /* create an ideal cloud */
+       double w = object[i].marker_width;
+       PointCloud ideal;
+@@ -227,7 +231,8 @@
+ 
+       /* get transformation */
+       Eigen::Matrix4f t;
+-      pcl::estimateRigidTransformationSVD( marker, ideal, t );
++      TransformationEstimationSVD obj;
++      obj.estimateRigidTransformation( marker, ideal, t );
+       
+       /* get final transformation */
+       tf::Transform transform = tfFromEigen(t.inverse());
