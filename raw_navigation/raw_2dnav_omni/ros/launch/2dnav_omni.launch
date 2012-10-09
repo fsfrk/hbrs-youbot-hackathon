@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <launch>
     <!-- navigation goals -->
+   <rosparam command="load" ns="/script_server/base_orientations" file="$(find raw_default_env_config)/$(env ROBOT_ENV)/navigation_orientations.yaml"/>
+
 	<include file="$(find raw_default_env_config)/upload_param.launch" />
     
     <!-- visualize navigation goals -->
@@ -17,6 +19,6 @@
 	<!-- launch move_base node -->
 	<include file="$(find raw_2dnav_omni)/ros/launch/move_base.launch" />
     <include file="$(find raw_bringup)/components/base_rear_hokuyo_node.launch" />
-      
+    <include file="$(find raw_script_server)/launch/script_server.launch" />
      
 </launch>
