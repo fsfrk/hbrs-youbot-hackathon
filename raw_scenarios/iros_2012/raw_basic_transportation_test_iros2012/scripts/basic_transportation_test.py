@@ -27,7 +27,10 @@ def main():
     SM.userdata.lasttask = Bunch(location="", obj_names="")
     SM.userdata.current_task_index = 0
     SM.userdata.recognized_objects = []
+   
+    SM.userdata.objects_to_be_grasped = 0
     SM.userdata.object_to_grasp = 0
+    
 
     SM.userdata.rear_platform_free_poses = []
     SM.userdata.rear_platform_free_poses.append(Bunch(obj_name="", platform_pose='platform_right'))
@@ -74,7 +77,7 @@ def main():
                         'srv_call_failed':'RECOGNIZE_OBJECTS'})
 
         smach.StateMachine.add('SELECT_OBJECT_TO_BE_GRASPED', select_object_to_be_grasped(),
-            transitions={'obj_selected':'GRASP_OBJ_WITH_VISUAL_SERVERING',
+            transitions={'obj_selected':'PLACE_BASE_IN_FRONT_OF_OBJECT',
                         'no_obj_selected':'SKIP_SOURCE_POSE',
                         'no_more_free_poses_at_robot_platf':'SELECT_DELIVER_WORKSTATION'})            
 
