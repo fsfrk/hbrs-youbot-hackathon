@@ -499,7 +499,7 @@ public:
 
     while( ( blob_detection_completed == false ) && ros::ok() && ( (ros::Time::now() - start_time).toSec() < VS_TIMEOUT ) )
     { 
-      ROS_INFO( "Timeout: %f", ros::Time::now() - start_time  ); 
+      //ROS_INFO( "Timeout: %f", ros::Time::now() - start_time  ); 
       ros::spinOnce();
     }
 
