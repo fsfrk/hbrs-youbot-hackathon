@@ -17,4 +17,3 @@ footprint_padding: 0.03
 clearing_rotation_allowed: false
 oscillation_distance: 2.0
 shutdown_costmaps: true
-
