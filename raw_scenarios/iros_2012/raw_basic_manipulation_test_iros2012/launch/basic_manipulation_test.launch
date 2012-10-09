@@ -18,6 +18,8 @@
 
 		<!-- script server -->
 		<include file="$(find raw_script_server)/launch/script_server.launch" />
+        <!-- manipulation -->
+		<include file="$(find raw_arm_navigation)/ros/launch/simple_manipulation.launch" />
 	</group>
 
 	<group>
@@ -28,10 +30,7 @@
 
 	    <include file="$(find raw_object_detection)/ros/launch/perception_pipeline.launch" />
 
-        <!-- manipulation -->
-		<include file="$(find raw_arm_navigation)/ros/launch/planned_manipulation.launch" />	
-
-	    <!--include file="$(find raw_visual_servoing)/launch/visual_servoing.launch" /-->
+	    <include file="$(find raw_visual_servoing)/launch/visual_servoing.launch"/>
          
    	</group>
 </launch>
