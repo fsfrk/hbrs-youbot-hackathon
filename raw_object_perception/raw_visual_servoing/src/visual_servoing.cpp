@@ -54,7 +54,7 @@ public:
   //---------------------------------------------------------------------------
   raw_visual_servoing( ros::NodeHandle &n ) : node_handler( n ), image_transporter( node_handler )
   {
-    /**
+    
     try 
     {
       std::string package_path = ros::package::getPath("raw_visual_servoing") + "/data/background.png";
@@ -65,7 +65,7 @@ public:
     {
           std::cout << "Could not load background image\t" << " " << e.what() << std::endl;
     }
-    **/
+    
 
     //-------------------------------------------------------------------------
     //  Get all of the joint names for the YouBot arm as well as their limits.
@@ -166,6 +166,11 @@ public:
       ROS_ERROR( "Error converting from ROS image message to OpenCV IplImage" );
     }  
 
+    IplImage* background_threshold = cvCreateImage( cvGetSize( background_image ), 8, 1 ); 
+    cvCvtColor( background_image, background_threshold, CV_BGR2GRAY ); 
+    cvSmooth( background_threshold, background_threshold, CV_GAUSSIAN, 7, 7 );
+    cvThreshold( background_threshold, background_threshold, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU );  
+
     //  Obtain image properties that we require. 
     master_image_width = cv_image->width; 
     master_image_height = cv_image->height; 
@@ -177,6 +182,12 @@ public:
     cvSmooth( gray, gray, CV_GAUSSIAN, 7, 7 );
     cvEqualizeHist( gray, gray ); 
     cvThreshold( gray, gray, 10, 255, CV_THRESH_BINARY_INV  );
+
+     IplImage* temp_img = cvCreateImage( cvGetSize( background_image ), 8, 1); 
+
+    //    This takes a background image (the gripper on a white background) and removes
+    //  it from the current image (cv_image). The results are stored again in cv_image.
+    cvSub( gray, background_threshold, gray, NULL );
 
     // Find any blobs that are not white. 
     CBlobResult blobs = CBlobResult( gray, NULL, 0 );
@@ -454,6 +465,7 @@ public:
 
     cvReleaseImage( &gray ); 
     cvReleaseImage( &blob_image ); 
+    cvReleaseImage( &temp_img ); 
   }
 
   //--------------------------------------------------------------------- start
@@ -560,6 +572,8 @@ protected:
   //  Tracked Centroid Values
   double tracked_x; 
   double tracked_y; 
+
+  IplImage* background_image; 
 };
 
 //------------------------------------------------------------------------ main
