@@ -15,40 +15,36 @@ from generic_state_machines import *
 def main():
     rospy.init_node('final')
 
-    SM = smach.StateMachine(outcomes=['overall_success', 'overall_failed'])
-    
+    SM = smach.StateMachine(outcomes=['overall_success', 'overall_failed', 'missing_service'])
+
     # world knowledge
     SM.userdata.object_list = [];
-                                            
     SM.userdata.rear_platform_free_poses = ['platform_centre'] # put the only object to be grasped in the centre of the platform
     SM.userdata.rear_platform_occupied_poses = []
 
-    SM.userdata.drawer_pose = ""
-    
     source_workstation = "S1"
     destination_workstation = "D1"
-    distance_to_workstation = 0.3
-  
-    
-    # open the container
-    with SM:
-        # add states to the container
-        smach.StateMachine.add('INIT_ROBOT', init_robot(),
-            transitions={'succeeded':'SM_GRASP_DRAWER_AT_SOURCE_TO_PULL'})
-        '''
-        # go the workstation with the draw, pull it out, grasp the object, put it on the platform and push the drawer back in
-        smach.StateMachine.add('MOVE_TO_SOURCE_WORKSTATION', approach_pose(source_workstation),
-            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM_AT_SOURCE_WS', 
-                        'failed':'overall_failed'})
+    SM.userdata.source_bin_id = "B1"
 
-        smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM_AT_SOURCE_WS', adjust_pose_wrt_platform(),
-            transitions={'succeeded':'SM_GRASP_DRAWER_AT_SOURCE_TO_PULL',
-                        'failed':'ADJUST_POSE_WRT_PLATFORM_AT_SOURCE_WS'})
-        '''
-        smach.StateMachine.add('SM_GRASP_DRAWER_AT_SOURCE_TO_PULL', sm_grasp_drawer(),
-            transitions={'drawer_grasped':'overall_success',
-                        'drawer_not_found':'overall_failed',
-                        'base_placement_failed':'overall_failed'})
+    with SM:
+        smach.StateMachine.add('INIT_ROBOT', init_robot(),
+                               transitions={'succeeded': 'WAIT_FOR_TASK_MARKER'})
+
+        smach.StateMachine.add('WAIT_FOR_TASK_MARKER', wait_for_task_marker(),
+                               transitions={'found_marker': 'MOVE_TO_SOURCE_WORKSTATION'})
+
+        smach.StateMachine.add('MOVE_TO_SOURCE_WORKSTATION', approach_pose(source_workstation),
+                               transitions={'succeeded': 'ADJUST_POSE_WRT_BIN',
+                                            'failed': 'overall_failed'}) # TODO: what does failure mean? how to recover?
+
+        smach.StateMachine.add('ADJUST_POSE_WRT_BIN', adjust_pose_wrt_bin(),
+                               transitions={'succeeded': 'GRASP_BIN_AT_SOURCE',
+                                            'failed': 'MOVE_TO_SOURCE_WORKSTATION'})
+
+        smach.StateMachine.add('GRASP_BIN_AT_SOURCE', grasp_bin(),
+                               remapping={'bin_marker_id': 'source_bin_id'},
+                               transitions={'bin_grasped': 'overall_success'})
+
         '''
         smach.StateMachine.add('PULL_DRAWER_OUT_AT_SOURCE_WS', move_base_rel(-distance_to_workstation, 0),
             transitions={'succeeded':'MOVE_ARM_TO_PREGRASP'})

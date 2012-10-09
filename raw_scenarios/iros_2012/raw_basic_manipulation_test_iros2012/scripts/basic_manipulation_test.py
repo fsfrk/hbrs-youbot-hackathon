@@ -77,7 +77,8 @@ def main():
 
         smach.StateMachine.add('GRASP_OBJ_WITH_VISUAL_SERVERING', grasp_obj_with_visual_servering(),
             transitions={'succeeded':'PLACE_OBJ_ON_REAR_PLATFORM',
-                        'failed':'GRASP_OBJ_WITH_VISUAL_SERVERING'})
+                        'failed':'GRASP_OBJ_WITH_VISUAL_SERVERING',
+                        'vs_timeout':'SELECT_RECOGNIZED_OBJECT'})
         
         smach.StateMachine.add('PLACE_OBJ_ON_REAR_PLATFORM', place_obj_on_rear_platform(),
             transitions=#{'succeeded':'SELECT_DESTINATION_POSE',
