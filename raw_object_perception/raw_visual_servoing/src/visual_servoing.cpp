@@ -410,7 +410,7 @@ public:
     if( done_rotational_adjustment == true && done_base_movement_adjustment == true && done_y_base_movement_adjustment == true )
     {
       blob_detection_completed = true; 
-      ROS_INFO( "Grasping position has been reached." ); 
+      ROS_INFO( "Visual Servoing Completed." ); 
     } 
 
     //-------------------------------------------------------------------------
@@ -499,6 +499,7 @@ public:
 
     while( ( blob_detection_completed == false ) && ros::ok() && ( (ros::Time::now() - start_time).toSec() < VS_TIMEOUT ) )
     { 
+      ROS_INFO( "Timeout: %f", ros::Time::now() - start_time  ); 
       ros::spinOnce();
     }
 
