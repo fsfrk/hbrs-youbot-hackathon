@@ -50,20 +50,25 @@ class select_recognized_object_bmt(smach.State):
     def __init__(self):
         smach.State.__init__(self, 
             outcomes=['succeeded','no_more_objects'],
-            input_keys=['recognized_objects','task_spec'],
-            output_keys=['recognized_objects', 'object_to_grasp'])
+            input_keys=['recognized_objects','task_spec','object_to_grasp'],
+            output_keys=['recognized_objects','object_to_grasp'])
         
     def execute(self, userdata):
         if(len(userdata.recognized_objects) == 0):
             return 'no_more_objects'
         else:
-            for rec_obj in userdata.recognized_objects:
+            for i in range(len(userdata.recognized_objects)):
                 for obj_grasp in userdata.task_spec.object_names:
-                    if rec_obj.name == obj_grasp:
-                        userdata.object_to_grasp = rec_obj
-                        print "selected obj: ", userdata.object_to_grasp.name
-                        return 'obj_selected'
-                
+                    if userdata.recognized_objects[i].name == obj_grasp:
+                        userdata.object_to_grasp = userdata.recognized_objects[i].pose
+                        userdata.recognized_objects.pop(i)
+                        print "selected obj: ", userdata.object_to_grasp
+                        return 'succeeded'
+        
+        if(len(userdata.recognized_objects) == 0):
+            return 'no_more_objects'
+
+        return 'succeeded'
            
 
 
