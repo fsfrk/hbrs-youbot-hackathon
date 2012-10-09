@@ -13,6 +13,7 @@
   <depend package="smach" />
   <depend package="smach_ros" />
   <depend package="raw_generic_states" />
+  <depend package="raw_basic_transportation_test_iros2012" />
   <depend package="raw_default_env_config" />
   <depend package="raw_bringup" />
   <depend package="raw_2dnav" />
@@ -24,6 +25,7 @@
   <depend package="raw_relative_movements"/>
   <depend package="hbrs_safe_cmd_vel"/>
   <depend package="raw_object_detection"/>
+
 
 </package>
 
