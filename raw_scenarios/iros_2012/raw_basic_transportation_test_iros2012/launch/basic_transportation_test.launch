@@ -24,13 +24,13 @@
 
 	<group>
 	    <machine name="pc2" address="youbot-hbrs2-pc2" default="true"/>
-        <!-- cameras 
+        <!-- cameras -->
 	    <include file="$(find raw_bringup)/components/cam3d.launch" />
-  	    <include file="$(find raw_bringup)/components/usb_cam_microsoft.launch" /> -->
+  	    <include file="$(find raw_bringup)/components/usb_cam_logitech.launch" /> 
 
-        <!-- perception 
+        <!-- perception -->
 	    <include file="$(find raw_object_detection)/ros/launch/scene_segmentation.launch" />
-	    <include file="$(find raw_visual_servoing)/launch/visual_servoing.launch" /> -->
+	    <!--include file="$(find raw_visual_servoing)/launch/visual_servoing.launch" /--> 
 
         <!-- manipulation -->
 		<!--include file="$(find raw_arm_navigation)/ros/launch/planned_manipulation.launch" /-->	
