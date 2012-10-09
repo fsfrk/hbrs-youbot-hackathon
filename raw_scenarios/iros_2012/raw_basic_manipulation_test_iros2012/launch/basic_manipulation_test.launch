@@ -7,7 +7,7 @@
     	<include file="$(find raw_bringup)/robots/robot.launch" />
 
 		<!-- navigation -->
-		<include file="$(find raw_2dnav_omni)/ros/launch/2dnav_omni.launch" />
+		<include file="$(find raw_2dnav)/ros/launch/2dnav.launch" />
 		<include file="$(find hbrs_safe_cmd_vel)/ros/launch/safe_cmd_vel.launch" />
 	
 		<!-- base placement -->
