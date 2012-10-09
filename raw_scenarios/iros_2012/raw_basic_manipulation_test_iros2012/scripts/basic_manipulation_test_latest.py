@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import roslib; roslib.load_manifest('raw_basic_manipulation_test_iros2012')
+
 import rospy
 
 import smach
@@ -13,6 +14,7 @@ from generic_navigation_states import *
 from generic_manipulation_states import *
 from generic_perception_states import *
 from basic_transportation_test_iros2012_states import *
+from basic_manipulation_test_iros2012_states import *
 
 
 # main
@@ -74,11 +76,17 @@ def main():
                         'no_objects_found':'RECOGNIZE_OBJECTS',
                         'srv_call_failed':'RECOGNIZE_OBJECTS'})
 
-        smach.StateMachine.add('SELECT_OBJECT_TO_BE_GRASPED', select_recognized_object(),
+        smach.StateMachine.add('SELECT_OBJECT_TO_BE_GRASPED', select_recognized_object_bmt(),
+            transitions={'obj_selected':'GRASP_OBJ_WITH_VISUAL_SERVERING',
+                        'no_obj_selected':'SELECT_DELIVER_WORKSTATION',
+                        'no_more_free_poses_at_robot_platf':'SELECT_DELIVER_WORKSTATION'})       
+        '''
+        smach.StateMachine.add('SELECT_OBJECT_TO_BE_GRASPED', select_object_to_be_grasped(),
             transitions={'obj_selected':'GRASP_OBJ_WITH_VISUAL_SERVERING',
                         'no_obj_selected':'SKIP_SOURCE_POSE',
-                        'no_more_free_poses_at_robot_platf':'SELECT_DELIVER_WORKSTATION'})            
+                        'no_more_free_poses_at_robot_platf':'SELECT_DELIVER_WORKSTATION'})  
 
+        '''  
         smach.StateMachine.add('PLACE_BASE_IN_FRONT_OF_OBJECT', place_base_in_front_of_object(),
             transitions={'succeeded':'GRASP_OBJ_WITH_VISUAL_SERVERING',
                          'srv_call_failed':'PLACE_BASE_IN_FRONT_OF_OBJECT'},
