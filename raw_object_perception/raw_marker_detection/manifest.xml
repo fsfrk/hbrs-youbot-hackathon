@@ -1,0 +1,21 @@
+<package>
+  <description brief="raw_marker_detection">
+
+     raw_marker_detection
+
+  </description>
+  <author>Sergey</author>
+  <license>BSD</license>
+
+  <depend package="rospy"/>
+  <depend package="geometry_msgs"/>
+  <depend package="tf"/>
+  <depend package="ar_kinect"/>
+
+  <depend package="hbrs_msgs"/>
+  <depend package="hbrs_srvs"/>
+  <depend package="raw_srvs"/>
+
+</package>
+
+
