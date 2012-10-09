@@ -30,7 +30,7 @@
 
 	    <include file="$(find raw_object_detection)/ros/launch/perception_pipeline.launch" />
 
-	    <include file="$(find raw_visual_servoing)/launch/visual_servoing.launch"/>
+	    <!--include file="$(find raw_visual_servoing)/launch/visual_servoing.launch"/-->
          
    	</group>
 </launch>
