@@ -2,11 +2,11 @@
 <launch>
 
   <!-- base components -->
-  <include file="$(find raw_bringup_sim)/robots/robot.launch"/>
+  <include file="$(find raw_bringup_sim)/robots/robot_no_x.launch"/>
 
-    <!-- navigation -->
-    <!--<include file="$(find raw_2dnav)/ros/launch/sim/2dnav_sim.launch" />	-->
-    <!--<include file="$(find raw_relative_movements)/launch/base_controller.launch" />-->
+  <!-- navigation -->
+  <include file="$(find raw_2dnav)/ros/launch/sim/2dnav_sim.launch"/>
+  <include file="$(find raw_relative_movements)/launch/base_controller.launch"/>
 
     <!-- behavior -->
     <!--<include file="$(find raw_base_placement)/ros/launch/placement_wrt_platform.launch" />-->
@@ -14,8 +14,8 @@
     <!-- manipulation -->
     <!--<include file="$(find raw_arm_navigation)/ros/launch/simple_manipulation.launch" />	-->
 
-    <!-- script server -->
-    <!--<include file="$(find raw_script_server)/launch/script_server.launch" />-->
+  <!-- script server -->
+  <include file="$(find raw_script_server)/launch/script_server.launch"/>
 	
 	<!-- perception --> 
 	<!--<include file="$(find raw_object_finder)/ros/launch/object_segmentation.launch" />-->
@@ -23,8 +23,13 @@
     <!-- load objects into gazebo -->
 	<!--<include file="$(find raw_gazebo_objects)/ros/launch/simulation_objects.launch" />-->
 
-  <node pkg="raw_final_iros2012" type="marker_detector_mock.py" name="marker_detector_mock.py"/>
+  <node pkg="raw_marker_detection" type="goal_tf_publisher.py" name="goal_tf_publisher"/>
 
-  <node pkg="tf" type="static_transform_publisher" name="bin1_tf_publisher" args="0 0 0 0 0 0 /map /B1 33"/>
+  <node pkg="raw_final_iros2012" type="marker_detector_mock.py" name="marker_detector_mock"/>
+
+  <!-- bin position publishers -->
+  <node pkg="tf" type="static_transform_publisher" name="bin1_tf_publisher" args="1.44 0.86 0.13 2.37 1.16 -1.0 /map /B1 33"/>
+  <node pkg="tf" type="static_transform_publisher" name="bin2_tf_publisher" args="1.44 0.06 0.13 2.3 1.16 -1.0 /map /B2 33"/>
+  <node pkg="tf" type="static_transform_publisher" name="bin3_tf_publisher" args="1.44 -0.86 0.15 1.87 0.86 -1.0 /map /B3 33"/>
 
 </launch>
