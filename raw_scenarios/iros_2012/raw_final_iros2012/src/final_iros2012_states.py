@@ -57,27 +57,30 @@ class select_marker_to_approach(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['detected_marker'], output_keys=['detected_marker', 'selected_marker'])
 
-    def execute(self):
+    def execute(self, userdata):
 
-        if(len(userdata.detected_marker) != 0):
-            userdata.selected_marker = userdata.detected_marker.pop()
+        if(len(userdata.detected_marker) == 0):
             return 'failed'
+
+        userdata.selected_marker = userdata.detected_marker.pop().pose
             
         return 'succeeded'
 
 class calculate_goal_pose(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded'],
-                                   input_keys=['marker_pose'],
+                                   input_keys=['marker_pose', 'goal_pose'],
                                    output_keys=['goal_pose'])
         self.tf = TransformListener(True, rospy.Duration(5))
-        DISTANCE = 0.6
+        self.DISTANCE = 0.40
 
     def execute(self, userdata):
+
+
         userdata.marker_pose.header.stamp = rospy.Time.now()
         pose = self.tf.transformPose('/base_link', userdata.marker_pose)
-        p = pose.pose.position
-        q = pose.pose.orientation
+        p = [pose.pose.position.x, pose.pose.position.y, pose.pose.position.z]
+        q = [pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w]
         rm = tfs.quaternion_matrix(q)
         # assemble a new coordinate frame that has z-axis aligned with
         # the vertical direction and x-axis facing the z-axis of the
@@ -89,9 +92,17 @@ class calculate_goal_pose(smach.State):
         axis_y = np.cross(axis_x, axis_z)
         rm = np.vstack((axis_x, axis_y, axis_z)).transpose()
         # shift the pose along the x-axis
-        pose.pose.position = p + np.dot(rm, [DISTANCE, 0, 0])[:3]
+        p += np.dot(rm, [self.DISTANCE, 0, 0])[:3]
+        userdata.goal_pose = pose
+        userdata.goal_pose.pose.position.x = p[0]
+        userdata.goal_pose.pose.position.y = p[1]
+        userdata.goal_pose.pose.position.z = p[2]
         yaw = tfs.euler_from_matrix(rm)[2]
-        pose.pose.orientation = tfs.quaternion_from_euler(0, 0, yaw - math.pi)
+        q = tfs.quaternion_from_euler(0, 0, yaw - math.pi)
+        userdata.goal_pose.pose.orientation.x = q[0]
+        userdata.goal_pose.pose.orientation.y = q[1]
+        userdata.goal_pose.pose.orientation.z = q[2]
+        userdata.goal_pose.pose.orientation.w = q[3]
         return 'succeeded'
 
 
@@ -160,7 +171,7 @@ class grasp_bin(smach.State):
         smach.State.__init__(self, outcomes=['succeeded', 'open_drawer_poses_not_available'])
 
     def execute(self, userdata):
-
+        sss.move("gripper", "open")
         sss.move("arm", "zeroposition")
 
         if (not rospy.has_param("/script_server/arm/open_drawer")):
@@ -176,12 +187,12 @@ class grasp_bin(smach.State):
             print "grasp pose: ", pose_name
             grasp_poses.append(("open_drawer/" + pose_name))
     
-        #grasp_poses.sort()
+        grasp_poses.sort()
 
         print "sorted: ", grasp_poses
 
         for pose_n in grasp_poses:
-            raw_input("press enter")
+            #raw_input("press enter")
             sss.move("arm", pose_n)
 
         return 'succeeded'
