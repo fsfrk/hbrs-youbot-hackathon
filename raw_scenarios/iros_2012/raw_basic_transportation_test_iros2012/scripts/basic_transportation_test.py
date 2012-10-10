@@ -27,6 +27,7 @@ def main():
     SM.userdata.lasttask = Bunch(location="", obj_names="")
     SM.userdata.current_task_index = 0
     SM.userdata.recognized_objects = []
+    SM.userdata.object_to_be_adjust_to = 0
    
     SM.userdata.objects_to_be_grasped = 0
     SM.userdata.object_to_grasp = 0
@@ -84,7 +85,7 @@ def main():
         smach.StateMachine.add('PLACE_BASE_IN_FRONT_OF_OBJECT', place_base_in_front_of_object(),
             transitions={'succeeded':'GRASP_OBJ_WITH_VISUAL_SERVERING',
                          'srv_call_failed':'PLACE_BASE_IN_FRONT_OF_OBJECT'},
-            remapping={'object_pose':'object_to_grasp'})    
+            remapping={'object_pose':'object_to_be_adjust_to'})    
 
         smach.StateMachine.add('GRASP_OBJ_WITH_VISUAL_SERVERING', grasp_obj_with_visual_servering(),
             transitions={'succeeded':'PLACE_OBJ_ON_REAR_PLATFORM',

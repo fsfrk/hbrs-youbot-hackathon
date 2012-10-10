@@ -38,7 +38,7 @@ class select_object_to_be_grasped(smach.State):
         smach.State.__init__(self, 
             outcomes=['obj_selected', 'no_obj_selected','no_more_free_poses_at_robot_platf'],
             input_keys=['recognized_objects', 'objects_to_be_grasped', 'object_to_grasp', 'rear_platform_free_poses'],
-            output_keys=['object_to_grasp'])
+            output_keys=['object_to_grasp', 'object_to_be_adjust_to'])
         
     def execute(self, userdata):
         
@@ -51,6 +51,7 @@ class select_object_to_be_grasped(smach.State):
             for obj_grasp in userdata.objects_to_be_grasped:
                 if rec_obj.name == obj_grasp:
                     userdata.object_to_grasp = rec_obj
+                    userdata.object_to_be_adjust_to = rec_obj.pose
                     print "selected obj: ", userdata.object_to_grasp.name
                     return 'obj_selected'
                 
@@ -191,7 +192,7 @@ class setup_btt(smach.State):
         
         for task in userdata.task_list:
             if task.type == 'destination':
-                poses = ['1', '2', '3', '4', '5']
+                poses = ['1', '2', '3']
                 loc_free_poses = Bunch(location = task.location, free_poses = poses)
                 userdata.destinaton_free_poses.append(loc_free_poses)
             if task.type == 'source':
