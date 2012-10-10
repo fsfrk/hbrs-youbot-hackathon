@@ -10,7 +10,6 @@ from geometry_msgs.msg import Vector3
 from hbrs_srvs.srv import GetObjects, PassString
 from raw_srvs.srv import PublishGoal, SetMarkerFrame
 
-
 from simple_script_server import *
 sss = simple_script_server()
 
@@ -86,6 +85,8 @@ class grasp_bin(smach.State):
 
     def execute(self, userdata):
 
+        sss.move("arm", "zeroposition")
+
         if (not rospy.has_param("/script_server/arm/open_drawer")):
             rospy.logerr("configuration for <<open_drawer>> NOT available on parameter server")
             return 'open_drawer_poses_not_available'
@@ -99,9 +100,13 @@ class grasp_bin(smach.State):
             print "grasp pose: ", pose_name
             grasp_poses.append(("open_drawer/" + pose_name))
     
-        grasp_poses.sort()
+        #grasp_poses.sort()
 
         print "sorted: ", grasp_poses
+
+        for pose_n in grasp_poses:
+            raw_input("press enter")
+            sss.move("arm", pose_n)
 
         return 'succeeded'
 
