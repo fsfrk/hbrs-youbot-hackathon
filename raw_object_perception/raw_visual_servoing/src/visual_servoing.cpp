@@ -40,6 +40,9 @@
 #include <brics_actuator/JointVelocities.h>
 #include <brics_actuator/JointPositions.h>
 
+// The amount of time that we have to find an object in Seconds.
+#define VS_TIMEOUT 30
+
 class raw_visual_servoing 
 {
 
@@ -183,7 +186,7 @@ public:
     //cvEqualizeHist( gray, gray ); 
     cvThreshold( gray, gray, 0, 255, CV_THRESH_BINARY_INV | CV_THRESH_OTSU );
 
-     IplImage* temp_img = cvCreateImage( cvGetSize( background_image ), 8, 1); 
+    IplImage* temp_img = cvCreateImage( cvGetSize( background_image ), 8, 1); 
 
     //    This takes a background image (the gripper on a white background) and removes
     //  it from the current image (cv_image). The results are stored again in cv_image.
@@ -408,7 +411,7 @@ public:
     if( done_rotational_adjustment == true && done_base_movement_adjustment == true && done_y_base_movement_adjustment == true )
     {
       blob_detection_completed = true; 
-      ROS_INFO( "Grasping position has been reached." ); 
+      ROS_INFO( "Visual Servoing Completed." ); 
     } 
 
     //-------------------------------------------------------------------------
@@ -473,7 +476,7 @@ public:
   //   Used to start up the processing of the web camera images once the node 
   //  has been told to start.
   //--------------------------------------------------------------------------- 
-  bool start(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+  bool start( raw_srvs::ReturnBool::Request &req, raw_srvs::ReturnBool::Response &res )
   {
     blob_detection_completed = false; 
     first_pass = true; 
@@ -489,11 +492,25 @@ public:
     // Velocity Control for the YouBot arm. 
     arm_velocities_publisher = node_handler.advertise<brics_actuator::JointVelocities>( "/arm_1/arm_controller/velocity_command", 1 );
 
+    ros::Time start_time = ros::Time::now(); 
+
     ROS_INFO("Blob Detection Enabled");
 
-    while( blob_detection_completed == false && ros::ok() )
+    while( ( blob_detection_completed == false ) && ros::ok() && ( (ros::Time::now() - start_time).toSec() < VS_TIMEOUT ) )
     { 
+      //ROS_INFO( "Timeout: %f", ros::Time::now() - start_time  ); 
       ros::spinOnce();
+    }
+
+    if( (ros::Time::now() - start_time).toSec() < VS_TIMEOUT )
+    {
+      ROS_INFO( "Visual Servoing Sucessful." ); 
+      res.value = true; 
+    }
+    else
+    {
+      ROS_ERROR( "Visual Servoing Failure due to Timeout" ); 
+      res.value = false; 
     }
 
      // Turn off the image subscriber for the web camera.
