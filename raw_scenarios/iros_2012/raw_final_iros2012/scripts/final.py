@@ -12,9 +12,9 @@ from generic_state_machines import *
 
 from final_iros2012_states import *
 from final_bins import SM_BINS
+from final_omni import SM_OMNI
+from final_pointing import SM_POINTING
 
-
-# main
 def main():
     rospy.init_node('final')
 
@@ -30,10 +30,14 @@ def main():
                                transitions={'succeeded': 'SM_BINS'})
 
         smach.StateMachine.add('SM_BINS', SM_BINS,
-                               transitions={'overall_success': 'MOVE_TO_EXIT',
+                               transitions={'overall_success': 'SM_POINTING',
                                             'overall_failed': 'MOVE_TO_EXIT'})
 
         smach.StateMachine.add('SM_POINTING', SM_POINTING,
+                               transitions={'overall_success': 'SM_OMNI',
+                                            'overall_failed': 'MOVE_TO_EXIT'})
+
+        smach.StateMachine.add('SM_OMNI', SM_OMNI,
                                transitions={'overall_success': 'MOVE_TO_EXIT',
                                             'overall_failed': 'MOVE_TO_EXIT'})
 
@@ -46,8 +50,9 @@ def main():
     smach_viewer.start()
 
     #SM.execute()
-    SM_BINS.execute()
+    #SM_BINS.execute()
     #SM_POINTING.execute()
+    SM_OMNI.execute()
 
     # stop SMACH viewer
     rospy.spin()
