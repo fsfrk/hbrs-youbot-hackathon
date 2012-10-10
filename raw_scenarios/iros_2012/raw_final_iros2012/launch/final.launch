@@ -28,6 +28,7 @@
 
     <!-- cameras -->
     <include file="$(find raw_bringup)/components/cam3d.launch" />
+    <include file="$(find raw_bringup)/components/usb_cam_logitech.launch" />
 
     <!-- marker detection -->
     <include file="$(find raw_marker_detection)/ros/launch/marker_detection.launch" />
