@@ -73,6 +73,20 @@ class Grasper():
             return
         '''
 
+    def bin_grasp(self, grasp_name):
+        while self.received_state == False:
+            print( "no joint values")
+        
+        grasp_pose = [3.00088, 2.44998, -1.67199, 2.35675, self.current_joint_configuration[4]]
+    
+        rospy.set_param("/script_server/arm/grasp_laying_mex", grasp_pose)
+        '''        
+        if rospy.has_param("/script_server/arm/grasp_laying_mex"):
+            #sss.move("arm","grasp_laying_mex")
+            rospy.delete_param('/script_server/arm/grasp_laying_mex')
+            return
+        '''
+
         
 '''
 def main():
