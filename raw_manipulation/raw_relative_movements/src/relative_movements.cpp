@@ -408,6 +408,7 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
     tf::StampedTransform transform;
     double roll, pitch, yaw;
     if  (stamp + max_time < ros::Time::now()) {
+        ROS_INFO("Marker alignment Time out");
 		return false;
 		break;
 		}
@@ -468,7 +469,7 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
         
             isreached =  true;
 
-            ROS_INFO("Iam here");
+            ROS_INFO(" Base reached Marker Target frame");
        }
 
         base_velocities_publisher.publish(cmd);
