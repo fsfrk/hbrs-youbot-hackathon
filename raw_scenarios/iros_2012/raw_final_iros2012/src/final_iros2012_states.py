@@ -19,6 +19,41 @@ APPROACH_GOAL = '/raw_relative_movements/alignwithmarker'
 FIND_WORKSPACE = 'find_workspace'
 PLAY_SOUND = '/hbrs_audio/play_soundfile'
 
+
+class detect_marker(smach.State):
+
+    def __init__(self):
+        smach.State.__init__(
+            self,
+            outcomes=['found_marker', 'no_marker_found', 'srv_call_failed'],
+            input_keys=['detected_marker'],
+            output_keys=['detected_marker'])
+        
+        self.marker_finder_srv_name = DETECT_MARKERS
+        self.marker_finder_srv = rospy.ServiceProxy(self.marker_finder_srv_name, hbrs_srvs.srv.GetObjects)
+
+    def execute(self, userdata):     
+        try:
+            rospy.wait_for_service(self.marker_finder_srv_name, 15)
+            resp = self.marker_finder_srv()
+        except Exception, e:  
+            rospy.logerr("service call %s failed", self.marker_finder_srv_name)     
+            return 'srv_call_failed'    
+    
+        else:    
+            rospy.loginfo('found {0} marker'.format(len(resp.objects)))
+            break
+
+        if len(resp.objects) == 0:
+            rospy.loginfo('NO markers in FOV')
+            return 'no_marker_found'
+
+        print resp.objects
+
+        userdata.detected_marker = resp.objects
+
+        return 'found_marker'
+
 class do_nothing(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded'])
