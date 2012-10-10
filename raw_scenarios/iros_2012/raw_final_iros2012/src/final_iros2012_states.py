@@ -9,6 +9,9 @@ from smach_ros import ServiceState
 from geometry_msgs.msg import Vector3
 from hbrs_srvs.srv import GetObjects, PassString
 from raw_srvs.srv import PublishGoal, SetMarkerFrame
+from tf import TransformListener
+import tf.transformations as tfs
+import numpy as np
 
 from simple_script_server import *
 sss = simple_script_server()
@@ -50,8 +53,6 @@ class detect_marker(smach.State):
 
         return 'found_marker'
 
-
-
 class select_marker_to_approach(smach.State):
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['detected_marker'], output_keys=['detected_marker', 'selected_marker'])
@@ -64,6 +65,34 @@ class select_marker_to_approach(smach.State):
             
         return 'succeeded'
 
+class calculate_goal_pose(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded'],
+                                   input_keys=['marker_pose'],
+                                   output_keys=['goal_pose'])
+        self.tf = TransformListener(True, rospy.Duration(5))
+        DISTANCE = 0.6
+
+    def execute(self, userdata):
+        userdata.marker_pose.header.stamp = rospy.Time.now()
+        pose = self.tf.transformPose('/base_link', userdata.marker_pose)
+        p = pose.pose.position
+        q = pose.pose.orientation
+        rm = tfs.quaternion_matrix(q)
+        # assemble a new coordinate frame that has z-axis aligned with
+        # the vertical direction and x-axis facing the z-axis of the
+        # original frame
+        z = rm[:3, 2]
+        z[2] = 0
+        axis_x = tfs.unit_vector(z)
+        axis_z = tfs.unit_vector([0, 0, 1])
+        axis_y = np.cross(axis_x, axis_z)
+        rm = np.vstack((axis_x, axis_y, axis_z)).transpose()
+        # shift the pose along the x-axis
+        pose.pose.position = p + np.dot(rm, [DISTANCE, 0, 0])[:3]
+        yaw = tfs.euler_from_matrix(rm)[2]
+        pose.pose.orientation = tfs.quaternion_from_euler(0, 0, yaw - math.pi)
+        return 'succeeded'
 
 
 class do_nothing(smach.State):
