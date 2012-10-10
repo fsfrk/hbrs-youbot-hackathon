@@ -75,7 +75,7 @@ class grasp_bin(smach.State):
 
     def execute(self, userdata):
 
-          if (not rospy.has_param("/script_server/arm/open_drawer")):
+        if (not rospy.has_param("/script_server/arm/open_drawer")):
             rospy.logerr("configuration for <<open_drawer>> NOT available on parameter server")
             return 'open_drawer_poses_not_available'
             
