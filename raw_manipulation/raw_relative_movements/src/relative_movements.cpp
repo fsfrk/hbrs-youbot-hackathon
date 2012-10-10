@@ -419,6 +419,7 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
            btMatrix3x3(transform.getRotation()).getRPY(roll, pitch, yaw);
 
            double x = transform.getOrigin().x();
+           
            double y = transform.getOrigin().y();
            cmd = zero;
 
@@ -437,9 +438,9 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
            {
                 
                 if(x>0)
-                cmd.linear.x = 0.1;
-                else
                 cmd.linear.x = -0.1;
+                else
+                cmd.linear.x = 0.1;
 
                 ROS_INFO("X displacement");
 
@@ -472,6 +473,8 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
        {
           ROS_ERROR("%s",ex.what());
        }
+
+
         if  (stamp + max_time < ros::Time::now()) {
         ROS_INFO("Marker alignment Time out");
 		return false;

@@ -71,9 +71,27 @@ class adjust_pose_wrt_bin(smach.State):
 
 class grasp_bin(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['succeeded'])
+        smach.State.__init__(self, outcomes=['succeeded', 'open_drawer_poses_not_available'])
 
     def execute(self, userdata):
+
+        if (not rospy.has_param("/script_server/arm/open_drawer")):
+            rospy.logerr("configuration for <<open_drawer>> NOT available on parameter server")
+            return 'open_drawer_poses_not_available'
+            
+        pose_names = rospy.get_param("/script_server/arm/open_drawer")
+
+        print pose_names
+        
+        grasp_poses = []
+        for pose_name in pose_names:
+            print "grasp pose: ", pose_name
+            grasp_poses.append(("open_drawer/" + pose_name))
+    
+        grasp_poses.sort()
+
+        print "sorted: ", grasp_poses
+
         return 'succeeded'
 
 class pull_bin(smach.State):
