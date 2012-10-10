@@ -166,17 +166,17 @@ class point_and_announce_objects(smach.State):
         self.tf_listener = tf.TransformListener()
 
     def execute(self, userdata):
-       global planning_mode
-       if planning_mode == '':
-           sss.move('arm', 'zeroposition', mode=planning_mode)
-       for obj in userdata.recognized_objects:
-           try:
-               p = self.get_pointing_position(obj)
-           except RuntimeError, e:
-               rospy.logerr('Skipping object: %s' % e)
-               continue
+        global planning_mode
+        if planning_mode == '':
+            sss.move('arm', 'zeroposition', mode=planning_mode)
+        for obj in userdata.recognized_objects:
+            try:
+                p = self.get_pointing_position(obj)
+            except RuntimeError, e:
+                rospy.logerr('Skipping object: %s' % e)
+                continue
 
-            handle_arm = sss.move('arm', p, mode=planning_mode)
+            #handle_arm = sss.move('arm', p, mode=planning_mode)
             # announce object name
             #srv_request = hbrs_srvs.srv.PassStringRequest()
             #request.str = object.name
@@ -196,7 +196,7 @@ class point_and_announce_objects(smach.State):
                 #resp = self.play_sound_srv(request)
             #except Exception, e:
                 #rospy.logerr("could not execute service <<%s>>: %e", self.play_sound_srv_name, e)
-            sss.move('arm', 'zeroposition', mode=planning_mode)
+            #sss.move('arm', 'zeroposition', mode=planning_mode)
         return 'succeeded'
 
     def get_pointing_position(self, obj):
