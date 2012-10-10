@@ -410,7 +410,7 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
 
        try
        {
-           ROS_INFO("%s",req.marker_frame);
+           ROS_INFO("%s",req.marker_frame.c_str());
            
            listener.lookupTransform(req.marker_frame, "/base_link", ros::Time(0), transform);
          
