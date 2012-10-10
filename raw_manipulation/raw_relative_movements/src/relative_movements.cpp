@@ -393,19 +393,24 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
     tf::TransformListener listener;
   
     ros::Duration rate(20.0);
-		
-    ros::Time stamp = ros::Time::now();
 
     bool isreached = false;
 
     geometry_msgs::Twist zero;
          
+    ros::Duration max_time(15.0);
+
+    ros::Time stamp = ros::Time::now();
 
     while (!isreached)
    {
 
     tf::StampedTransform transform;
     double roll, pitch, yaw;
+    if  (stamp + max_time < ros::Time::now()) {
+		return false;
+		break;
+		}
 
        try
        {
