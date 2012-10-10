@@ -398,7 +398,7 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
 
     geometry_msgs::Twist zero;
          
-    ros::Duration max_time(15.0);
+    ros::Duration max_time(120.0);
 
     ros::Time stamp = ros::Time::now();
 
@@ -406,11 +406,11 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
    {
 
     tf::StampedTransform transform;
+
     double roll, pitch, yaw;
 
        try
        {
-           ROS_INFO("%s",req.marker_frame.c_str());
            
            listener.lookupTransform(req.marker_frame, "/base_link", ros::Time(0), transform);
          
@@ -427,9 +427,9 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
            {
                 
                 if(yaw>0)
-                cmd.angular.z = -0.01; 
+                cmd.angular.z = -0.1; 
                 else
-                cmd.angular.z = 0.01;
+                cmd.angular.z = 0.1;
 
                 ROS_INFO("Anglular displacement"); 
 
@@ -448,9 +448,9 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
            else if(fabs(y)>0.01)
            {          
                 if(y>0)
-                cmd.linear.y = 0.1;
-                else
                 cmd.linear.y = -0.1;
+                else
+                cmd.linear.y = +0.1;
 
                 ROS_INFO("Y displacement");
            }
