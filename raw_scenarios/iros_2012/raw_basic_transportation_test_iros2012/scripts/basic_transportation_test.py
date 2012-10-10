@@ -58,7 +58,7 @@ def main():
         
         smach.StateMachine.add('SELECT_SOURCE_SUBTASK', select_btt_subtask(type="source"),
             transitions={'task_selected':'MOVE_TO_SOURCE_LOCATION', 
-                         'task_selected_but_already_in_this_pose':'ADJUST_POSE_WRT_TO_PLATFORM_AT_SOURCE',
+                         'task_selected_but_already_in_this_pose':'MOVE_ARM_OUT_OF_VIEW',
                          'no_more_task_for_given_type':'SELECT_DELIVER_WORKSTATION'})
 
         smach.StateMachine.add('MOVE_TO_SOURCE_LOCATION', approach_pose(),
