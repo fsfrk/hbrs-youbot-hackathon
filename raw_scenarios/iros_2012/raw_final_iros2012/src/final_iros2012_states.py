@@ -30,7 +30,7 @@ class detect_marker(smach.State):
             output_keys=['detected_marker'])
         
         self.marker_finder_srv_name = DETECT_MARKERS
-        self.marker_finder_srv = rospy.ServiceProxy(self.marker_finder_srv_name, hbrs_srvs.srv.GetObjects)
+        self.marker_finder_srv = rospy.ServiceProxy(self.marker_finder_srv_name, GetObjects)
 
     def execute(self, userdata):     
         try:
@@ -39,10 +39,6 @@ class detect_marker(smach.State):
         except Exception, e:  
             rospy.logerr("service call %s failed", self.marker_finder_srv_name)     
             return 'srv_call_failed'    
-    
-        else:    
-            rospy.loginfo('found {0} marker'.format(len(resp.objects)))
-            break
 
         if len(resp.objects) == 0:
             rospy.loginfo('NO markers in FOV')
@@ -53,6 +49,22 @@ class detect_marker(smach.State):
         userdata.detected_marker = resp.objects
 
         return 'found_marker'
+
+
+
+class select_marker_to_approach(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['detected_marker'], output_keys=['detected_marker', 'selected_marker'])
+
+    def execute(self):
+
+        if(len(userdata.detected_marker) != 0):
+            userdata.selected_marker = userdata.detected_marker.pop()
+            return 'failed'
+            
+        return 'succeeded'
+
+
 
 class do_nothing(smach.State):
     def __init__(self):
