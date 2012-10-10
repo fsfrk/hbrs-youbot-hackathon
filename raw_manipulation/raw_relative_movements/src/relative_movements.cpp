@@ -407,76 +407,80 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
 
     tf::StampedTransform transform;
     double roll, pitch, yaw;
-    if  (stamp + max_time < ros::Time::now()) {
-        ROS_INFO("Marker alignment Time out");
-		return false;
-		break;
-		}
 
        try
        {
-          listener.lookupTransform(req.marker_frame, "/base_link", ros::Time(0), transform);
-          //listener.lookupTransform("/drawer_1", "/base_link", ros::Time(0), transform);
+           ROS_INFO("%s",req.marker_frame);
+           
+           listener.lookupTransform(req.marker_frame, "/base_link", ros::Time(0), transform);
+         
+           geometry_msgs::Twist cmd;
+
+           btMatrix3x3(transform.getRotation()).getRPY(roll, pitch, yaw);
+
+           double x = transform.getOrigin().x();
+           double y = transform.getOrigin().y();
+           cmd = zero;
+
+           if(fabs(yaw) > 0.01)
+           {
+                
+                if(yaw>0)
+                cmd.angular.z = -0.01; 
+                else
+                cmd.angular.z = 0.01;
+
+                ROS_INFO("Anglular displacement"); 
+
+           }
+           else if(fabs(x)>0.01)
+           {
+                
+                if(x>0)
+                cmd.linear.x = 0.1;
+                else
+                cmd.linear.x = -0.1;
+
+                ROS_INFO("X displacement");
+
+           } 
+           else if(fabs(y)>0.01)
+           {          
+                if(y>0)
+                cmd.linear.y = 0.1;
+                else
+                cmd.linear.y = -0.1;
+
+                ROS_INFO("Y displacement");
+           }
+           else
+           {    
+                base_velocities_publisher.publish(zero);
+            
+                isreached =  true;
+
+                ROS_INFO(" Base reached Marker Target frame");
+           
+                return true; 
+           }
+
+            base_velocities_publisher.publish(cmd);
+        
 
        }
        catch (tf::TransformException ex)
        {
           ROS_ERROR("%s",ex.what());
        }
+        if  (stamp + max_time < ros::Time::now()) {
+        ROS_INFO("Marker alignment Time out");
+		return false;
+		break;
+		}
        
-       geometry_msgs::Twist cmd;
-
-       btMatrix3x3(transform.getRotation()).getRPY(roll, pitch, yaw);
-
-       double x = transform.getOrigin().x();
-       double y = transform.getOrigin().y();
-       cmd = zero;
-
-       if(fabs(yaw) > 0.01)
-       {
-            
-            if(yaw>0)
-            cmd.angular.z = -0.01; 
-            else
-            cmd.angular.z = 0.01;
-
-            ROS_INFO("Anglular displacement"); 
-
-       }
-       else if(fabs(x)>0.01)
-       {
-            
-            if(x>0)
-            cmd.linear.x = 0.1;
-            else
-            cmd.linear.x = -0.1;
-
-            ROS_INFO("X displacement");
-
-       } 
-       else if(fabs(y)>0.01)
-       {          
-            if(y>0)
-            cmd.linear.y = 0.1;
-            else
-            cmd.linear.y = -0.1;
-
-            ROS_INFO("Y displacement");
-       }
-       else
-       {    
-            base_velocities_publisher.publish(zero);
-        
-            isreached =  true;
-
-            ROS_INFO(" Base reached Marker Target frame");
-       }
-
-        base_velocities_publisher.publish(cmd);
-        
     }
 
-    return true; 
+    
 
  }
 
