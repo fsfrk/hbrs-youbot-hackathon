@@ -69,6 +69,8 @@ class TfFilter:
         self.tf_pub.publish(msg)
 
     def publish_goal_cb(self, r):
+        rospy.loginfo('Received [%s] request. Will start publishing %s frame' %
+                      (SERVICE, r.goal_frame_id))
         self.source = r.source_frame_id
         self.target = r.target_frame_id
         self.goal = r.goal_frame_id
@@ -80,5 +82,5 @@ if __name__ == '__main__':
     rospy.init_node(NODE)
     filter_window_length = rospy.get_param('~filter_window_length', 30)
     tf_filter = TfFilter(filter_window_length)
-    rospy.loginfo('Started [%s] node.' % NODE)
+    rospy.loginfo('Started [%s] service.' % SERVICE)
     rospy.spin()
