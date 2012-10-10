@@ -27,9 +27,9 @@ include_directories(
 	${PROJECT_SOURCE_DIR}/include
 )
 
-find_package(Eigen REQUIRED)
-include_directories(${EIGEN_INCLUDE_DIRS})
-add_definitions(${EIGEN_DEFINITIONS})
+#find_package(Eigen REQUIRED)
+#include_directories(${EIGEN_INCLUDE_DIRS})
+#add_definitions(${EIGEN_DEFINITIONS})
 
 #common commands for building c++ executables and libraries
 #rosbuild_add_library(${PROJECT_NAME} src/example.cpp)
