@@ -40,7 +40,8 @@
 #include <brics_actuator/JointVelocities.h>
 #include <brics_actuator/JointPositions.h>
 
-#define VS_TIMEOUT 20
+// The amount of time that we have to find an object in Seconds.
+#define VS_TIMEOUT 30
 
 class raw_visual_servoing 
 {
@@ -410,7 +411,7 @@ public:
     if( done_rotational_adjustment == true && done_base_movement_adjustment == true && done_y_base_movement_adjustment == true )
     {
       blob_detection_completed = true; 
-      ROS_INFO( "Grasping position has been reached." ); 
+      ROS_INFO( "Visual Servoing Completed." ); 
     } 
 
     //-------------------------------------------------------------------------
@@ -480,8 +481,6 @@ public:
     blob_detection_completed = false; 
     first_pass = true; 
 
-    raw_srvs::ReturnBoolResponse response; 
-
      //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
     image_subscriber = image_transporter.subscribe( "/usb_cam/image_raw", 1, &raw_visual_servoing::imageCallback, this );
 
@@ -499,18 +498,19 @@ public:
 
     while( ( blob_detection_completed == false ) && ros::ok() && ( (ros::Time::now() - start_time).toSec() < VS_TIMEOUT ) )
     { 
+      //ROS_INFO( "Timeout: %f", ros::Time::now() - start_time  ); 
       ros::spinOnce();
     }
 
     if( (ros::Time::now() - start_time).toSec() < VS_TIMEOUT )
     {
       ROS_INFO( "Visual Servoing Sucessful." ); 
-      response.value = true; 
+      res.value = true; 
     }
     else
     {
       ROS_ERROR( "Visual Servoing Failure due to Timeout" ); 
-      response.value = false; 
+      res.value = false; 
     }
 
      // Turn off the image subscriber for the web camera.
