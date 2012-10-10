@@ -397,9 +397,9 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
     bool isreached = false;
 
     geometry_msgs::Twist zero;
-         
-    ros::Duration max_time(120.0);
 
+    ros::Duration max_time(50);
+   
     ros::Time stamp = ros::Time::now();
 
     while (!isreached)
@@ -423,13 +423,14 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
            double y = transform.getOrigin().y();
            cmd = zero;
 
-           if(fabs(yaw) > 0.01)
+           if(fabs(yaw) > 0.1)
            {
                 
                 if(yaw>0)
-                cmd.angular.z = -0.1; 
+                cmd.angular.z = -0.05; 
                 else
-                cmd.angular.z = 0.1;
+                cmd.angular.z = 0.05
+;
 
                 ROS_INFO("Anglular displacement"); 
 
