@@ -22,7 +22,7 @@
   <depend package="raw_bringup_sim" />
   <depend package="hbrs_soundfile_player"/>
   <depend package="raw_object_detection"/>
-  
+  <depend package="raw_basic_navigation_test_iros2012"/>
 
 </package>
 

@@ -9,7 +9,6 @@ from simple_script_server import *
 sss = simple_script_server()
 
 class point_to_and_announce_recognized_objects(smach.State):
-
     def __init__(self):
         smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['recognized_objects'], output_keys=['recognized_objects'])
         
@@ -58,18 +57,17 @@ class point_to_and_announce_recognized_objects(smach.State):
                 rospy.logerr("could not execute service <<%s>>: %e", self.play_sound_srv_name, e)
 
             # announce laying or standing
-            if(object.dimensions.vector.x > 0.04)
+            if(object.dimensions.vector.x > 0.04):
                 request.str = "standing.wav"
-            else
+            else:
                 request.str = "laying.wav"
+
             try:
                 rospy.wait_for_service(self.play_sound_srv_name, 15)
                 resp = self.play_sound_srv(request)
             except Exception, e:
                 rospy.logerr("could not execute service <<%s>>: %e", self.play_sound_srv_name, e)
 
-
             sss.move("arm", "zeroposition", mode=planning_mode)
 
         return 'succeeded'
-
