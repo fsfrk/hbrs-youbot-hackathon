@@ -14,13 +14,7 @@ from generic_state_machines import *
 
 from final_iros2012_states import *
 
-#def construct_push_bin_sm():
-    #sm = smach.StateMachine(outcomes=['succeeded', 'failed'])
-    #with sm:
-        #smach.StateMachine.add('PUSH_BIN_DUMMY', do_nothing())
-    #return sm
-
-SM_POINTING = smach.StateMachine(outcomes=['overall_success', 'overall_failed', 'missing_service'])
+SM_POINTING = smach.StateMachine(outcomes=['overall_success', 'overall_failed'])
 
 SM_POINTING.userdata.workstation = "S2"
 
@@ -43,8 +37,4 @@ with SM_POINTING:
                                             'srv_call_failed': 'overall_failed'}) # TODO: recovery!
 
         smach.StateMachine.add('POINT_AND_ANNOUNCE_OBJECTS', point_and_announce_objects(),
-                               transitions={'succeeded': 'MOVE_ARM_IN_SAFE_POS',
-                                            'failed': 'POINT_AND_ANNOUNCE_OBJECTS'})
-
-        smach.StateMachine.add('MOVE_ARM_IN_SAFE_POS', move_arm("initposition"),
                                transitions={'succeeded': 'overall_success'})
