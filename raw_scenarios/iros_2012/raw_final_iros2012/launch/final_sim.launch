@@ -23,7 +23,10 @@
     <!-- load objects into gazebo -->
 	<!--<include file="$(find raw_gazebo_objects)/ros/launch/simulation_objects.launch" />-->
 
-  <node pkg="raw_marker_detection" type="goal_tf_publisher.py" name="goal_tf_publisher"/>
+  <node pkg="raw_marker_detection" type="goal_tf_publisher.py" name="goal_tf_publisher">
+    <!-- in simulation it makes no sense to filter as the bin marker does not flicker -->
+    <param name="filter_window_length" value="1" type="int"/>
+  </node>
 
   <node pkg="raw_final_iros2012" type="marker_detector_mock.py" name="marker_detector_mock"/>
 

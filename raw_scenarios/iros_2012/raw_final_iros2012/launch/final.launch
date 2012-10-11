@@ -1,38 +1,38 @@
 <?xml version="1.0"?>
 <launch>
-	<!--
-	<group>
-		<machine name="pc1" address="youbot-hbrs2-pc1" default="true"/>
-	-->
-        <!-- base components -->
-    	<include file="$(find raw_bringup)/robots/robot.launch" />
 
-		<!-- script server -->
-		<include file="$(find raw_script_server)/launch/script_server.launch" />
+  <group>
+
+    <machine name="pc1" address="youbot-hbrs2-pc1" default="true"/>
+
+    <!-- base components -->
+    <include file="$(find raw_bringup)/robots/robot.launch" />
+
+    <!-- script server -->
+    <include file="$(find raw_script_server)/launch/script_server.launch" />
+
+  <!-- base placement -->
+  <!--<include file="$(find raw_base_placement)/ros/launch/placement_wrt_platform.launch" />-->
 		
-		<!-- base placement -->
-		<include file="$(find raw_base_placement)/ros/launch/placement_wrt_platform.launch" />
-		
-        <!-- motion controller -->
-        <include file="$(find raw_relative_movements)/launch/base_controller.launch" />
-		
-	<!--
-	</group>
-	-->
-	
-	<!--
-	<group>
-	    <machine name="pc2" address="youbot-hbrs2-pc2" default="true"/>
-  	-->
-        <!-- cameras -->
-	    <include file="$(find raw_bringup)/components/cam3d.launch" />
-  	    
-	    <!-- manipulation -->
-		<include file="$(find raw_arm_navigation)/ros/launch/planned_manipulation.launch" />	
-		
-		<!-- perception -->
-		<include file="$(find hbrs_marker_detection)/ros/launch/marker_detection.launch" />
-   	<!--
-  	</group>
-  	-->
+    <!-- motion controller -->
+    <include file="$(find raw_relative_movements)/launch/base_controller.launch" />
+
+    <!-- manipulation -->
+    <include file="$(find raw_arm_navigation)/ros/launch/simple_manipulation.launch" />
+
+  </group>
+
+  <group>
+
+    <machine name="pc2" address="youbot-hbrs2-pc2" default="true"/>
+
+    <!-- cameras -->
+    <include file="$(find raw_bringup)/components/cam3d.launch" />
+    <include file="$(find raw_bringup)/components/usb_cam_logitech.launch" />
+
+    <!-- marker detection -->
+    <include file="$(find raw_marker_detection)/ros/launch/marker_detection.launch" />
+
+  </group>
+
 </launch>
