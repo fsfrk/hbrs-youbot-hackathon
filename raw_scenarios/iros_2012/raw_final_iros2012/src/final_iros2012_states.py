@@ -268,12 +268,12 @@ class point_and_announce_objects(smach.State):
         smach.State.__init__(self, outcomes=['succeeded', 'failed', 'missing_service'],
                                    input_keys=['recognized_objects'],
                                    output_keys=['recognized_objects'])
-        #try:
-            #rospy.wait_for_service(PLAY_SOUND, timeout=5)
-            #self.play_sound = rospy.ServiceProxy(PLAY_SOUND, PassString)
-        #except rospy.ROSException:
-            #rospy.logwarn('[%s] service is not available.' % PLAY_SOUND)
-            #self.play_sound  = None
+        try:
+            rospy.wait_for_service(PLAY_SOUND, timeout=5)
+            self.play_sound = rospy.ServiceProxy(PLAY_SOUND, PassString)
+        except rospy.ROSException:
+            rospy.logwarn('[%s] service is not available.' % PLAY_SOUND)
+            self.play_sound  = None
         self.tf_listener = tf.TransformListener()
         self.goal_pose_pub = rospy.Publisher('/object_goal_pose', PoseStamped)
 
@@ -287,26 +287,23 @@ class point_and_announce_objects(smach.State):
                 continue
 
             handle_arm = sss.move('arm', p)
-            rospy.sleep(3)
+
             # announce object name
-            #srv_request = PassStringRequest()
-            #request.str = obj.name
-            #try:
-                #rospy.wait_for_service(self.play_sound_srv_name, 15)
-                #resp = self.play_sound_srv(request)
-            #except Exception, e:
-                #rospy.logerr("could not execute service <<%s>>: %e", self.play_sound_srv_name, e)
+            
+            try:
+                resp = self.play_sound((obj.name + '.wav'))
+            except Exception, e:
+                rospy.logerr("could not execute service <<%s>>: %e", PLAY_SOUND, e)
 
             ## announce laying or standing
-            #if(object.dimensions.vector.x > 0.04)
-                #request.str = "standing.wav"
-            #else
-                #request.str = "laying.wav"
-            #try:
-                #rospy.wait_for_service(self.play_sound_srv_name, 15)
-                #resp = self.play_sound_srv(request)
-            #except Exception, e:
-                #rospy.logerr("could not execute service <<%s>>: %e", self.play_sound_srv_name, e)
+            if(obj.dimensions.vector.x > 0.04):
+                str = "standing.wav"
+            else:
+                str = "laying.wav"
+            try:
+                resp = self.play_sound(str)
+            except Exception, e:
+                rospy.logerr("could not execute service <<%s>>: %e", PLAY_SOUND, e)
             sss.move('arm', 'zeroposition')
         return 'succeeded'
 
