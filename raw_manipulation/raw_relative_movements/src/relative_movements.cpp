@@ -14,7 +14,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 #include <raw_base_placement/OrientToBaseAction.h>
-
+#include <angles/angles.h>
 
 using namespace std;
 
@@ -386,6 +386,10 @@ bool moveoptimalbase(raw_srvs::SetPoseStamped::Request  &req, raw_srvs::SetPoseS
 
 bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarkerFrame::Response &res)
 {
+
+    bool is_rotation_done = false;
+    bool is_x_done = false;
+    bool is_y_done = false;
     ros::NodeHandle alignmarker;
 
     ros::Publisher base_velocities_publisher = alignmarker.advertise<geometry_msgs::Twist>( "/cmd_vel", 1 );
@@ -418,45 +422,73 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
 
            btMatrix3x3(transform.getRotation()).getRPY(roll, pitch, yaw);
 
+           
+
            double x = transform.getOrigin().x();
+ 
            
            double y = transform.getOrigin().y();
+
+          
+         
            cmd = zero;
 
-           if(fabs(yaw) > 0.1)
+           yaw = angles::normalize_angle(yaw);
+           yaw = angles::shortest_angular_distance(0, yaw);
+
+           ROS_INFO("yaw %lf, x %lf, y %lf",yaw,x,y); 
+/*
+           if(fabs(yaw) > 0.1 && !is_rotation_done)
            {
                 
                 if(yaw>0)
-                cmd.angular.z = -0.05; 
+                    cmd.angular.z = -0.025; 
                 else
-                cmd.angular.z = 0.05
-;
-
+                    cmd.angular.z = 0.025;
+                
                 ROS_INFO("Anglular displacement"); 
 
            }
-           else if(fabs(x)>0.01)
+           else if (fabs(yaw) <= 0.1)*/
+                is_rotation_done = true;
+           
+            if(fabs(y)>0.01 && !is_y_done && is_rotation_done)
            {
                 
-                if(x>0)
-                cmd.linear.x = -0.1;
+                if(y>0)
+                cmd.linear.y = -0.02;
                 else
-                cmd.linear.x = 0.1;
+                cmd.linear.y = 0.02;
 
-                ROS_INFO("X displacement");
+                ROS_INFO("y displacement");
 
            } 
-           else if(fabs(y)>0.01)
-           {          
-                if(y>0)
-                cmd.linear.y = -0.1;
-                else
-                cmd.linear.y = +0.1;
+            else  if (fabs(y) <= 0.01)
+            {
+                is_y_done = true;
+          
+              if(fabs(x)>0.01 && !is_x_done && is_rotation_done && is_y_done)
+               {          
+                    if(x>0)
+                    cmd.linear.x = -0.02;
+                    else
+                    cmd.linear.x = +0.02;
 
-                ROS_INFO("Y displacement");
-           }
-           else
-           {    
+                    ROS_INFO("x displacement");
+               }
+               else if (fabs(x) <= 0.01)
+                {    
+
+                    is_x_done = true;
+                    
+               }
+            }
+
+            if(!is_rotation_done || !is_x_done || !is_y_done)
+                base_velocities_publisher.publish(cmd);
+        
+            if(is_rotation_done && is_x_done && is_y_done)
+            {
                 base_velocities_publisher.publish(zero);
             
                 isreached =  true;
@@ -464,19 +496,18 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
                 ROS_INFO(" Base reached Marker Target frame");
            
                 return true; 
-           }
-
-            base_velocities_publisher.publish(cmd);
-        
+            }
 
        }
        catch (tf::TransformException ex)
        {
+          base_velocities_publisher.publish(zero);  
           ROS_ERROR("%s",ex.what());
        }
 
 
         if  (stamp + max_time < ros::Time::now()) {
+        base_velocities_publisher.publish(zero);
         ROS_INFO("Marker alignment Time out");
 		return false;
 		break;
@@ -484,7 +515,7 @@ bool alignwithmarker(raw_srvs::SetMarkerFrame::Request  &req, raw_srvs::SetMarke
        
     }
 
-    
+    return true;
 
  }
 

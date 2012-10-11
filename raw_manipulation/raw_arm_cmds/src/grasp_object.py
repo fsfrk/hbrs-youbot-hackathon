@@ -77,7 +77,7 @@ class Grasper():
         while self.received_state == False:
             print( "no joint values")
         
-        grasp_pose = [3.00088, 2.44998, -1.67199, 2.35675, self.current_joint_configuration[4]]
+        grasp_pose = [2.9496, 2.44998, -1.67199, 2.35675, self.current_joint_configuration[4]]
     
         rospy.set_param("/script_server/arm/grasp_laying_mex", grasp_pose)
         '''        
