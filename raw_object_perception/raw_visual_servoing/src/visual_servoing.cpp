@@ -513,6 +513,8 @@ public:
     {
       ROS_ERROR( "Visual Servoing Failure due to Timeout" ); 
       res.value = false; 
+      geometry_msgs::Twist zero_vel;
+      base_velocities_publisher.publish(zero_vel);
     }
 
      // Turn off the image subscriber for the web camera.
