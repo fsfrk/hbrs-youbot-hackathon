@@ -9,14 +9,21 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/raw_final_iros2012</url>
 
-  <depend package="rospy" />
-  <depend package="smach" />
-  <depend package="smach_ros" />
-  <depend package="raw_generic_states" />
-  <depend package="raw_arm_navigation" />
-  <depend package="hbrs_marker_detection" />
-  <depend package="raw_base_placement" />
-  <depend package="raw_relative_movements" />
-</package>
+    <depend package="rospy" />
+    <depend package="smach" />
+    <depend package="smach_ros" />
+    <depend package="raw_generic_states" />
 
+
+    <depend package="raw_bringup" />
+    <depend package="raw_2dnav_omni" />
+    <depend package="raw_script_server" />
+    <depend package="raw_base_placement" />
+    <depend package="raw_relative_movements" />
+    <depend package="raw_arm_navigation" />
+    <depend package="hbrs_soundfile_player" />
+    <depend package="raw_object_detection" />
+    <depend package="raw_marker_detection" />
+
+</package>
 

@@ -8,13 +8,16 @@
     <!-- base components -->
     <include file="$(find raw_bringup)/robots/robot.launch" />
 
+    <!-- base components -->
+    <include file="$(find raw_2dnav_omni)/ros/launch/2dnav_omni.launch" />
+
     <include file="$(find hbrs_safe_cmd_vel)/ros/launch/safe_cmd_vel.launch" />
 
     <!-- script server -->
     <include file="$(find raw_script_server)/launch/script_server.launch" />
 
-  <!-- base placement -->
-  <!--<include file="$(find raw_base_placement)/ros/launch/placement_wrt_platform.launch" />-->
+    <!-- base placement -->
+    <include file="$(find raw_base_placement)/ros/launch/placement_wrt_platform.launch" />
 		
     <!-- motion controller -->
     <include file="$(find raw_relative_movements)/launch/base_controller.launch" />
