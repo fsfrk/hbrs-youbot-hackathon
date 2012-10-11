@@ -8,6 +8,8 @@
     <!-- base components -->
     <include file="$(find raw_bringup)/robots/robot.launch" />
 
+    <include file="$(find hbrs_safe_cmd_vel)/ros/launch/safe_cmd_vel.launch" />
+
     <!-- script server -->
     <include file="$(find raw_script_server)/launch/script_server.launch" />
 
