@@ -74,9 +74,28 @@ class detect_marker(smach.State):
 
         return 'found_marker'
 
-class select_marker_to_approach(smach.State):
+class select_marker_to_approach_at_source(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['detected_marker'], output_keys=['detected_marker', 'selected_marker'])
+        smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['detected_marker', 'task_marker_id', 'selected_marker'], output_keys=['detected_marker', 'selected_marker', 'task_marker_id'])
+
+    def execute(self, userdata):
+
+        print "detected marker: ", userdata.detected_marker
+        print "user select: ", userdata.task_marker_id
+
+        for marker in userdata.detected_marker:
+            if marker.name == userdata.task_marker_id:
+                userdata.selected_marker = marker.pose
+                print "selected pose: ", userdata.selected_marker
+                return 'succeeded'
+                  
+        return 'failed'
+
+
+
+class select_marker_to_approach_at_destination(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['detected_marker', 'selected_marker'], output_keys=['detected_marker', 'selected_marker'])
 
     def execute(self, userdata):
 
@@ -86,6 +105,9 @@ class select_marker_to_approach(smach.State):
         userdata.selected_marker = userdata.detected_marker.pop().pose
             
         return 'succeeded'
+
+
+
 
 class calculate_goal_pose(smach.State):
     def __init__(self):
@@ -233,6 +255,14 @@ class place_object_in_bin(smach.State):
         smach.State.__init__(self, outcomes=['succeeded'])
 
     def execute(self, userdata):
+
+        sss.move("arm", "into_bin")
+        
+        sss.move("gripper", "open")
+        rospy.sleep(3.0)
+
+        sss.move("arm", "zeroposition")
+        
         return 'succeeded'
 
 #class approach_pose_searching_for_box(smach.State):
