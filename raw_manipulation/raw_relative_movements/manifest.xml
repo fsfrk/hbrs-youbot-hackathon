@@ -20,6 +20,7 @@
   <depend package="nav_msgs"/>
   <depend package="geometry_msgs"/>
   <depend package="raw_base_placement"/>
+  <depend package="angles" />
 
 </package>
 
