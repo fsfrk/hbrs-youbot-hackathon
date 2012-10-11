@@ -33,6 +33,7 @@ if __name__ == '__main__':
     SM_BINS.userdata.goal_pose = 0
     SM_BINS.userdata.rear_platform_free_poses = ['platform_centre']
     SM_BINS.userdata.rear_platform_occupied_poses = []
+    SM_BINS.userdata.visual_servoing_timeout_counter = 0
 
     with SM_BINS:
         smach.StateMachine.add('MOVE_ARM_OUT_OF_VIEW', move_arm_out_of_view(),
@@ -71,8 +72,14 @@ if __name__ == '__main__':
 
         smach.StateMachine.add('GRASP_OBJECT_FROM_BIN', grasp_obj_with_visual_servering(),
                                transitions={'succeeded': 'PLACE_OBJECT_ON_REAR_PLATFORM',
-                                            'vs_timeout': 'GRASP_OBJECT_FROM_BIN',
-                                            'failed': 'GRASP_OBJECT_FROM_BIN'}) # TODO: is it a proper recovery behavior?
+                                            'vs_timeout': 'INCREASE_VISUAL_SERVOING_TIMEOUT_COUNTER',
+                                            'failed': 'INCREASE_VISUAL_SERVOING_TIMEOUT_COUNTER'}) # TODO: is it a proper recovery behavior?
+        
+        smach.StateMachine.add('INCREASE_VISUAL_SERVOING_TIMEOUT_COUNTER', increase_counter(3),
+                               transitions={'succeeded': 'GRASP_OBJECT_FROM_BIN',
+                                            'counter_exceeded_limit': 'overall_failed'},
+                               remapping={'counter': 'visual_servoing_timeout_counter'}) 
+        
 
         smach.StateMachine.add('PLACE_OBJECT_ON_REAR_PLATFORM', place_obj_on_rear_platform(),
                                transitions={'succeeded': 'overall_success',

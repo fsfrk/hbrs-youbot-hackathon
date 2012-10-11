@@ -23,6 +23,27 @@ FIND_WORKSPACE = 'find_workspace'
 PLAY_SOUND = '/hbrs_audio/play_soundfile'
 
 
+class increase_counter(smach.State):
+
+    def __init__(self, limit=1):
+        smach.State.__init__(
+            self,
+            outcomes=['succeeded', 'counter_exceeded_limit'],
+            input_keys=['counter'],
+            output_keys=['counter'])
+        
+        self.limit = limit 
+
+    def execute(self, userdata):     
+        
+        userdata.counter = userdata.counter + 1
+        
+        if userdata.counter >= self.limit:
+            return 'counter_exceeded_limit'
+
+        return 'succeeded'
+
+
 class detect_marker(smach.State):
 
     def __init__(self):
