@@ -348,9 +348,8 @@ class point_and_announce_objects(smach.State):
     def transform_to_base_link(self, pose):
         for i in range(3):
             try:
-                pose.header.stamp = rospy.Time.now()
                 time = self.tf_listener.getLatestCommonTime('/base_link', pose.header.frame_id)
-                rospy.sleep(0.1)
+                pose.header.stamp = time
                 return self.tf_listener.transformPose('/base_link', pose)
             except Exception, e:
                 rospy.logerr("TF exception in point_and_announce_objects: %s", e)
