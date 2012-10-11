@@ -186,18 +186,6 @@ class adjust_pose_wrt_bin(smach.State):
                                    input_keys=['bin_marker_id'])
         self.displacement = Vector3()
         self.displacement.x = distance
-        try:
-            rospy.wait_for_service(PUBLISH_GOAL, timeout=5)
-            self.publish_goal = rospy.ServiceProxy(PUBLISH_GOAL, PublishGoal)
-        except rospy.ROSException:
-            rospy.logwarn('[%s] service is not available.' % PUBLISH_GOAL)
-            self.publish_goal = None
-        try:
-            rospy.wait_for_service(APPROACH_GOAL, timeout=5)
-            self.approach_goal = rospy.ServiceProxy(APPROACH_GOAL, SetMarkerFrame)
-        except rospy.ROSException:
-            rospy.logwarn('[%s] service is not available.' % APPROACH_GOAL)
-            self.approach_goal = None
 
     def execute(self, userdata):
         if self.publish_goal is None or self.approach_goal is None:
@@ -332,6 +320,8 @@ class point_and_announce_objects(smach.State):
             except Exception, e:
                 rospy.logerr("Could not execute service <<%s>>: %e", PLAY_SOUND, e)
             sss.move('arm', 'zeroposition')
+
+
         return 'succeeded'
 
     def get_pointing_position(self, obj):
