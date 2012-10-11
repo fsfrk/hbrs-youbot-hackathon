@@ -33,7 +33,7 @@
     <include file="$(find raw_bringup)/components/usb_cam_logitech.launch" />
 
     <include file="$(find hbrs_soundfile_player)/ros/launch/soundfile_player.launch /> 
-    <include file="$(find raw_object_detection)/ros/launch/perception_pipeline.launch" />
+    <include file="$(find raw_object_detection)/ros/launch/perception_pipeline.launch />
 
 
     <!-- marker detection -->
