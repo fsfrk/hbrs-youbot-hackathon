@@ -265,7 +265,7 @@ class place_object_in_bin(smach.State):
 
 class point_and_announce_objects(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['succeeded', 'failed', 'missing_service'],
+        smach.State.__init__(self, outcomes=['succeeded'],
                                    input_keys=['recognized_objects'],
                                    output_keys=['recognized_objects'])
         try:
@@ -287,23 +287,20 @@ class point_and_announce_objects(smach.State):
                 continue
 
             handle_arm = sss.move('arm', p)
-
+            handle_arm.wait()
+            if not handle_arm.get_state() == 3:
+                continue
             # announce object name
-            
             try:
-                resp = self.play_sound((obj.name + '.wav'))
+                self.play_sound((obj.name + '.wav'))
             except Exception, e:
-                rospy.logerr("could not execute service <<%s>>: %e", PLAY_SOUND, e)
-
-            ## announce laying or standing
-            if(obj.dimensions.vector.x > 0.04):
-                str = "standing.wav"
-            else:
-                str = "laying.wav"
+                rospy.logerr("Could not execute service <<%s>>: %e", PLAY_SOUND, e)
+            # announce laying or standing
+            orientation = 'standing' if obj.dimensions.vector.x > 0.5 else 'laying'
             try:
-                resp = self.play_sound(str)
+                self.play_sound((orientation + '.wav'))
             except Exception, e:
-                rospy.logerr("could not execute service <<%s>>: %e", PLAY_SOUND, e)
+                rospy.logerr("Could not execute service <<%s>>: %e", PLAY_SOUND, e)
             sss.move('arm', 'zeroposition')
         return 'succeeded'
 
