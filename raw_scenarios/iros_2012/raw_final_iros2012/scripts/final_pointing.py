@@ -38,8 +38,9 @@ with SM_POINTING:
                                transitions={'succeeded': 'RECOGNIZE_OBJECTS'})
 
         smach.StateMachine.add('RECOGNIZE_OBJECTS', recognize_objects(),
-                               transitions={'succeeded': 'POINT_AND_ANNOUNCE_OBJECTS',
-                                            'failed': 'overall_failed'})
+                               transitions={'found_objects': 'POINT_AND_ANNOUNCE_OBJECTS',
+                                            'no_objects_found': 'overall_failed',
+                                            'srv_call_failed': 'overall_failed'}) # TODO: recovery!
 
         smach.StateMachine.add('POINT_AND_ANNOUNCE_OBJECTS', point_and_announce_objects(),
                                transitions={'succeeded': 'MOVE_ARM_IN_SAFE_POS',

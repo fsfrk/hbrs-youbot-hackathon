@@ -6,8 +6,8 @@ import rospy
 import smach
 from smach_ros import ServiceState
 
-from geometry_msgs.msg import Vector3
-from hbrs_srvs.srv import GetObjects, PassString
+from geometry_msgs.msg import Vector3, PoseStamped
+from hbrs_srvs.srv import GetObjects, PassString, PassStringRequest
 from raw_srvs.srv import PublishGoal, SetMarkerFrame
 from tf import TransformListener
 import tf.transformations as tfs
@@ -268,18 +268,17 @@ class point_and_announce_objects(smach.State):
         smach.State.__init__(self, outcomes=['succeeded', 'failed', 'missing_service'],
                                    input_keys=['recognized_objects'],
                                    output_keys=['recognized_objects'])
-        try:
-            rospy.wait_for_service(PLAY_SOUND, timeout=5)
-            self.play_sound = rospy.ServiceProxy(PLAY_SOUND, PassString)
-        except rospy.ROSException:
-            rospy.logwarn('[%s] service is not available.' % PLAY_SOUND)
-            self.play_sound  = None
+        #try:
+            #rospy.wait_for_service(PLAY_SOUND, timeout=5)
+            #self.play_sound = rospy.ServiceProxy(PLAY_SOUND, PassString)
+        #except rospy.ROSException:
+            #rospy.logwarn('[%s] service is not available.' % PLAY_SOUND)
+            #self.play_sound  = None
         self.tf_listener = tf.TransformListener()
+        self.goal_pose_pub = rospy.Publisher('/object_goal_pose', PoseStamped)
 
     def execute(self, userdata):
-        global planning_mode
-        if planning_mode == '':
-            sss.move('arm', 'zeroposition', mode=planning_mode)
+        sss.move('arm', 'zeroposition')
         for obj in userdata.recognized_objects:
             try:
                 p = self.get_pointing_position(obj)
@@ -287,10 +286,11 @@ class point_and_announce_objects(smach.State):
                 rospy.logerr('Skipping object: %s' % e)
                 continue
 
-            #handle_arm = sss.move('arm', p, mode=planning_mode)
+            handle_arm = sss.move('arm', p)
+            rospy.sleep(3)
             # announce object name
-            #srv_request = hbrs_srvs.srv.PassStringRequest()
-            #request.str = object.name
+            #srv_request = PassStringRequest()
+            #request.str = obj.name
             #try:
                 #rospy.wait_for_service(self.play_sound_srv_name, 15)
                 #resp = self.play_sound_srv(request)
@@ -307,21 +307,26 @@ class point_and_announce_objects(smach.State):
                 #resp = self.play_sound_srv(request)
             #except Exception, e:
                 #rospy.logerr("could not execute service <<%s>>: %e", self.play_sound_srv_name, e)
-            #sss.move('arm', 'zeroposition', mode=planning_mode)
+            sss.move('arm', 'zeroposition')
         return 'succeeded'
 
     def get_pointing_position(self, obj):
         pose = self.transform_to_base_link(obj.pose)
-        x = pose.pose.position.x + 0.1
-        y = pose.pose.position.y - 0.005
-        z = pose.pose.position.z + 0.1
-        return [x, y, z, '/base_link']
+        pose.pose.position.x += 0.05
+        #pose.pose.position.y -= 0.005
+        pose.pose.position.z += 0.25
+        self.goal_pose_pub.publish(pose)
+        x = pose.pose.position.x
+        y = pose.pose.position.y
+        z = pose.pose.position.z
+        return [float(x), float(y), float(z), '/base_link']
 
     def transform_to_base_link(self, pose):
         for i in range(3):
             try:
                 pose.header.stamp = rospy.Time.now()
                 time = self.tf_listener.getLatestCommonTime('/base_link', pose.header.frame_id)
+                rospy.sleep(0.1)
                 return self.tf_listener.transformPose('/base_link', pose)
             except Exception, e:
                 rospy.logerr("TF exception in point_and_announce_objects: %s", e)
