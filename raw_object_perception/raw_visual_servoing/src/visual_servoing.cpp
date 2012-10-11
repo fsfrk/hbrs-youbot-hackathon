@@ -43,6 +43,8 @@
 // The amount of time that we have to find an object in Seconds.
 #define VS_TIMEOUT 30
 
+#define VERTICLE_OFFSET 40
+
 class raw_visual_servoing 
 {
 
@@ -266,7 +268,7 @@ public:
     rotation = get_orientation( temp_tracked_blob );  
 
     x_offset = ( tracked_x ) - ( master_image_width / 2 ); 
-    y_offset = ( tracked_y ) - ( (master_image_height/2) + 65 ); 
+    y_offset = ( tracked_y ) - ( (master_image_height/2) + VERTICLE_OFFSET ); 
     rot_offset = rotation; 
 
     //---------------------------------------------------------------------
@@ -427,7 +429,7 @@ public:
     CvFont font;
     cvInitFont(&font, CV_FONT_HERSHEY_SIMPLEX, 1.0, 1.0, 0, 1, CV_AA);
 
-    cvLine( blob_image,   cvPoint( 0, (master_image_height/2) + 65 ), cvPoint( master_image_width, (master_image_height/2) + 65 ), CV_RGB( 255, 0, 0 ), 2, 0 ); 
+    cvLine( blob_image,   cvPoint( 0, (master_image_height/2) + VERTICLE_OFFSET ), cvPoint( master_image_width, (master_image_height/2) + VERTICLE_OFFSET ), CV_RGB( 255, 0, 0 ), 2, 0 ); 
     cvLine( blob_image,   cvPoint( (master_image_width/2), 0 ), cvPoint( (master_image_width/2), master_image_height ), CV_RGB( 255, 0, 0 ), 2, 0 );
     cvRectangle( blob_image, cvPoint( 0, blob_image->height-40 ), cvPoint( blob_image->width, blob_image->height ), CV_RGB( 0, 0, 0 ), -1 );
 
