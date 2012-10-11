@@ -33,6 +33,7 @@ if __name__ == '__main__':
     SM_BINS.userdata.goal_pose = 0
     SM_BINS.userdata.rear_platform_free_poses = ['platform_centre']
     SM_BINS.userdata.rear_platform_occupied_poses = []
+    SM_BINS.userdata.object_to_grasp = []
 
     with SM_BINS:
         smach.StateMachine.add('MOVE_ARM_OUT_OF_VIEW', move_arm_out_of_view(),
