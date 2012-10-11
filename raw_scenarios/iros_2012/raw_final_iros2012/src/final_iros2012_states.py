@@ -74,9 +74,28 @@ class detect_marker(smach.State):
 
         return 'found_marker'
 
-class select_marker_to_approach(smach.State):
+class select_marker_to_approach_at_source(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['detected_marker'], output_keys=['detected_marker', 'selected_marker'])
+        smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['detected_marker', 'task_marker_id', 'selected_marker'], output_keys=['detected_marker', 'selected_marker', 'task_marker_id'])
+
+    def execute(self, userdata):
+
+        print "detected marker: ", userdata.detected_marker
+        print "user select: ", userdata.task_marker_id
+
+        for marker in userdata.detected_marker:
+            if marker.name == userdata.task_marker_id:
+                userdata.selected_marker = marker.pose
+                print "selected pose: ", userdata.selected_marker
+                return 'succeeded'
+                  
+        return 'failed'
+
+
+
+class select_marker_to_approach_at_destination(smach.State):
+    def __init__(self):
+        smach.State.__init__(self, outcomes=['succeeded', 'failed'], input_keys=['detected_marker', 'selected_marker'], output_keys=['detected_marker', 'selected_marker'])
 
     def execute(self, userdata):
 
@@ -86,6 +105,9 @@ class select_marker_to_approach(smach.State):
         userdata.selected_marker = userdata.detected_marker.pop().pose
             
         return 'succeeded'
+
+
+
 
 class calculate_goal_pose(smach.State):
     def __init__(self):
@@ -233,6 +255,14 @@ class place_object_in_bin(smach.State):
         smach.State.__init__(self, outcomes=['succeeded'])
 
     def execute(self, userdata):
+
+        sss.move("arm", "into_bin")
+        
+        sss.move("gripper", "open")
+        rospy.sleep(3.0)
+
+        sss.move("arm", "zeroposition")
+        
         return 'succeeded'
 
 #class approach_pose_searching_for_box(smach.State):
@@ -265,7 +295,7 @@ class place_object_in_bin(smach.State):
 
 class point_and_announce_objects(smach.State):
     def __init__(self):
-        smach.State.__init__(self, outcomes=['succeeded', 'failed', 'missing_service'],
+        smach.State.__init__(self, outcomes=['succeeded'],
                                    input_keys=['recognized_objects'],
                                    output_keys=['recognized_objects'])
         try:
@@ -287,23 +317,20 @@ class point_and_announce_objects(smach.State):
                 continue
 
             handle_arm = sss.move('arm', p)
-
+            handle_arm.wait()
+            if not handle_arm.get_state() == 3:
+                continue
             # announce object name
-            
             try:
-                resp = self.play_sound((obj.name + '.wav'))
+                self.play_sound((obj.name + '.wav'))
             except Exception, e:
-                rospy.logerr("could not execute service <<%s>>: %e", PLAY_SOUND, e)
-
-            ## announce laying or standing
-            if(obj.dimensions.vector.x > 0.04):
-                str = "standing.wav"
-            else:
-                str = "laying.wav"
+                rospy.logerr("Could not execute service <<%s>>: %e", PLAY_SOUND, e)
+            # announce laying or standing
+            orientation = 'standing' if obj.dimensions.vector.x > 0.05 else 'laying'
             try:
-                resp = self.play_sound(str)
+                self.play_sound((orientation + '.wav'))
             except Exception, e:
-                rospy.logerr("could not execute service <<%s>>: %e", PLAY_SOUND, e)
+                rospy.logerr("Could not execute service <<%s>>: %e", PLAY_SOUND, e)
             sss.move('arm', 'zeroposition')
         return 'succeeded'
 
@@ -321,9 +348,8 @@ class point_and_announce_objects(smach.State):
     def transform_to_base_link(self, pose):
         for i in range(3):
             try:
-                pose.header.stamp = rospy.Time.now()
                 time = self.tf_listener.getLatestCommonTime('/base_link', pose.header.frame_id)
-                rospy.sleep(0.1)
+                pose.header.stamp = time
                 return self.tf_listener.transformPose('/base_link', pose)
             except Exception, e:
                 rospy.logerr("TF exception in point_and_announce_objects: %s", e)
