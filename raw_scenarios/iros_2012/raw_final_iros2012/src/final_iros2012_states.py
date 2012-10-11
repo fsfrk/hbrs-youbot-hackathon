@@ -195,6 +195,9 @@ class grasp_bin(smach.State):
             #raw_input("press enter")
             sss.move("arm", pose_n)
 
+        sss.move("gripper","close")
+        rospy.sleep(2.0)
+
         return 'succeeded'
 
 class pull_bin(smach.State):
