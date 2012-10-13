@@ -54,12 +54,12 @@ def main():
             transitions={'succeeded':'RECOGNIZE_OBJECTS'})
                 
         smach.StateMachine.add('RECOGNIZE_OBJECTS', recognize_objects(),
-            transitions={'succeeded':'POINT_TO_RECOGNIZED_OBJECTS',
+            transitions={'succeeded':'POINT_TO_AND_ANNOUNCE_RECOGNIZED_OBJECTS',
                         'failed':'overall_failed'})
 
-        smach.StateMachine.add('POINT_TO_SELECTED_OBJECT', point_to_and_announce_recognized_objects(),
+        smach.StateMachine.add('POINT_TO_AND_ANNOUNCE_RECOGNIZED_OBJECTS', point_to_and_announce_recognized_objects(),
             transitions={'succeeded':'MOVE_ARM_TO_INIT',
-                        'failed':'POINT_TO_SELECTED_OBJECT'})
+                        'failed':'POINT_TO_AND_ANNOUNCE_RECOGNIZED_OBJECTS'})
         
             
         smach.StateMachine.add('MOVE_ARM_TO_INIT', move_arm("initposition", do_blocking = False),
