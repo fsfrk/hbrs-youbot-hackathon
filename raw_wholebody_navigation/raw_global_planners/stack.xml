@@ -1,0 +1,9 @@
+<stack>
+  <description brief="raw_global_planners">raw_global_planners</description>
+  <author>Maintained by student</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_global_planners</url>
+  <depend stack="ros" />
+
+</stack>

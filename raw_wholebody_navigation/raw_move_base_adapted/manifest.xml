@@ -1,0 +1,14 @@
+<package>
+  <description brief="raw_move_base_adapted">
+
+     raw_move_base_adapted
+
+  </description>
+  <author>student</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_move_base_adapted</url>
+
+</package>
+
+
