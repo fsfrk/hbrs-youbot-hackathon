@@ -1,0 +1,14 @@
+<package>
+  <description brief="raw_recovery_beahviours">
+
+     raw_recovery_beahviours
+
+  </description>
+  <author>student</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_recovery_beahviours</url>
+
+</package>
+
+

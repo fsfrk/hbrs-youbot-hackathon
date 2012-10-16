@@ -1,0 +1,14 @@
+<package>
+  <description brief="raw_ompl">
+
+     raw_ompl
+
+  </description>
+  <author>student</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_ompl</url>
+
+</package>
+
+

@@ -1,0 +1,9 @@
+<stack>
+  <description brief="raw_navigation_3rdparty">raw_navigation_3rdparty</description>
+  <author>Maintained by student</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_navigation_3rdparty</url>
+  <depend stack="ros" />
+
+</stack>

@@ -314,7 +314,7 @@ class point_and_announce_objects(smach.State):
             except Exception, e:
                 rospy.logerr("Could not execute service <<%s>>: %e", PLAY_SOUND, e)
             # announce laying or standing
-            orientation = 'standing' if obj.dimensions.vector.x > 0.05 else 'laying'
+            orientation = 'standing' if obj.dimensions.vector.x > 0.06 else 'laying'
             try:
                 self.play_sound((orientation + '.wav'))
             except Exception, e:

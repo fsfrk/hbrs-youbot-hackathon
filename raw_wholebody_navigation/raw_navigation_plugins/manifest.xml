@@ -1,0 +1,14 @@
+<package>
+  <description brief="raw_navigation_plugins">
+
+     raw_navigation_plugins
+
+  </description>
+  <author>student</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_navigation_plugins</url>
+
+</package>
+
+

@@ -1,0 +1,14 @@
+<package>
+  <description brief="raw_omni_drive">
+
+     raw_omni_drive
+
+  </description>
+  <author>student</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_omni_drive</url>
+
+</package>
+
+

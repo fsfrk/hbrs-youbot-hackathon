@@ -1,0 +1,20 @@
+<package>
+  <description brief="raw_velocity_transformations">
+
+     raw_velocity_transformations
+
+  </description>
+  <author>student</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/raw_velocity_transformations</url>
+  <depend package="roscpp"/>
+  <depend package="rospy"/>
+  <depend package="eigen"/>
+  <depend package="angles"/>
+  <depend package="geometry_msgs"/>
+  <depend package="common_rosdeps" />
+  <rosdep name="eigen" />
+</package>
+
+
