@@ -14,6 +14,8 @@ from generic_state_machines import *
 
 from final_iros2012_states import *
 
+BIN_PULL_DISTANCE = -0.2
+
 def sm_pull_bin():
     sm = smach.StateMachine(outcomes=['succeeded', 'failed'], input_keys=['selected_marker', 'goal_pose'], output_keys=['selected_marker', 'goal_pose'])
     with sm:
@@ -57,13 +59,16 @@ SM_BINS.userdata.visual_servoing_timeout_counter = 0 # increase_counter
 SM_BINS.userdata.rear_platform_free_poses = ['platform_centre'] #place_obj_on_rear_pltf
 SM_BINS.userdata.rear_platform_occupied_poses = [] #place_obj_on_rear_pltf
 
-BIN_PULL_DISTANCE = 0.1
+
 
 with SM_BINS:
         smach.StateMachine.add('MOVE_TO_TASK_WORKSTATION', approach_pose(),
                                remapping={'base_pose_to_approach': 'task_workstation'},
-                               transitions={'succeeded': 'WAIT_FOR_TASK_MARKER',
+                               transitions={'succeeded': 'MOVE_ARM_OUT_OF_VIEW_AT_GETTING_TASK',
                                             'failed': 'overall_failed'})
+
+        smach.StateMachine.add('MOVE_ARM_OUT_OF_VIEW_AT_GETTING_TASK', move_arm_out_of_view(),
+                               transitions={'succeeded': 'WAIT_FOR_TASK_MARKER'})
 
         smach.StateMachine.add('WAIT_FOR_TASK_MARKER', wait_for_task_marker(),
                                transitions={'found_marker': 'MOVE_TO_SOURCE_WORKSTATION'})
@@ -87,15 +92,14 @@ with SM_BINS:
 
 
         smach.StateMachine.add('GRASP_AND_PULL_OUT_SOURCE_BIN', sm_pull_bin(),
-                               remapping={'': ''},
-                               transitions={'succeeded': 'overall_failed',
-                                            'failed': 'MOVE_ARM_TO_PREGRASP'}) # TODO: what does failure mean? how to recover?
+                               transitions={'succeeded': 'MOVE_ARM_TO_PREGRASP',
+                                            'failed': 'overall_failed'}) # TODO: what does failure mean? how to recover?
         
 
         smach.StateMachine.add('MOVE_ARM_TO_PREGRASP', move_arm("pregrasp_laying_mex"),
                                transitions={'succeeded': 'MOVE_OVER_BIN_AT_SOURCE'})
 
-        smach.StateMachine.add('MOVE_OVER_BIN_AT_SOURCE', move_base_rel(0.1, 0),
+        smach.StateMachine.add('MOVE_OVER_BIN_AT_SOURCE', move_base_rel(0.08, 0),
                                transitions={'succeeded': 'GRASP_OBJECT_FROM_BIN'})
 
         smach.StateMachine.add('GRASP_OBJECT_FROM_BIN', grasp_obj_with_visual_servering(),
@@ -137,10 +141,10 @@ with SM_BINS:
                                             'failed': 'overall_failed'}) # TODO: what does failure mean? how to recover?
 
         smach.StateMachine.add('GRASP_OBJECT_FROM_PLATFORM', grasp_obj_from_pltf(),
-                               transitions={'succeeded': 'PLACE_OBJECT_IN_BIN',
+                               transitions={'succeeded': 'MOVE_OVER_BIN_AT_DESTINATION',
                                             'no_more_obj_on_pltf': 'PLACE_OBJECT_IN_BIN'})
 
-        smach.StateMachine.add('MOVE_OVER_BIN_AT_DESTINATION', move_base_rel(0.1, 0),
+        smach.StateMachine.add('MOVE_OVER_BIN_AT_DESTINATION', move_base_rel(0.03, 0),
                                transitions={'succeeded': 'PLACE_OBJECT_IN_BIN'})
 
         smach.StateMachine.add('PLACE_OBJECT_IN_BIN', place_object_in_bin(),

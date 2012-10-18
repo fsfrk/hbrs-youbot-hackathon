@@ -15,8 +15,11 @@ from generic_robocup_states import *
 SM_OMNI = smach.StateMachine(outcomes=['overall_success'])
 
 SM_OMNI.userdata.current_task_index = 0
-SM_OMNI.userdata.task_list = [Bunch('S1', 'W', '1'),
-                              Bunch('S2', 'E', '3')]
+SM_OMNI.userdata.task_list = [Bunch(location='S1', orientation='E', duration='2'),
+                              Bunch(location='S3', orientation='E', duration='2'),
+                              Bunch(location='D1', orientation='W', duration='2'),
+                              Bunch(location='S2', orientation='E', duration='2'),
+                              Bunch(location='EXIT', orientation='W', duration='2')]
 
 with SM_OMNI:
     smach.StateMachine.add('SELECT_POSE_TO_APPROACH', select_pose_to_approach(),
