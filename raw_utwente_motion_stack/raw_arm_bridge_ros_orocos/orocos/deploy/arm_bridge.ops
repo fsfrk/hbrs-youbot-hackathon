@@ -1,5 +1,5 @@
 import("rtt_rosnode");
-import("arm_bridge_ros_orocos");
+import("raw_arm_bridge_ros_orocos");
 
 require("ros_integration")
 
