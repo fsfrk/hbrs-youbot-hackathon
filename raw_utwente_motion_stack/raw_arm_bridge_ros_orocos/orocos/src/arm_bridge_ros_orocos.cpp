@@ -41,6 +41,8 @@ bool ArmBridgeRosOrocos::startHook()
 	m_cartesian_pose_with_impedance_ctrl_as->start();
 	m_joint_config_as->start();
 
+	ROS_INFO("arm actions started");
+
 	if (!brics_joint_positions.connected())
 	{
 		log(Error) << "BRICS joint positions not connected." << endlog();
@@ -78,6 +80,7 @@ void ArmBridgeRosOrocos::updateHook()
 	if (brics_joint_positions.read(m_brics_joint_positions) == NoData)
 		return;
 
+	ROS_INFO("received new joint configuration on topic");
 	writeJointPositionsToPort(m_brics_joint_positions, m_orocos_joint_positions, orocos_joint_positions);
 }
 
@@ -101,7 +104,17 @@ void ArmBridgeRosOrocos::writeJointPositionsToPort(brics_actuator::JointPosition
 
 void ArmBridgeRosOrocos::armJointConfigurationGoalCallback(actionlib::ActionServer<raw_arm_navigation::MoveToJointConfigurationAction>::GoalHandle joint_cfg_goal)
 {
+	ROS_INFO("MoveToJointConfigurationDirect action called");
+
+	joint_cfg_goal.setAccepted();
+
 	writeJointPositionsToPort(m_brics_joint_positions, m_orocos_joint_positions, orocos_joint_positions);
+
+
+	// TDB: check if pose is reached
+
+
+	joint_cfg_goal.setSucceeded();
 }
 
 void ArmBridgeRosOrocos::armCartesianPoseWithImpedanceCtrlGoalCallback(actionlib::ActionServer<raw_arm_navigation::MoveToCartesianPoseAction>::GoalHandle cartesian_pose_goal)
@@ -110,6 +123,8 @@ void ArmBridgeRosOrocos::armCartesianPoseWithImpedanceCtrlGoalCallback(actionlib
 	btQuaternion bt_quat;
 
 	geometry_msgs::PoseStamped goal_pose = cartesian_pose_goal.getGoal()->goal;
+
+	ROS_INFO("MoveToCartesianPoseDirect action called");
 
 	std::cout << "\nx: " << goal_pose.pose.position.x << " y: " << goal_pose.pose.position.y << " z: " << goal_pose.pose.position.z;
 
@@ -153,9 +168,17 @@ void ArmBridgeRosOrocos::armCartesianPoseWithImpedanceCtrlGoalCallback(actionlib
 
 	std::cout << "write homog matrix to output port" << std::endl;
 
+	cartesian_pose_goal.setAccepted();
+
 	orocos_HtipCC.write(m_orocos_HtipCC);
 	orocos_arm_stiffness.write(m_orocos_arm_stiffness);
 	orocos_homog_matrix.write(m_orocos_homog_matrix);
+
+	// TDB: check if pose is reached
+
+
+	cartesian_pose_goal.setSucceeded();
+
 }
 
 
