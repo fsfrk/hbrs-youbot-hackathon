@@ -315,7 +315,7 @@ public:
 
       if( !safe_cmd_vel_service.call( service_msg ) )
       {
-        ROS_ERROR( "Visual Servoing call to is_robot_to_close_to_wall has failed" );
+        ROS_ERROR( "Visual Servoing call to is_robot_to_close_to_obstacle has failed" );
         service_msg.response.value = true; 
       }
 
@@ -485,7 +485,7 @@ public:
      //  Incoming message from raw_usb_cam. This must be running in order for this ROS node to run.
     image_subscriber = image_transporter.subscribe( "/usb_cam/image_raw", 1, &raw_visual_servoing::imageCallback, this );
 
-    safe_cmd_vel_service = node_handler.serviceClient<raw_srvs::ReturnBool>("/is_robot_to_close_to_wall");
+    safe_cmd_vel_service = node_handler.serviceClient<raw_srvs::ReturnBool>("/is_robot_to_close_to_obstacle");
 
     // Velocity control for the YouBot base.
     base_velocities_publisher = node_handler.advertise<geometry_msgs::Twist>( "/safe_cmd_vel", 1 ); 
