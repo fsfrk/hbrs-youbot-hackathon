@@ -1,9 +1,0 @@
-<stack>
-  <description brief="raw_mobile_manipulation">raw_mobile_manipulation</description>
-  <author>Maintained by student</author>
-  <license>BSD</license>  
-  <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/raw_mobile_manipulation</url>
-  <depend stack="ros" />
-
-</stack>
