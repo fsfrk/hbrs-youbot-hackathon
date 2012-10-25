@@ -21,12 +21,12 @@ def main():
     ##sss.move("arm", "pregrasp_front_init")
     
     # BASE PLACEMENT
-    ##shiftbase_srv = rospy.ServiceProxy('/raw_relative_movements/shiftbase', raw_srvs.srv.SetPoseStamped)
+    ##move_base_relative_srv = rospy.ServiceProxy('/raw_relative_movements/move_base_relative', raw_srvs.srv.SetPoseStamped)
     alignbase_srv = rospy.ServiceProxy('/raw_relative_movements/alignwithmarker', raw_srvs.srv.SetMarkerFrame) 
     ##moveoptimalbase_srv = rospy.ServiceProxy('/raw_base_placement/moveoptimalbase', raw_srvs.srv.SetPoseStamped) 
 
-    ##print "wait for service: /raw_relative_movements/shiftbase"   
-    ##rospy.wait_for_service('/raw_relative_movements/shiftbase', 30)
+    ##print "wait for service: /raw_relative_movements/move_base_relative"   
+    ##rospy.wait_for_service('/raw_relative_movements/move_base_relative', 30)
 
     print "wait for service: /raw_relative_movements/alignwithmarker"   
     rospy.wait_for_service('/raw_relative_movements/alignwithmarker', 30)

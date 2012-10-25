@@ -338,7 +338,7 @@ class BaseMotionController
 
 };
 
-bool shiftbase(raw_srvs::SetPoseStamped::Request  &req, raw_srvs::SetPoseStamped::Response &res)
+bool move_base_relative(raw_srvs::SetPoseStamped::Request  &req, raw_srvs::SetPoseStamped::Response &res)
 {
     tf::Quaternion q;
     double roll, pitch, yaw;
@@ -528,7 +528,7 @@ int main(int argc, char **argv)
 
   ros::NodeHandle n;
 
-  ros::ServiceServer shift_base = n.advertiseService( "shiftbase", shiftbase);
+  ros::ServiceServer shift_base = n.advertiseService( "move_base_relative", move_base_relative);
 
   ros::ServiceServer move_optimal_base = n.advertiseService( "movetooptimalbase", moveoptimalbase);
 
