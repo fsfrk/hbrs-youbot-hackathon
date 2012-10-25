@@ -40,9 +40,9 @@ def main():
 
         
         smach.StateMachine.add('INIT_ROBOT', init_robot(),
-            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM'})
+            transitions={'succeeded':'ADJUST_POSE_WRT_WORKSPACE'})
 
-        smach.StateMachine.add('ADJUST_POSE', adjust_pose_wrt_platform(),
+        smach.StateMachine.add('ADJUST_POSE', adjust_pose_wrt_workspace(),
             transitions={'succeeded':'SM_GRASP_OBJECT',
                         'failed':'ADJUST_POSE'})
 	

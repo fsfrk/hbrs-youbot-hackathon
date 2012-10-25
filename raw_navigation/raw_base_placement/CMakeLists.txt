@@ -29,9 +29,9 @@ rosbuild_genmsg()
 rosbuild_gensrv()
 
 
-#find_package(Eigen REQUIRED)
-#include_directories(${EIGEN_INCLUDE_DIRS})
-#add_definitions(${EIGEN_DEFINITIONS})
+find_package(Eigen REQUIRED)
+include_directories(${EIGEN_INCLUDE_DIRS})
+add_definitions(${EIGEN_DEFINITIONS})
 
 
 include_directories(
@@ -48,25 +48,16 @@ include_directories(
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-
-# PLACEMENT WRT OBJECT
-rosbuild_add_executable(placement_wrt_object 
-    ros/nodes/placement_wrt_object.cpp 
-    ros/src/placement_wrt_object/HomogenousTransform.cpp 
-    ros/src/placement_wrt_object/KinematicSolver.cpp
-)
-
-
 # PLACEMENT WRT PLATFORM
-rosbuild_add_executable(placement_wrt_platform_service_server 
-  ros/nodes/placement_wrt_platform_service_server.cpp
-  ros/src/placement_wrt_platform/LaserScanLinearRegressionUtil.cpp
-  common/src/placement_wrt_platform/LaserScanLinearRegression.cpp)
+rosbuild_add_executable(placement_wrt_workspace_service_server 
+  ros/nodes/placement_wrt_workspace_service_server.cpp
+  ros/src/placement_wrt_workspace/LaserScanLinearRegressionUtil.cpp
+  common/src/placement_wrt_workspace/LaserScanLinearRegression.cpp)
 
-rosbuild_add_executable(placement_wrt_platform_action_server
-  ros/nodes/placement_wrt_platform_action_server.cpp
-  ros/src/placement_wrt_platform/LaserScanLinearRegressionUtil.cpp
-  common/src/placement_wrt_platform/LaserScanLinearRegression.cpp)
+rosbuild_add_executable(placement_wrt_workspace_action_server
+  ros/nodes/placement_wrt_workspace_action_server.cpp
+  ros/src/placement_wrt_workspace/LaserScanLinearRegressionUtil.cpp
+  common/src/placement_wrt_workspace/LaserScanLinearRegression.cpp)
 
-rosbuild_add_executable(placement_wrt_platform_example
-  ros/src/placement_wrt_platform/test/basescan_orientation_example.cpp)
+rosbuild_add_executable(placement_wrt_workspace_example
+  ros/src/placement_wrt_workspace/test/basescan_orientation_example.cpp)

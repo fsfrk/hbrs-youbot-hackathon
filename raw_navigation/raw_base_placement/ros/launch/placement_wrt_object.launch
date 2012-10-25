@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-        
-  <node pkg="raw_base_placement" type="placement_wrt_object" name="raw_base_placement_wrt_object" ns="raw_base_placement"/>
-
-
-</launch>

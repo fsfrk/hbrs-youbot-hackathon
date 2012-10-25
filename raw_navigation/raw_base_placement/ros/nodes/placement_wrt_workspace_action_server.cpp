@@ -5,7 +5,7 @@
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/Twist.h>
 
-#include "placement_wrt_platform/LaserScanLinearRegression.h"
+#include "placement_wrt_workspace/LaserScanLinearRegression.h"
 #include <raw_base_placement/OrientToBaseAction.h>
 #include <raw_base_placement/BaseScanLinearRegression.h>
 #include <iostream>
@@ -140,7 +140,7 @@ public:
 
 		target_distance = goal->distance;
 
-		ros::Duration max_time(15.0);
+		ros::Duration max_time(50.0);
 		ros::Time stamp = ros::Time::now();
 		OrientToBaseResult result;
         bool oriented = false;

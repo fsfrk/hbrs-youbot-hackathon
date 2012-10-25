@@ -57,16 +57,16 @@ def main():
         
         smach.StateMachine.add('SELECT_SOURCE_SUBTASK', select_btt_subtask(type="source"),
             transitions={'task_selected':'MOVE_TO_SOURCE_LOCATION', 
-                         'task_selected_but_already_in_this_pose':'ADJUST_POSE_WRT_TO_PLATFORM_AT_SOURCE',
+                         'task_selected_but_already_in_this_pose':'ADJUST_POSE_WRT_WORKSPACE_AT_SOURCE',
                          'no_more_task_for_given_type':'SELECT_DELIVER_WORKSTATION'})
 
         smach.StateMachine.add('MOVE_TO_SOURCE_LOCATION', approach_pose(),
-            transitions={'succeeded':'ADJUST_POSE_WRT_TO_PLATFORM_AT_SOURCE', 
+            transitions={'succeeded':'ADJUST_POSE_WRT_WORKSPACE_AT_SOURCE', 
                         'failed':'MOVE_TO_SOURCE_LOCATION'})
 
-        smach.StateMachine.add('ADJUST_POSE_WRT_TO_PLATFORM_AT_SOURCE', adjust_pose_wrt_platform(),
+        smach.StateMachine.add('ADJUST_POSE_WRT_WORKSPACE_AT_SOURCE', adjust_pose_wrt_workspace(),
             transitions={'succeeded':'MOVE_ARM_OUT_OF_VIEW',
-                        'failed':'ADJUST_POSE_WRT_TO_PLATFORM_AT_SOURCE'}) 
+                        'failed':'ADJUST_POSE_WRT_WORKSPACE_AT_SOURCE'}) 
 
         smach.StateMachine.add('MOVE_ARM_OUT_OF_VIEW', move_arm_out_of_view(),
             transitions={'succeeded':'RECOGNIZE_OBJECTS'})
@@ -118,12 +118,12 @@ def main():
                          'no_more_dest_tasks':'MOVE_TO_FINAL'})
         
         smach.StateMachine.add('MOVE_TO_DESTINATION_LOCATION', approach_pose(),
-            transitions={'succeeded':'ADJUST_POSE_WRT_TO_PLATFORM_AT_DESTINATION', 
+            transitions={'succeeded':'ADJUST_POSE_WRT_WORKSPACE_AT_DESTINATION', 
                         'failed':'MOVE_TO_DESTINATION_LOCATION'})
 
-        smach.StateMachine.add('ADJUST_POSE_WRT_TO_PLATFORM_AT_DESTINATION', adjust_pose_wrt_platform(),
+        smach.StateMachine.add('ADJUST_POSE_WRT_WORKSPACE_AT_DESTINATION', adjust_pose_wrt_workspace(),
             transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF',
-                        'failed':'ADJUST_POSE_WRT_TO_PLATFORM_AT_DESTINATION'})  
+                        'failed':'ADJUST_POSE_WRT_WORKSPACE_AT_DESTINATION'})  
 
         smach.StateMachine.add('GRASP_OBJECT_FROM_PLTF', grasp_obj_from_pltf_btt(),
             transitions={'object_grasped':'PLACE_OBJ_IN_CONFIGURATION',

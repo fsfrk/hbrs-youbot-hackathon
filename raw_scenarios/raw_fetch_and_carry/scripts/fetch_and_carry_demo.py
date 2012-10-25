@@ -45,7 +45,7 @@ def main():
             transitions={'succeeded':'ADJUST_POSE', 
                         'failed':'overall_failed'})
 
-        smach.StateMachine.add('ADJUST_POSE', adjust_pose_wrt_platform(),
+        smach.StateMachine.add('ADJUST_POSE', adjust_pose_wrt_workspace(),
             transitions={'succeeded':'SM_GRASP_OBJECT',
                         'failed':'ADJUST_POSE'})
                       
@@ -67,12 +67,12 @@ def main():
         
         # place object at destination pose
         smach.StateMachine.add('MOVE_TO_DESTINATION_POSE', approach_pose("D2"),
-            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM', 
+            transitions={'succeeded':'ADJUST_POSE_WRT_WORKSPACE', 
                         'failed':'overall_failed'})
 
-        smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM', adjust_pose_wrt_platform(),
+        smach.StateMachine.add('ADJUST_POSE_WRT_WORKSPACE', adjust_pose_wrt_workspace(),
             transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATION',
-                        'failed':'ADJUST_POSE_WRT_PLATFORM'})
+                        'failed':'ADJUST_POSE_WRT_WORKSPACE'})
         
         smach.StateMachine.add('GET_OBJ_POSES_FOR_CONFIGURATION', get_obj_poses_for_goal_configuration("line"),
             transitions={'succeeded':'PLACE_OBJ_IN_CONFIGURATION',

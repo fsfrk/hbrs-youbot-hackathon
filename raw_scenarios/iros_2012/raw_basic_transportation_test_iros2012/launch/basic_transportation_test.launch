@@ -10,7 +10,7 @@
 		<include file="$(find raw_2dnav)/ros/launch/2dnav.launch" />
 	
 		<!-- base placement -->
-		<include file="$(find raw_base_placement)/ros/launch/placement_wrt_platform.launch" />
+		<include file="$(find raw_base_placement)/ros/launch/placement_wrt_workspace.launch" />
 		
         <!-- motion controller -->
         <include file="$(find raw_relative_movements)/launch/base_controller.launch" />

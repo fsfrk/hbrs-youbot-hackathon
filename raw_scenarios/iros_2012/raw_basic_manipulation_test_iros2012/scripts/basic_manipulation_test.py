@@ -47,15 +47,15 @@ def main():
 
         smach.StateMachine.add('SELECT_SOURCE_POSE', select_base_pose("source_pose"),
             transitions={'succeeded':'APPROACH_SOURCE_POSE'})
-            #transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM'})
+            #transitions={'succeeded':'ADJUST_POSE_WRT_WORKSPACE'})
         
         smach.StateMachine.add('APPROACH_SOURCE_POSE', approach_pose(),
-            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM',
+            transitions={'succeeded':'ADJUST_POSE_WRT_WORKSPACE',
                         'failed':'APPROACH_SOURCE_POSE'})
 	
-        smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM', adjust_pose_wrt_platform(),
+        smach.StateMachine.add('ADJUST_POSE_WRT_WORKSPACE', adjust_pose_wrt_workspace(),
             transitions={'succeeded':'MOVE_ARM_OUT_OF_VIEW',
-                        'failed':'ADJUST_POSE_WRT_PLATFORM'})
+                        'failed':'ADJUST_POSE_WRT_WORKSPACE'})
 
         smach.StateMachine.add('MOVE_ARM_OUT_OF_VIEW', move_arm_out_of_view(),
             transitions={'succeeded':'RECOGNIZE_OBJECTS'})
@@ -92,12 +92,12 @@ def main():
             #transitions={'succeeded':'overall_success'})
         
         smach.StateMachine.add('APPROACH_DESTINATION_POSE', approach_pose(),
-            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM2',
+            transitions={'succeeded':'ADJUST_POSE_WRT_WORKSPACE2',
                         'failed':'APPROACH_DESTINATION_POSE'})
 
-        smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM2', adjust_pose_wrt_platform(),
+        smach.StateMachine.add('ADJUST_POSE_WRT_WORKSPACE2', adjust_pose_wrt_workspace(),
             transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATION',
-                        'failed':'ADJUST_POSE_WRT_PLATFORM2'})
+                        'failed':'ADJUST_POSE_WRT_WORKSPACE2'})
         
         smach.StateMachine.add('GET_OBJ_POSES_FOR_CONFIGURATION', get_obj_poses_for_goal_configuration(),
             transitions={'succeeded':'GRASP_OBJECT_FROM_PLTF',

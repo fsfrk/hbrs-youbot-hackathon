@@ -47,12 +47,12 @@ def main():
         
         
         smach.StateMachine.add('APPROACH_SOURCE_POSE', approach_pose(),
-            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM'},
+            transitions={'succeeded':'ADJUST_POSE_WRT_WORKSPACE'},
                         {'failed':'APPROACH_SOURCE_POSE'})
 	
-        smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM', adjust_pose_wrt_platform(),
+        smach.StateMachine.add('ADJUST_POSE_WRT_WORKSPACE', adjust_pose_wrt_workspace(),
             transitions={'succeeded':'MOVE_ARM_OUT_OF_VIEW',
-                        'failed':'ADJUST_POSE_WRT_PLATFORM'})
+                        'failed':'ADJUST_POSE_WRT_WORKSPACE'})
         '''
 
         
@@ -87,11 +87,11 @@ def main():
             transitions={'succeeded':'MOVE_TO_DESTINATION_POSE'})
         
         smach.StateMachine.add('MOVE_TO_DESTINATION_POSE', move_base_rel(-1.1),
-            transitions={'succeeded':'ADJUST_POSE_WRT_PLATFORM'})
+            transitions={'succeeded':'ADJUST_POSE_WRT_WORKSPACE2'})
 
-        smach.StateMachine.add('ADJUST_POSE_WRT_PLATFORM', adjust_pose_wrt_platform(),
+        smach.StateMachine.add('ADJUST_POSE_WRT_WORKSPACE2', adjust_pose_wrt_workspace(),
             transitions={'succeeded':'GET_OBJ_POSES_FOR_CONFIGURATION',
-                        'failed':'ADJUST_POSE_WRT_PLATFORM'})
+                        'failed':'ADJUST_POSE_WRT_WORKSPACE2'})
         
        
         #ToDo: implement state
