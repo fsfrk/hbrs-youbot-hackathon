@@ -18,5 +18,7 @@
   <depend package="openni_camera" />
   <depend package="raw_hardware_config" />
   <depend package="usb_cam" />
+  <depend package="hbrs_safe_cmd_vel" />
+
 
 </package>

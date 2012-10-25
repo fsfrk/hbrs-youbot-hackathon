@@ -8,7 +8,6 @@
 
 		<!-- navigation -->
 		<include file="$(find raw_2dnav)/ros/launch/2dnav.launch" />
-        <include file="$(find hbrs_safe_cmd_vel)/ros/launch/safe_cmd_vel.launch" />
 	
 		<!-- base placement -->
 		<include file="$(find raw_base_placement)/ros/launch/placement_wrt_platform.launch" />
