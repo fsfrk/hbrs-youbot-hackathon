@@ -97,11 +97,10 @@ public:
     //------------------- END OF ARM INITILIZATION ----------------------------
 
     // Service commands to allow this node to be started and stopped externally
-    service_start = node_handler.advertiseService( "start", &raw_visual_servoing::start, this );
-    service_stop = node_handler.advertiseService( "stop", &raw_visual_servoing::stop, this );
-    ROS_INFO( "Advertised 'start' and 'stop' service for raw_visual_servoing" );
+    service_do_visual_serv = node_handler.advertiseService( "do_visual_servoing", &raw_visual_servoing::do_visual_servoing, this );
+    ROS_INFO( "Advertised 'do_visual_servoing' service for raw_visual_servoing" );
 
-    ROS_INFO( "Blob Detection Started" );
+    ROS_INFO( "Node successfully initialized" );
   }
 
   //------------------------------------------------------- ~raw_visual_servoing
@@ -478,7 +477,7 @@ public:
   //   Used to start up the processing of the web camera images once the node 
   //  has been told to start.
   //--------------------------------------------------------------------------- 
-  bool start( raw_srvs::ReturnBool::Request &req, raw_srvs::ReturnBool::Response &res )
+  bool do_visual_servoing( raw_srvs::ReturnBool::Request &req, raw_srvs::ReturnBool::Response &res )
   {
     blob_detection_completed = false; 
     first_pass = true; 
@@ -581,8 +580,7 @@ protected:
   brics_actuator::JointVelocities youbot_arm_velocities;
 
   // Stop and start services for this ROS node.
-  ros::ServiceServer service_start; 
-  ros::ServiceServer service_stop;
+  ros::ServiceServer service_do_visual_serv; 
 
   // Node status variable;
   bool blob_detection_completed; 
