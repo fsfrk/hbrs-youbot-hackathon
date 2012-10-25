@@ -18,7 +18,5 @@
 
 	<!-- launch move_base node -->
 	<include file="$(find raw_2dnav_omni)/ros/launch/move_base.launch" />
-    <include file="$(find raw_bringup)/components/base_rear_hokuyo_node.launch" />
-    <!--include file="$(find raw_script_server)/launch/script_server.launch" /-->
      
 </launch>
