@@ -285,7 +285,7 @@ class BaseMotionController
         y_initodom = y_tempodom;
         theta_initodom = theta_tempodom;
 
-        actionlib::SimpleActionClient<raw_base_placement::OrientToBaseAction> ac("/scan_front_orientation", true);
+        actionlib::SimpleActionClient<raw_base_placement::OrientToBaseAction> ac("/raw_base_placement/adjust_to_workspace", true);
 
         ac.waitForServer();
 

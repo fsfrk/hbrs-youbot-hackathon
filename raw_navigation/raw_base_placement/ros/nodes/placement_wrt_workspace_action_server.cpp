@@ -201,7 +201,7 @@ int main(int argc, char** argv)
   std::string cmd_vel_name = "/cmd_vel";
   std::string service_name = "scan_front_linearregression";
 
-  OrientToLaserReadingAction orientAction(n, "/raw_base_placement/scan_front_orientation", cmd_vel_name, service_name);
+  OrientToLaserReadingAction orientAction(n, "/raw_base_placement/adjust_to_workspace", cmd_vel_name, service_name);
 
   ROS_INFO("Action Service is ready");
 
