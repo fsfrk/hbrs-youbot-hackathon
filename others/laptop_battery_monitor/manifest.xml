@@ -1,0 +1,17 @@
+<package>
+  <description brief="laptop_battery_tool">
+
+     laptop_battery_tool
+
+  </description>
+  <author>fred</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/laptop_battery_tool</url>
+
+  <depend package="rospy" />
+  <depend package="hbrs_msgs" />
+
+</package>
+
+
