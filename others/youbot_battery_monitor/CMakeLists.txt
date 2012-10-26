@@ -27,5 +27,5 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_boost_directories()
 #rosbuild_link_boost(${PROJECT_NAME} thread)
 
-rosbuild_add_executable(youbot_battery_status_tool ros/src/youbot_battery_status.cpp)
-target_link_libraries(youbot_battery_status_tool stdc++)
+rosbuild_add_executable(youbot_battery_monitor ros/src/youbot_battery_status.cpp)
+target_link_libraries(youbot_battery_monitor stdc++)

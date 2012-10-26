@@ -8,10 +8,6 @@
 #include <iostream>
 #include <cstdlib>
 
-//TODO: ask Jan whats the critical voltage
-#define CRITICAL_BATTERY_VOLTAGE	24.3
-
-
 enum voltagesource { battery1 = 0x04, battery2 = 0x05, powersupply = 0x0c };
 
 int open_port(std::string port)
@@ -89,7 +85,7 @@ double getVoltage(int fd, voltagesource source)
 
 int main(int argc, char* argv[])
 {
-	ros::init(argc, argv, "raw_battery_monitor");
+	ros::init(argc, argv, "raw_youbot_battery_monitor");
 
 	int fd = 0;
 
@@ -97,6 +93,8 @@ int main(int argc, char* argv[])
 	ros::NodeHandle* p_nh = NULL;
 	ros::Publisher pub_battery_status;
 	hbrs_msgs::PowerState pwr_state;
+
+	pwr_state.device_name = "youbot_battery";
 
 	try
 	{
@@ -119,7 +117,7 @@ int main(int argc, char* argv[])
 		else
 			pwr_state.external_power_connected = false;
 
-		if(pwr_state.battery_voltage <= CRITICAL_BATTERY_VOLTAGE)
+		if(pwr_state.battery_percentage <= 10)
 		{
 			//TODO: do here the system beep
 			std::cout << "beep" << std::endl;
@@ -152,8 +150,8 @@ int main(int argc, char* argv[])
 
 			std::cout << "pub" << std::endl;
 
-			if(pwr_state.battery_voltage <= CRITICAL_BATTERY_VOLTAGE)
-				ROS_ERROR_STREAM("Critical battery voltage: " << pwr_state.battery_voltage << "V");
+			if(pwr_state.battery_percentage <= 10)
+				ROS_ERROR_STREAM("Critical battery level on device <<" << pwr_state.device_name << ">>: " << pwr_state.battery_percentage << "&");
 
 			pub_battery_status.publish(pwr_state);
 		}
