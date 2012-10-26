@@ -488,7 +488,7 @@ public:
     safe_cmd_vel_service = node_handler.serviceClient<raw_srvs::ReturnBool>("/is_robot_to_close_to_obstacle");
 
     // Velocity control for the YouBot base.
-    base_velocities_publisher = node_handler.advertise<geometry_msgs::Twist>( "/safe_cmd_vel", 1 ); 
+    base_velocities_publisher = node_handler.advertise<geometry_msgs::Twist>( "/cmd_vel_safe", 1 ); 
 
     // Velocity Control for the YouBot arm. 
     arm_velocities_publisher = node_handler.advertise<brics_actuator::JointVelocities>( "/arm_1/arm_controller/velocity_command", 1 );

@@ -66,7 +66,7 @@ TeleOpJoypad::TeleOpJoypad(ros::NodeHandle &nh)
 	sub_joy_ = nh.subscribe<sensor_msgs::Joy>("/joy", 1, &TeleOpJoypad::cbJoy, this);
 	sub_joint_states_ = nh.subscribe<sensor_msgs::JointState>("/joint_states", 1, &TeleOpJoypad::cbJointStates, this);
 
-	pub_base_vel = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+	pub_base_vel = nh.advertise<geometry_msgs::Twist>("/cmd_vel_safe", 1);
 	pub_arm_vel = nh.advertise<brics_actuator::JointVelocities>("/arm_1/arm_controller/velocity_command", 1);
 
 	srv_arm_motors_on = nh.serviceClient<std_srvs::Empty>("arm_1/switchOnMotors");
