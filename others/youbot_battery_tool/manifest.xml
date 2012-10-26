@@ -1,0 +1,17 @@
+<package>
+  	<description brief="youbot_battery_tool">
+
+    	youbot_battery_tool
+
+  	</description>
+  	<author>fred</author>
+  	<license>BSD</license>
+  	<review status="unreviewed" notes=""/>
+  	<url>http://ros.org/wiki/youbot_battery_tool</url>
+  
+  	<depend package="roscpp" />
+	<depend package="hbrs_msgs" />
+
+</package>
+
+
