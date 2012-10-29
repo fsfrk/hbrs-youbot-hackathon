@@ -83,7 +83,7 @@ public:
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "LaserScanLinearRegressionService_node");
+  ros::init(argc, argv, "raw_base_placement_wrt_workspace_ss");
   ros::NodeHandle n;
 
   std::string topic = "/scan_front";

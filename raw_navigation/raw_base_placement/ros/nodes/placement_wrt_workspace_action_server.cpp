@@ -195,7 +195,7 @@ public:
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "OrientToLaserReading");
+  ros::init(argc, argv, "raw_base_placement_wrt_workspace_as");
   ros::NodeHandle n;
 
   std::string cmd_vel_name = "/cmd_vel";
