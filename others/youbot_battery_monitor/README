@@ -1,0 +1,9 @@
+# remove or comment the following line from "/etc/modprobe.d/blacklist.conf":
+ 
+    blacklist pcspkr
+
+
+# install the beep command
+    
+    sudo apt-get install beep
+

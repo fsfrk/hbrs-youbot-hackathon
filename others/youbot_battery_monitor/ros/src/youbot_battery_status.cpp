@@ -8,6 +8,10 @@
 #include <iostream>
 #include <cstdlib>
 
+#define MIN_VOLTAGE     18  // Volt
+#define MAX_VOLTAGE     24  // Volt
+
+
 enum voltagesource { battery1 = 0x04, battery2 = 0x05, powersupply = 0x0c };
 
 int open_port(std::string port)
@@ -98,8 +102,8 @@ int main(int argc, char* argv[])
 
 	try
 	{
-		//int fd = open_port(argv[1]);
-		//configure_port(fd);
+		int fd = open_port(argv[1]);
+		configure_port(fd);
 
 	} catch (std::string &e) { std::cout << "Error: " << e << std::endl; }
 
@@ -107,10 +111,9 @@ int main(int argc, char* argv[])
 	{
 		sleep(2);
 
-		//TODO: check out how to calculate the percentage
-		pwr_state.battery_voltage = 24.2; //getVoltage(fd, battery1) + getVoltage(fd, battery2);
-		pwr_state.battery_percentage = 100;
-		pwr_state.power_supply_voltage = 0.0; //getVoltage(fd, powersupply);
+		pwr_state.battery_voltage = getVoltage(fd, battery1) + getVoltage(fd, battery2);
+		pwr_state.battery_percentage = 100 / (MAX_VOLTAGE - MIN_VOLTAGE) * pwr_state.battery_voltage;
+		pwr_state.power_supply_voltage = getVoltage(fd, powersupply);
 
 		if(pwr_state.power_supply_voltage > 0.0)
 			pwr_state.external_power_connected = true;
@@ -118,19 +121,15 @@ int main(int argc, char* argv[])
 			pwr_state.external_power_connected = false;
 
 		if(pwr_state.battery_percentage <= 10)
-		{
-			//TODO: do here the system beep
-			std::cout << "beep" << std::endl;
-		}
+        {
+            // call the beep command
+		    system("beep");
+        }
 
 		if(!ros_node_initialized)
 		{
-			std::cout << "check master" << std::endl;
-
 			if(!ros::master::check())
 				continue;
-
-			std::cout << "do init" << std::endl;
 
 			p_nh = new ros::NodeHandle();
 
@@ -143,15 +142,12 @@ int main(int argc, char* argv[])
 		{
 			if(!ros::master::check())
 			{
-				//pub_battery_status.shutdown();
 				delete p_nh;
 				ros_node_initialized = false;
 			}
 
-			std::cout << "pub" << std::endl;
-
 			if(pwr_state.battery_percentage <= 10)
-				ROS_ERROR_STREAM("Critical battery level on device <<" << pwr_state.device_name << ">>: " << pwr_state.battery_percentage << "&");
+				ROS_ERROR_STREAM("Critical battery level on device <<" << pwr_state.device_name << ">>: " << pwr_state.battery_percentage << "%%");
 
 			pub_battery_status.publish(pwr_state);
 		}
