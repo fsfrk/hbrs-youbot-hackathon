@@ -134,7 +134,6 @@ void ArmBridgeRosOrocos::updateHook()
 	{
 		if (ip_joint_states.read(m_current_joint_states) != NoData)
 		{
-			log(Info) << "is joint state reached" << endlog();
 			if(isJointCfgReached())
 			{
 				m_check_joint_cfg_reached = false;
@@ -169,7 +168,6 @@ void ArmBridgeRosOrocos::setJointPositions(brics_actuator::JointPositions brics_
 	for (size_t i = 0; i < brics_joint_positions.positions.size(); i++)
 	{	
 		joint_position[i] = brics_joint_positions.positions[i].value + joint_initial_state_offsets[i];
-        log(Info) << joint_position[i] << " ";
 	}
 
     m_set_arm_joint_angles_op(joint_position);
@@ -184,9 +182,9 @@ void ArmBridgeRosOrocos::armJointConfigurationGoalCallback(actionlib::ActionServ
 	m_joint_space_ctrl_op();
 	m_use_arm_only_op();
 
-	log(Info) << endlog() << endlog();
+    m_desired_joint_cfg = joint_cfg_goal.getGoal()->goal;
+
 	setJointPositions(joint_cfg_goal.getGoal()->goal);
-	log(Info) << endlog() << endlog();
 
     // start to move to the joint position
 	m_execute_op();
@@ -223,8 +221,6 @@ void ArmBridgeRosOrocos::armCartesianPoseWithImpedanceCtrlGoalCallback(actionlib
 	cartesian_pose_goal.setAccepted();
 
 	m_cartesian_ctrl_op();
-
-	log(Info) << "\nx: " << goal_pose.pose.position.x << " y: " << goal_pose.pose.position.y << " z: " << goal_pose.pose.position.z << endlog();
 
 	double qw, qx, qy, qz;
 	qx = goal_pose.pose.orientation.x;
@@ -317,16 +313,17 @@ void ArmBridgeRosOrocos::gripperCallback(actionlib::ActionServer<raw_arm_navigat
 
 bool ArmBridgeRosOrocos::isJointCfgReached()
 {
-	log(Info) << "check joint limits" << endlog();
+    //log(Info) << "desired size: " <<  m_desired_joint_cfg.positions.size() << " current size: " << m_current_joint_states.position.size() << endlog();
 
     for(unsigned int i=0; i < m_desired_joint_cfg.positions.size(); ++i)
     {
         for(unsigned int j=0; j < m_current_joint_states.position.size(); ++j)
         {
+	    //log(Info) << "desired joint name: " << m_desired_joint_cfg.positions[i].joint_uri << " current joint name: " <<  m_desired_joint_cfg.positions[i].joint_uri << endlog();
             if(m_desired_joint_cfg.positions[i].joint_uri == m_current_joint_states.name[j])
             {
-            	log(Info) << "diff of joint <<" << m_desired_joint_cfg.positions[i].joint_uri << " : " << fabs(m_desired_joint_cfg.positions[i].value - m_current_joint_states.position[j]) << endlog();
-            	if(fabs(m_desired_joint_cfg.positions[i].value - m_current_joint_states.position[j]) > 0.05)
+            	//log(Info) << "diff of joint <<" << m_desired_joint_cfg.positions[i].joint_uri << " : " << fabs(m_desired_joint_cfg.positions[i].value - m_current_joint_states.position[j]) << endlog();
+            	if(fabs(m_desired_joint_cfg.positions[i].value - m_current_joint_states.position[j]) > 0.1)
             	{
             		return false;
             	}

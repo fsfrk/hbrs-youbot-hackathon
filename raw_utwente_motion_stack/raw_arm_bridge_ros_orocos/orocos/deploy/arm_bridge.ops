@@ -11,7 +11,7 @@ var ConnPolicy cp_current_force;
 cp_current_force.type = DATA;  // Use ''BUFFER'' or ''DATA''
 cp_current_force.lock_policy = LOCK_FREE; // Use  ''LOCKED'', ''LOCK_FREE'' or ''UNSYNC''
 connectPeers("arm_bridge", "CartesianController")
-connect("arm_bridge.current_force","CartesianController.W_tooltip_0", cp_current_force)
+connect("arm_bridge.current_force","CartesianController.W_tooltip_00", cp_current_force)
 
 var ConnPolicy cp_joint_states;
 cp_joint_states.type = DATA;  // Use ''BUFFER'' or ''DATA''
