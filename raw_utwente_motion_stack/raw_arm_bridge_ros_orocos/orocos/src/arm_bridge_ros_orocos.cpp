@@ -1,38 +1,89 @@
 #include "arm_bridge_ros_orocos.hpp"
 
+
 ArmBridgeRosOrocos::ArmBridgeRosOrocos(const string& name) :  TaskContext(name, PreOperational), m_youbot_arm_dof(5)
 {
+	m_tf_listener = new tf::TransformListener();
+	m_check_cart_pose_reached = false;
+	m_check_joint_cfg_reached = false;
+
+	m_srv_enable_navigation_ctrl_mode = m_nh.advertiseService("/raw_arm_bridge_ros_orocos/enable_navigation_ctrl_mode", &ArmBridgeRosOrocos::enableNavigationCtrlModeCallback, this);
+
 	m_joint_config_as = new actionlib::ActionServer<raw_arm_navigation::MoveToJointConfigurationAction > (
-      m_nh, "/arm_1/arm_controller/MoveToJointConfigurationDirect", boost::bind(&ArmBridgeRosOrocos::armJointConfigurationGoalCallback, this, _1), false);
+          m_nh, "/arm_1/arm_controller/MoveToJointConfigurationDirect", boost::bind(&ArmBridgeRosOrocos::armJointConfigurationGoalCallback, this, _1), false);
 
 	m_cartesian_pose_with_impedance_ctrl_as = new actionlib::ActionServer<raw_arm_navigation::MoveToCartesianPoseAction > (
 	      m_nh, "/arm_1/arm_controller/MoveToCartesianPoseDirect", boost::bind(&ArmBridgeRosOrocos::armCartesianPoseWithImpedanceCtrlGoalCallback, this, _1), false);
 
-	m_orocos_joint_positions.data.resize(m_youbot_arm_dof, 0.0);
-	m_orocos_homog_matrix.data.resize(16, 0.0);
-	m_orocos_arm_stiffness.data.resize(9, 0.0);
-	m_orocos_HtipCC.data.resize(16, 0.0);
+	m_gripper_as = new actionlib::ActionServer<raw_arm_navigation::MoveToJointConfigurationAction > (
+	      m_nh, "/arm_1/gripper_controller/MoveToJointConfigurationDirect", boost::bind(&ArmBridgeRosOrocos::gripperCallback, this, _1), false);
 
-	orocos_joint_positions.setDataSample(m_orocos_joint_positions);
-	orocos_homog_matrix.setDataSample(m_orocos_homog_matrix);
-	orocos_arm_stiffness.setDataSample(m_orocos_arm_stiffness);
-	orocos_HtipCC.setDataSample(m_orocos_HtipCC);
-
-	this->addPort("brics_joint_positions", brics_joint_positions).doc("Input of joint positions in BRICS data types");
-	this->addPort("orocos_joint_positions", orocos_joint_positions).doc("Output of joint positions in Orocos data type");
-	this->addPort("orocos_homog_matrix", orocos_homog_matrix).doc("Output of a Cartesian Pose as homogeneous coordinates in Orocos data type");
-	this->addPort("orocos_arm_stiffness", orocos_arm_stiffness).doc("Output of a arm stiffness to set");
-	this->addPort("orocos_HtipCC", orocos_HtipCC).doc("Output of HtipCC to set");
+	// Ports
+	this->addPort("brics_joint_positions", ip_brics_joint_positions).doc("Input of joint positions in BRICS data types");
+    this->addPort("current_force", ip_current_force).doc("Input of current forces as float array");
+    this->addPort("joint_states", ip_joint_states).doc("Input of joint states as sensor_msgs::JointState");
 }
 
 ArmBridgeRosOrocos::~ArmBridgeRosOrocos()
 {
 	delete m_cartesian_pose_with_impedance_ctrl_as;
 	delete m_joint_config_as;
+    delete m_gripper_as;
 }
 
 bool ArmBridgeRosOrocos::configureHook()
 {
+	//Operations
+	if(this->getPeer("executive"))
+	{
+		log(Info) << "get operation jointspaceControl" << endlog();
+		m_joint_space_ctrl_op = this->getPeer("executive")->getOperation("jointspaceControl");
+
+		log(Info) << "get operation useArmOnly" << endlog();
+		m_use_arm_only_op = this->getPeer("executive")->getOperation("useArmOnly");
+
+		log(Info) << "get operation cartesianControl" << endlog();
+		m_cartesian_ctrl_op = this->getPeer("executive")->getOperation("cartesianControl");
+
+		log(Info) << "get operation gravityCompensation" << endlog();
+		m_gravity_compensation_ctrl_op = this->getPeer("executive")->getOperation("gravityCompensation");
+
+		log(Info) << "get operation execute" << endlog();
+		m_execute_op = this->getPeer("executive")->getOperation("execute");
+
+		log(Info) << "get operation navigationControl" << endlog();
+		m_navigation_ctrl_op = this->getPeer("executive")->getOperation("navigationControl");
+
+		log(Info) << "get operation setArmJointAngles" << endlog();
+		m_set_arm_joint_angles_op = this->getPeer("executive")->getOperation("setArmJointAngles");
+
+        
+		log(Info) << "get operation setCartesianDamping" << endlog();
+		m_set_cartesian_damping_op = this->getPeer("executive")->getOperation("setCartesianDamping");
+
+		log(Info) << "get operation setCartesianStiffness" << endlog();
+		m_set_cartesian_stiffness_op = this->getPeer("executive")->getOperation("setCartesianStiffness");
+
+		log(Info) << "get operation setHtipCC" << endlog();
+		m_set_h_tip_cc_op = this->getPeer("executive")->getOperation("setHtipCC");
+
+		log(Info) << "get operation setHvp0" << endlog();
+		m_set_h_vp_0_op = this->getPeer("executive")->getOperation("setHvp0");
+
+
+		log(Info) << "get operation openGripper" << endlog();
+		m_open_gripper_op = this->getPeer("executive")->getOperation("openGripper");
+
+		log(Info) << "get operation closeGripper" << endlog();
+		m_close_gripper_op = this->getPeer("executive")->getOperation("closeGripper");
+
+		if(!m_joint_space_ctrl_op.ready() || !m_use_arm_only_op.ready() || !m_execute_op.ready() || !m_gravity_compensation_ctrl_op.ready() || !m_execute_op.ready() || !m_set_arm_joint_angles_op.ready() || !m_set_cartesian_damping_op.ready() || !m_set_cartesian_stiffness_op.ready() || !m_set_h_tip_cc_op.ready() || !m_set_h_vp_0_op.ready() || !m_open_gripper_op.ready() || !m_close_gripper_op.ready())
+		{
+			log(Error) << "operation(s) not available" << endlog();
+			return false;
+		}
+	}
+
 	return TaskContext::configureHook();
 }
 
@@ -40,30 +91,25 @@ bool ArmBridgeRosOrocos::startHook()
 {
 	m_cartesian_pose_with_impedance_ctrl_as->start();
 	m_joint_config_as->start();
+	m_gripper_as->start();
 
 	ROS_INFO("arm actions started");
 
-	if (!brics_joint_positions.connected())
+	if (!ip_brics_joint_positions.connected())
 	{
 		log(Error) << "BRICS joint positions not connected." << endlog();
 		return false;
 	}
 
-	if (!orocos_joint_positions.connected())
+	if (!ip_joint_states.connected())
 	{
-		log(Error) << "Orocos joint positions not connected." << endlog();
+		log(Error) << "joint_states not connected." << endlog();
 		return false;
 	}
 
-	if (!orocos_homog_matrix.connected())
+    if (!ip_current_force.connected())
 	{
-		log(Error) << "Orocos homog_matrix not connected." << endlog();
-		return false;
-	}
-
-	if (!orocos_arm_stiffness.connected())
-	{
-		log(Error) << "arm stiffness port not connected." << endlog();
+		log(Error) << "current_force is not connected." << endlog();
 		return false;
 	}
 
@@ -74,14 +120,36 @@ void ArmBridgeRosOrocos::updateHook()
 {
 	TaskContext::updateHook();
 
+	m_joint_states_received = false;
 	ros::spinOnce();
 
-	// check if new joint position arrived at topic
-	if (brics_joint_positions.read(m_brics_joint_positions) == NoData)
-		return;
 
-	ROS_INFO("received new joint configuration on topic");
-	writeJointPositionsToPort(m_brics_joint_positions, m_orocos_joint_positions, orocos_joint_positions);
+	if(m_check_cart_pose_reached && isCartPoseReached())
+	{
+		m_check_cart_pose_reached = false;
+		m_cart_pose_goal_handle.setSucceeded();
+	}
+
+	if(m_check_joint_cfg_reached)
+	{
+		if (ip_joint_states.read(m_current_joint_states) != NoData)
+		{
+			log(Info) << "is joint state reached" << endlog();
+			if(isJointCfgReached())
+			{
+				m_check_joint_cfg_reached = false;
+				m_joint_cfg_goal_handle.setSucceeded();
+			}
+		}
+	}
+
+
+	// check if new joint position arrived at topic
+	if (ip_brics_joint_positions.read(m_brics_joint_positions) != NoData)
+	{
+		ROS_INFO("received new joint configuration on topic");
+		setJointPositions(m_brics_joint_positions);
+	}
 }
 
 void ArmBridgeRosOrocos::stopHook()
@@ -94,92 +162,201 @@ void ArmBridgeRosOrocos::cleanupHook()
 	TaskContext::cleanupHook();
 }
 
-void ArmBridgeRosOrocos::writeJointPositionsToPort(brics_actuator::JointPositions brics_joint_positions, std_msgs::Float64MultiArray& orocos_data_array, OutputPort<std_msgs::Float64MultiArray>& output_port)
+void ArmBridgeRosOrocos::setJointPositions(brics_actuator::JointPositions brics_joint_positions)
 {
-	for (size_t i = 0; i < brics_joint_positions.positions.size(); i++)
-		orocos_data_array.data[i] = brics_joint_positions.positions[i].value;
+	std::vector<double> joint_position(brics_joint_positions.positions.size(), 0.0);
 
-	output_port.write(orocos_data_array);
+	for (size_t i = 0; i < brics_joint_positions.positions.size(); i++)
+	{	
+		joint_position[i] = brics_joint_positions.positions[i].value + joint_initial_state_offsets[i];
+        log(Info) << joint_position[i] << " ";
+	}
+
+    m_set_arm_joint_angles_op(joint_position);
 }
 
 void ArmBridgeRosOrocos::armJointConfigurationGoalCallback(actionlib::ActionServer<raw_arm_navigation::MoveToJointConfigurationAction>::GoalHandle joint_cfg_goal)
 {
-	ROS_INFO("MoveToJointConfigurationDirect action called");
+ 	ROS_INFO("MoveToJointConfigurationDirect action called");
 
 	joint_cfg_goal.setAccepted();
 
-	writeJointPositionsToPort(m_brics_joint_positions, m_orocos_joint_positions, orocos_joint_positions);
+	m_joint_space_ctrl_op();
+	m_use_arm_only_op();
 
+	log(Info) << endlog() << endlog();
+	setJointPositions(joint_cfg_goal.getGoal()->goal);
+	log(Info) << endlog() << endlog();
 
-	// TDB: check if pose is reached
+    // start to move to the joint position
+	m_execute_op();
 
-
-	joint_cfg_goal.setSucceeded();
+	m_joint_cfg_goal_handle = joint_cfg_goal;
+	m_check_joint_cfg_reached = true;
 }
 
 void ArmBridgeRosOrocos::armCartesianPoseWithImpedanceCtrlGoalCallback(actionlib::ActionServer<raw_arm_navigation::MoveToCartesianPoseAction>::GoalHandle cartesian_pose_goal)
 {
-	btVector3 trans_vec;
-	btQuaternion bt_quat;
+    std::vector<double> homog_matrix(16, 0.0);
+    std::vector<double> cartesian_stiffness(9, 0.0);
+    std::vector<double> cartesian_damping(6, 2.0);  
+    std::vector<double> h_tip_cc(16, 0.0);
 
-	geometry_msgs::PoseStamped goal_pose = cartesian_pose_goal.getGoal()->goal;
 
 	ROS_INFO("MoveToCartesianPoseDirect action called");
 
-	std::cout << "\nx: " << goal_pose.pose.position.x << " y: " << goal_pose.pose.position.y << " z: " << goal_pose.pose.position.z;
-
-	// create rotation matrix from quaternion
-	tf::quaternionMsgToTF(goal_pose.pose.orientation, bt_quat);
-	btMatrix3x3 rot_mat = btMatrix3x3(bt_quat);
-
-	double r, p, y;
-	rot_mat.getRPY(r, p, y);
-	std::cout << " -- r: " << r << " p: " << p << " y: " << y << std::endl;
-
-	m_orocos_homog_matrix.data[0] = rot_mat[0][0];
-	m_orocos_homog_matrix.data[1] = rot_mat[0][1];
-	m_orocos_homog_matrix.data[2] = rot_mat[0][2];
-	m_orocos_homog_matrix.data[3] = goal_pose.pose.position.x;
-	m_orocos_homog_matrix.data[4] = rot_mat[1][0];
-	m_orocos_homog_matrix.data[5] = rot_mat[1][1];
-	m_orocos_homog_matrix.data[6] = rot_mat[1][2];
-	m_orocos_homog_matrix.data[7] = goal_pose.pose.position.y;
-	m_orocos_homog_matrix.data[8] = rot_mat[2][0];
-	m_orocos_homog_matrix.data[9] = rot_mat[2][1];
-	m_orocos_homog_matrix.data[10] = rot_mat[2][2];
-	m_orocos_homog_matrix.data[11] = goal_pose.pose.position.z;
-	m_orocos_homog_matrix.data[12] = 0.0;
-	m_orocos_homog_matrix.data[13] = 0.0;
-	m_orocos_homog_matrix.data[14] = 0.0;
-	m_orocos_homog_matrix.data[15] = 1.0;
-
-	m_orocos_arm_stiffness.data[0] = 10;
-	m_orocos_arm_stiffness.data[1] = 10;
-	m_orocos_arm_stiffness.data[2] = 10;
-	m_orocos_arm_stiffness.data[3] = 10;
-	m_orocos_arm_stiffness.data[4] = 10;
-	m_orocos_arm_stiffness.data[5] = 10;
-	m_orocos_arm_stiffness.data[6] = 0;
-	m_orocos_arm_stiffness.data[7] = 0;
-	m_orocos_arm_stiffness.data[8] = 0;
-
-	/* identity */
-	m_orocos_arm_stiffness.data[0] = m_orocos_arm_stiffness.data[5] = m_orocos_arm_stiffness.data[10] = m_orocos_arm_stiffness.data[15] = 1.0;
-
-	std::cout << "write homog matrix to output port" << std::endl;
+	geometry_msgs::PoseStamped goal_pose = cartesian_pose_goal.getGoal()->goal;
+    geometry_msgs::PoseStamped transformed_pose;
+	
+    try
+    {
+	    m_tf_listener->transformPose("/map", goal_pose, transformed_pose);
+    }
+    catch(const std::exception& ex)
+    {
+        log(Error) << "could not transform pose: " << transformed_pose << endlog();
+        return;
+    }
+    
+    goal_pose = transformed_pose;
 
 	cartesian_pose_goal.setAccepted();
 
-	orocos_HtipCC.write(m_orocos_HtipCC);
-	orocos_arm_stiffness.write(m_orocos_arm_stiffness);
-	orocos_homog_matrix.write(m_orocos_homog_matrix);
+	m_cartesian_ctrl_op();
 
-	// TDB: check if pose is reached
+	log(Info) << "\nx: " << goal_pose.pose.position.x << " y: " << goal_pose.pose.position.y << " z: " << goal_pose.pose.position.z << endlog();
 
+	double qw, qx, qy, qz;
+	qx = goal_pose.pose.orientation.x;
+	qy = goal_pose.pose.orientation.y;
+	qz = goal_pose.pose.orientation.z;
+	qw = goal_pose.pose.orientation.w;
 
-	cartesian_pose_goal.setSucceeded();
+	homog_matrix[0] = pow(qw,2) + pow(qx,2) - pow(qy,2) - pow(qz,2);
+	homog_matrix[1] = 2*qx*qy - 2*qz*qw;
+	homog_matrix[2] = 2*qx*qz + 2*qy*qw;
+	homog_matrix[3] = goal_pose.pose.position.x;
+	homog_matrix[4] = 2*qx*qy + 2*qz*qw;
+	homog_matrix[5] = pow(qw,2) - pow(qx,2) + pow(qy,2) - pow(qz,2);
+	homog_matrix[6] = 2*qy*qz - 2*qx*qw;
+	homog_matrix[7] = goal_pose.pose.position.y;
+	homog_matrix[8] = 2*qx*qz - 2*qy*qw;
+	homog_matrix[9] = 2*qy*qz + 2*qx*qw;
+	homog_matrix[10] = pow(qw,2) - pow(qx,2) - pow(qy,2) + pow(qz,2);
+	homog_matrix[11] = goal_pose.pose.position.z;
+	homog_matrix[12] = 0.0;
+	homog_matrix[13] = 0.0;
+	homog_matrix[14] = 0.0;
+	homog_matrix[15] = 1.0;
 
+	cartesian_stiffness[0] = 100.0;
+	cartesian_stiffness[1] = 100.0;
+	cartesian_stiffness[2] = 100.0;
+	cartesian_stiffness[3] = 5.0;
+	cartesian_stiffness[4] = 5.0;
+	cartesian_stiffness[5] = 5.0;
+	cartesian_stiffness[6] = 0.0;
+	cartesian_stiffness[7] = 0.0;
+	cartesian_stiffness[8] = 0.0;
+
+	// if the stiffness is set in the message, overwrite the standard parameters set above
+	for(unsigned int i=0; i < cartesian_pose_goal.getGoal()->cartesian_stiffness.size(); ++i)
+		if(cartesian_pose_goal.getGoal()->cartesian_stiffness[i] > 0.0)
+			cartesian_stiffness[i] = cartesian_pose_goal.getGoal()->cartesian_stiffness[i];
+
+	// if the damping is set in the message, overwrite the standard parameters from the initialization
+	for(unsigned int j=0; j < cartesian_pose_goal.getGoal()->cartesian_damping.size(); ++j)
+		if(cartesian_pose_goal.getGoal()->cartesian_damping[j] > 0.0)
+			cartesian_damping[j] = cartesian_pose_goal.getGoal()->cartesian_damping[j];
+
+	// identity
+	h_tip_cc[0] = h_tip_cc[5] = h_tip_cc[10] = h_tip_cc[15] = 1.0;
+
+	m_set_cartesian_damping_op(cartesian_damping);
+	m_set_cartesian_stiffness_op(cartesian_stiffness);
+	m_set_h_tip_cc_op(h_tip_cc);
+	m_set_h_vp_0_op(homog_matrix);
+
+	m_execute_op();
+
+	m_sum_force_diff = 1.0;
+	m_cart_pose_goal_handle = cartesian_pose_goal;
+	m_check_cart_pose_reached = true;
 }
 
+bool ArmBridgeRosOrocos::enableNavigationCtrlModeCallback(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res)
+{
+	m_navigation_ctrl_op();
+	m_execute_op();
+
+	return true;
+}
+
+void ArmBridgeRosOrocos::gripperCallback(actionlib::ActionServer<raw_arm_navigation::MoveToJointConfigurationAction>::GoalHandle gripper_goal)
+{
+	ROS_INFO("move gripper action called");
+
+    brics_actuator::JointPositions joint_pos = gripper_goal.getGoal()->goal;
+
+	gripper_goal.setAccepted();
+
+    double opening_distance = 0;
+    for (size_t i = 0; i < joint_pos.positions.size(); i++)
+        opening_distance += joint_pos.positions[i].value;
+
+    if(opening_distance < 0.0115)
+        m_close_gripper_op();
+    
+    else
+        m_open_gripper_op();
+
+    sleep(3);
+
+	gripper_goal.setSucceeded();
+}
+
+bool ArmBridgeRosOrocos::isJointCfgReached()
+{
+	log(Info) << "check joint limits" << endlog();
+
+    for(unsigned int i=0; i < m_desired_joint_cfg.positions.size(); ++i)
+    {
+        for(unsigned int j=0; j < m_current_joint_states.position.size(); ++j)
+        {
+            if(m_desired_joint_cfg.positions[i].joint_uri == m_current_joint_states.name[j])
+            {
+            	log(Info) << "diff of joint <<" << m_desired_joint_cfg.positions[i].joint_uri << " : " << fabs(m_desired_joint_cfg.positions[i].value - m_current_joint_states.position[j]) << endlog();
+            	if(fabs(m_desired_joint_cfg.positions[i].value - m_current_joint_states.position[j]) > 0.05)
+            	{
+            		return false;
+            	}
+            }
+        }
+    }
+
+    return true;
+}
+
+
+
+bool ArmBridgeRosOrocos::isCartPoseReached()
+{
+	if(ip_current_force.read(m_current_force) == NoData)
+		return false;
+
+    double norm_force_diff = 0;
+    for(unsigned int i=0; i < m_current_force.data.size(); ++i)
+        for(unsigned int j=0; j < m_previous_force.data.size(); ++j)
+            norm_force_diff += fabs(m_current_force.data[i] - m_previous_force.data[i]);
+
+    m_sum_force_diff = (norm_force_diff * 0.1) + (0.9 * m_sum_force_diff);
+
+    m_previous_force = m_current_force;
+
+    if(m_sum_force_diff < 0.01)
+        return true;
+
+    return false;
+}
 
 ORO_CREATE_COMPONENT( ArmBridgeRosOrocos )
