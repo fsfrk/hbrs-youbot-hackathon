@@ -37,17 +37,30 @@ roslib.load_manifest('laptop_battery_monitor')
 import rospy
 import hbrs_msgs.msg
 import subprocess
+import socket
+     
+def isRosMasterRunning():
+    ip = 'navigation'
+    port = '11311'
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.connect((ip, int(port)))
+        s.shutdown(2)
+        return True
+    except:
+        return False
+
 
 def laptop_battery_monitor():
     
-    #TODO: need to check wether ros master is running before executing init_node
-    pub_battery_state = rospy.Publisher('/battery_status', hbrs_msgs.msg.PowerState)
-    rospy.init_node('raw_laptop_battery_monitor')
+    ros_node_initialized = False
+    pub_battery_state = 0
 
     battery_state = hbrs_msgs.msg.PowerState()        
     battery_state.device_name = "laptop battery"
 
-    while True:
+    while not rospy.is_shutdown():      
         
         # get values from upower
         cmd = ['upower', '-d']
@@ -96,9 +109,24 @@ def laptop_battery_monitor():
             #TODO: do system beep here
         
         #publish
-        pub_battery_state.publish(battery_state)
-        
-        
+        if isRosMasterRunning():
+            print "master ist running"
+            if not ros_node_initialized:        # ROS master is available but node is not yet intialized
+                print "init node"
+                rospy.init_node('raw_laptop_battery_monitor')
+                pub_battery_state = rospy.Publisher('/battery_status', hbrs_msgs.msg.PowerState)
+                ros_node_initialized = True
+            else:
+                print "publish"
+                pub_battery_state.publish(battery_state)    
+        else:
+            print "no master"
+
+            if ros_node_initialized:
+                print "shutdown"
+                ros_node_initialized = False
+ 
+
         
         rospy.sleep(2.0)
 
