@@ -68,6 +68,7 @@ private:
 	std::vector<std::string> arm_joint_names_;
 	std::vector<arm_navigation_msgs::JointLimits> arm_joint_limits_;
 	brics_actuator::JointVelocities arm_vel_;
+	bool arm_parameters_available;
 
 	double speed_factor_;
 
