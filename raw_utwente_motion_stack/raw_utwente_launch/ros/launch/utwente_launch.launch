@@ -1,4 +1,4 @@
 <?xml version="1.0"?>
 <launch>
-    <node pkg="raw_utwente_launch" type="run.sh" args="$(find raw_utwente_launch)/orocos/deploy/BRSU.ops" name="raw_utwente_launch" output="screen" />
+    <node pkg="YouBot_deployment" type="run.sh" args="$(find YouBot_deployment)/rtt_deploy/BRSU/BRSU.ops" name="raw_utwente_launch" output="screen" />
 </launch>
