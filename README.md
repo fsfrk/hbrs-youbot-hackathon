@@ -1,4 +1,4 @@
-# "Fetch & Carry" installation
+# youBot Hackathon Installation
 ===============
 
 ## Install Ubuntu
