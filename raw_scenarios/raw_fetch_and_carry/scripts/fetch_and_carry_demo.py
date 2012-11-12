@@ -34,8 +34,7 @@ def main():
         # add states to the container
         
         smach.StateMachine.add('INIT_ROBOT', init_robot(),
-            transitions={'succeeded':'SELECT_POSE_TO_APPROACH', 
-                         'failed':'overall_failed'})
+            transitions={'succeeded':'SELECT_POSE_TO_APPROACH'})
         
         # collect objects
         smach.StateMachine.add('SELECT_POSE_TO_APPROACH', select_pose_to_approach(),
