@@ -58,7 +58,6 @@ First of all you have to clone the youBot hackathon repository.
 Then go on with installing further external dependencies:
 
     cd hbrs-youbot-hackathon
-    sudo apt-get install python-setuptools -y
     sudo easy_install -U rosinstall vcstools
     rosinstall ../external_software repository.rosinstall
     rosdep install * -y
