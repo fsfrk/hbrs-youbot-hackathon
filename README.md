@@ -1,6 +1,3 @@
-# youBot Hackathon Installation
-===============
-
 ## Install Ubuntu
 The Fetch & Carry scenario and its related component has been test under Ubuntu 10.04 LTS. If you do not have a Ubuntu distribution on you computer you can download it here
 
