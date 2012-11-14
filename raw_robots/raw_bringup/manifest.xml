@@ -19,5 +19,6 @@
   <depend package="usb_cam" />
   <depend package="openni_camera" />
   <depend package="robot_state_publisher" />
+  <depend package="youbot_description" />
 
 </package>

@@ -33,9 +33,7 @@ rosbuild_genmsg()
 rosbuild_gensrv()
 
 
-find_package(Eigen REQUIRED)
-include_directories(${EIGEN_INCLUDE_DIRS})
-add_definitions(${EIGEN_DEFINITIONS})
+
 
 
 include_directories(
