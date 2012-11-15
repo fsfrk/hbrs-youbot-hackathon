@@ -20,7 +20,7 @@ DETECT_MARKERS = 'detect_markers'
 PUBLISH_GOAL = 'publish_goal'
 APPROACH_GOAL = '/raw_relative_movements/alignwithmarker'
 FIND_WORKSPACE = 'find_workspace'
-PLAY_SOUND = '/hbrs_audio/play_soundfile'
+PLAY_SOUND = '/hbrs_soundfile_player/play_soundfile'
 
 
 class increase_counter(smach.State):
