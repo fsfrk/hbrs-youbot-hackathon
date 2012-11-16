@@ -164,8 +164,8 @@ int main(int argc, char* argv[])
 	ros::NodeHandle* p_nh = NULL;
 	ros::Publisher pub_battery_status;
 	hbrs_msgs::PowerState pwr_state;
-  std::string lanip;
-  std::string wlanip;
+    std::string lanip;
+    std::string wlanip;
 
 	pwr_state.device_name = "youbot_battery";
 	if (argc != 4) {
@@ -178,22 +178,30 @@ int main(int argc, char* argv[])
 		fd = open_port(argv[1]);
 		configure_port(fd);
 
-	} catch (std::string &e) { std::cout << "Error: " << e << std::endl; }
+	} catch (std::string &e) 
+	{ 
+		std::cout << "Error: " << e << std::endl; 
+		exit(0);
+	}
 
 	while(ros::ok())
 	{
-		sleep(2);
+        sleep(2);
 
+        // get and write IP addresses to the lcd display
 		getIPAdress(argv[2], argv[3], lanip, wlanip);
-    setText(fd, line2, lanip);
-    setText(fd, line3, wlanip);
-		pwr_state.battery_voltage = getVoltage(fd, battery1) + getVoltage(fd, battery2);
-    pwr_state.power_supply_voltage = getVoltage(fd, powersupply);
+        setText(fd, line2, lanip);
+        setText(fd, line3, wlanip);
+		
+        // retrieve battery information
+        pwr_state.battery_voltage = getVoltage(fd, battery1) + getVoltage(fd, battery2);
+        pwr_state.power_supply_voltage = getVoltage(fd, powersupply);
 		pwr_state.battery_percentage = ((pwr_state.battery_voltage - MIN_VOLTAGE)/(MAX_VOLTAGE - MIN_VOLTAGE))*100;
 		
-
-    std::cout << "bat: " << pwr_state.battery_voltage << " power: " << pwr_state.power_supply_voltage << " percentage: "<< pwr_state.battery_percentage << std::endl;
-		if(pwr_state.power_supply_voltage > 0.0)
+		if(pwr_state.battery_percentage > 100)
+			pwr_state.battery_percentage = 100; 
+	
+        if(pwr_state.power_supply_voltage > MIN_VOLTAGE)
 			pwr_state.external_power_connected = true;
 		else
 			pwr_state.external_power_connected = false;
