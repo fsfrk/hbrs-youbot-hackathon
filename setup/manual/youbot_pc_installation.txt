@@ -67,3 +67,5 @@ sudo cp *.* /etc/udev/rules.d/
 #copy ssh
 cat ~/.ssh/id_rsa.pub | ssh user@domain.tld 'cat >> ~/.ssh/authorized_keys'
 
+#login into both pcs
+
