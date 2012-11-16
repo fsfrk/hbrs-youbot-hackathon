@@ -40,7 +40,7 @@
 
 - git:
     local-name: youbot-stack
-    uri: git@github.com:b-it-bots/youbot-stack.git
+    uri: https://git.ce.utwente.nl/youbot-stack
     version: devel
 
 - git:
