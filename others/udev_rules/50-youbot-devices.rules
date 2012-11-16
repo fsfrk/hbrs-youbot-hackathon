@@ -1,9 +1,0 @@
-UBSYSTEM=="tty", SYSFS{modalias}=="usb:v15D1p0000d0100dc02dsc00dp00ic02isc02ip01" KERNEL=="ttyACM*", ID=="5-2:1.0", SYMLINK+="youbot/hokuyo_front"
-
-UBSYSTEM=="tty", SYSFS{modalias}=="usb:v15D1p0000d0100dc02dsc00dp00ic02isc02ip01" KERNEL=="ttyACM*", ID=="6-2:1.0", SYMLINK+="youbot/hokuyo_rear"
-
-UBSYSTEM=="tty", SYSFS{modalias}=="usb:v16D0p059Dd0001dc02dsc00dp00ic02isc02ip01" KERNEL=="ttyACM*", SYMLINK+="youbot/lcd_display"
-
-SUBSYSTEM=="video4linux", BUS=="usb", SYSFS{idVendor}=="046d", SYSFS{idProduct}=="0809", NAME="youbot/logitech_9000_pro_usb_cam"
-
-SUBSYSTEM=="video4linux", BUS=="usb", SYSFS{idVendor}=="045e", SYSFS{idProduct}=="0772", NAME="youbot/microsoft_life_cam"
