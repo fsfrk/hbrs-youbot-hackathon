@@ -57,20 +57,25 @@ In order to understand at least the different core components of ROS, you have t
 ## Clone and compile the youBot Software
 First of all you have to clone the RoboCupAtWork repository.
 
-    mkdir ~/ros_stacks
-    cd ~/ros_stacks
+    cd ~
     git clone git@github.com:b-it-bots/RoboCupAtWork.git
 
 Then go on with installing further external dependencies:
-
-    cd RoboCupAtWork
+    
     sudo easy_install -U rosinstall vcstools
+
+    cd ~/RoboCupAtWork
     rosinstall ../external_software repository.rosinstall
-    rosdep install * -y   
+    rosdep install * -y
+
+    cd ~/external_software/hbrs-ros-pkg
+    rosinstall ../external_software repository.rosinstall
+    rosdep install * -y
 
 Now you have all the code which you need to operate/use the youBot platform. The new directory which you created in the beginning needs to be added the ROS_PACKAGE_PATH in your ".bashrc" in your home directory:
 
-    echo "export ROS_PACKAGE_PATH=~/ros_stacks:\$ROS_PACKAGE_PATH" >> ~/.bashrc
+    echo "export ROS_PACKAGE_PATH=~/RoboCupAtWork:\$ROS_PACKAGE_PATH" >> ~/.bashrc
+    echo "export ROS_PACKAGE_PATH=~/external_software:\$ROS_PACKAGE_PATH" >> ~/.bashrc
     source ~/.bashrc
 
 
