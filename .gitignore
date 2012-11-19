@@ -16,3 +16,6 @@ srv_gen
 CMakeFiles
 CMakeCache.txt
 stack.xml.bak
+*.aux
+*.log
+*.toc
