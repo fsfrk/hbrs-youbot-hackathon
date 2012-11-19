@@ -33,7 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import roslib
-roslib.load_manifest('laptop_battery_monitor')
+roslib.load_manifest('raw_laptop_battery_monitor')
 import rospy
 import hbrs_msgs.msg
 import subprocess
