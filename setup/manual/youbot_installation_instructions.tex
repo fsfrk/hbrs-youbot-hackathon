@@ -1,0 +1,152 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage{graphicx}
+\usepackage{textcomp}
+
+\usepackage{color}
+\definecolor{lightgray}{rgb}{0.8,0.8,0.8}
+
+\usepackage{listings}
+\lstset{
+	basicstyle=\footnotesize\ttfamily,
+	frame=single,
+	breaklines=true,
+	backgroundcolor=\color{lightgray},
+	aboveskip=0.5cm,
+	belowskip=0.7cm,
+	upquote=true,
+	columns=fullflexible,
+	literate={*}{{\char42}}1
+         {-}{{\char45}}1
+}
+
+\setlength{\parindent}{0pt}
+
+
+\begin{document}
+
+%%%%%% TITLE PAGE %%%%%%%%%%%%%%%%%
+\begin{center}
+	\Huge
+	\textbf{YOUBOT INSTALLATION}\\
+	\textbf{INSTRUCTIONS}\\
+	\vspace{3 cm} 
+
+	\includegraphics[width=0.60\textwidth]{gfx/youbot.png}
+	\textbf{}\\
+	\vspace{3 cm} 
+	\normalsize
+	Author: Frederik Hegger and Jan Paulus\\
+    Version: 0.1 (19.11.2012)\\
+    
+	
+\end{center}
+\newpage
+
+%%%%%% TABLE OF CONTENTS %%%%%%%%%%
+\tableofcontents 
+\newpage
+
+%%%%%% MAIN DOCUMENT %%%%%%%%%%%%%%
+\section{Ubuntu Distribution}
+This installation guide was created while installing the \textit{11.10} (Oneiric) Ubuntu distribution on the internal PC of the youBot. In general, this guide should be also applicable to all other earlier distributions down to \textit{10.04} (Lucid). For future release like \textit{12.04} (Precise) we do not have any experience up to now.
+
+\subsection{User Name(s) and Password(s)}
+For the internal and a potential external pc, please use the following information to setup the standard user account
+	
+\begin{itemize}
+	\item User name: b-it-bots
+	\item Password: \textit{please ask a staff member for the current password to set}
+\end{itemize}
+
+If the Ubuntu installation is succesfully completed, set the root password with same password as used for the previouly mentioned user account:
+\begin{lstlisting}
+sudo passwd
+\end{lstlisting}
+
+\subsection{Remove Unused Software}
+Some software or tools of the standard Ubuntu installation are not required for a youBot installation. In order to save space, those packages can be removed:
+\begin{lstlisting}
+sudo apt-get remove deja-dup brasero brasero-cdrkit brasero-common tomboy ubuntuone-control-panel ubuntuone-client gbrainy gnome-mahjongg gnome-sudoku gnomine libreoffice-* shotwell simple-scan empathy gwibber thunderbird transmission-* banshee usb-creator-gtk onboard
+\end{lstlisting}
+
+\subsection{Install Additional Software Packages}
+Some network tools and other packages are required for latter installation steps:
+\begin{lstlisting}
+sudo apt-get install openssh-server beep
+\end{lstlisting}
+
+
+
+
+
+\section{Network Configuration}
+\begin{center}
+	\includegraphics[width=0.60\textwidth]{gfx/network.png}
+\end{center}
+
+\subsection{IP Address(es)}
+
+\subsubsection{Ethernet}
+In case of an additional laptop beside the internal youBot PC, the network connection needs to be configured. According to the previous paragraph the IP addresses are set as follows:
+\begin{lstlisting}
+192.168.#.10#
+\end{lstlisting}
+
+\begin{itemize}
+	\item \textbf{first '\#':} indicates the actual youBot, i.e. for the youot-hbrs2 the IP address space is 192.168.2.10\#
+	\item \textbf{second '\#':} indicates the PC number on a particular youBot, i.e. \textit{youbot-hbrs2-pc1} gets the IP 192.168.2.101 and \textit{youbot-hbrs2-pc2} gets the IP 192.168.2.102.
+\end{itemize}
+
+\subsubsection{EtherCAT}
+For the EtherCAT connection, a random but valid static IP address is recommended. 
+
+\textbf{INFO}: do not forget to set the subnet mask to 255.255.255.0
+
+\subsection{Hostname(s)}
+If the hostname was not set correct during the installtion, it can be changed by editing the file:
+\begin{lstlisting}
+sudo nano /etc/hostname
+\end{lstlisting}
+
+The hostname of a youbot PC is constructed as follows:
+\begin{lstlisting}
+youbot-hbrs#-pc#
+\end{lstlisting}
+
+\begin{itemize}
+	\item \textbf{first '\#':} indicates the actual youBot. At BRSU, there currently exist two youBots, resulting in the names \textit{youbot-hbrs1-pc\#} and \textit{youbot-hbrs2-pc\#}.
+	\item \textbf{second '\#':} indicates the PC number on a particular youBot. The \textit{youbot-hbrs2} has two PCs, the internal and and additional laptop. The internal PC is called \textit{youbot-hbrs2-pc1} and the second laptop \textit{youbot-hbrs2-pc2}.
+\end{itemize}
+
+Finally, add the hostname and the related IP address of another youBot PC to the hosts file:
+\begin{lstlisting}
+sudo nano /etc/hosts
+\end{lstlisting}
+
+\subsection{Generate SSH key}
+Generate a SSH key pair ...
+\begin{lstlisting}
+ssh-keygen
+\end{lstlisting}
+
+... and copy it to all remote computers on which components need to be launched:
+\begin{lstlisting}
+cat ~/.ssh/id_rsa.pub | ssh b-it-bots@youbot-hbrs#-pc# 'cat >> ~/.ssh/authorized_keys'
+\end{lstlisting}
+
+Finally, copy the generated SSH key and add it to the related github account:
+\begin{lstlisting}
+cat ~/.ssh/id_rsa.pub
+\end{lstlisting}
+
+
+\end{document}
+
+
+
+
+
+
+
+
