@@ -109,7 +109,7 @@ alias yb1='ssh -X b-it-bots@myrobot-pc1'
 alias yb2='ssh -X b-it-bots@myrobot-pc2'
 
 ### color prompt
-source /etc/youbot.bashrc
+source /etc/youbot/youbot.bashrc
 
 ### ROS config
 source /opt/ros/electric/setup.bash
