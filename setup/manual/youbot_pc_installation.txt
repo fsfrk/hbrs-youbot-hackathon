@@ -54,7 +54,8 @@ git config --global color.status auto
 cd ~
 git clone SETUP_REPO
 cd SETUP_REPO/bashrc
-sudo cp youbot-pc#.bashrc /etc/youbot.bashrc	where # is the pc number
+sudo mkdir /etc/youbot
+sudo cp youbot-pc#.bashrc /etc/youbot/youbot.bashrc	    where # is the pc number
 cp user.bashrc ~/.bashrc
 #adapt all aliases, variables like ROBOT, ROBOT_ENV and so on
 
@@ -68,4 +69,18 @@ sudo cp *.* /etc/udev/rules.d/
 cat ~/.ssh/id_rsa.pub | ssh user@domain.tld 'cat >> ~/.ssh/authorized_keys'
 
 #login into both pcs
+
+
+# install battery monitors
+## on pc1
+roscd raw_youbot_battery_monitor
+rosmake
+sudo cp youbot_battery_monitor.sh ./bin/youbot_battery_monitor /etc/youbot/
+
+## on pc2
+roscd raw_laptop_battery_monitor
+rosmake
+sudo cp youbot_battery_monitor.sh ./bin/youbot_battery_monitor /etc/youbot/
+
+
 
