@@ -9,6 +9,7 @@ build/
 .clang_complete
 .metadata
 *.*~
+*~
 msg_gen
 srv_gen
 *.cfgc
