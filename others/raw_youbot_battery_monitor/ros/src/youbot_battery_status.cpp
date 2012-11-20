@@ -200,7 +200,10 @@ int main(int argc, char* argv[])
 		
 		if(pwr_state.battery_percentage > 100)
 			pwr_state.battery_percentage = 100; 
-	
+
+		if(pwr_state.battery_percentage < 0)
+			pwr_state.battery_percentage = 0; 
+
         if(pwr_state.power_supply_voltage > MIN_VOLTAGE)
 			pwr_state.external_power_connected = true;
 		else
