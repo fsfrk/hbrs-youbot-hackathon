@@ -51,6 +51,8 @@
 \section{Ubuntu Distribution}
 This installation guide was created while installing the \textit{11.10} (Oneiric) Ubuntu distribution on the internal PC of the youBot. In general, this guide should be also applicable to all other earlier distributions down to \textit{10.04} (Lucid). For future release like \textit{12.04} (Precise) we do not have any experience up to now.
 
+
+
 \subsection{User Name(s) and Password(s)}
 For the internal and a potential external pc, please use the following information to setup the standard user account
 	
@@ -64,11 +66,27 @@ If the Ubuntu installation is succesfully completed, set the root password with 
 sudo passwd
 \end{lstlisting}
 
+
+
+\subsection{Add BRSU Mirror Server}
+The BRSU mirror servers is located at 
+\begin{lstlisting}
+http://brics.inf.h-brs.de
+\end{lstlisting}
+and hosts mirrors for various Ubuntu and ROS release. Please go to the mentioned website and add the information displayed there to the source.list file:
+\begin{lstlisting}
+sudo nano /etc/apt/source.list
+\end{lstlisting}
+
+
+
 \subsection{Remove Unused Software}
 Some software or tools of the standard Ubuntu installation are not required for a youBot installation. In order to save space, those packages can be removed:
 \begin{lstlisting}
 sudo apt-get remove deja-dup brasero brasero-cdrkit brasero-common tomboy ubuntuone-control-panel ubuntuone-client gbrainy gnome-mahjongg gnome-sudoku gnomine libreoffice-* shotwell simple-scan empathy gwibber thunderbird transmission-* banshee usb-creator-gtk onboard
 \end{lstlisting}
+
+
 
 \subsection{Install Additional Software Packages}
 Some network tools and other packages are required for latter installation steps:
@@ -76,10 +94,36 @@ Some network tools and other packages are required for latter installation steps
 sudo apt-get install openssh-server beep
 \end{lstlisting}
 
+\subsection{Cleanup and Update}
+Clean up downloaded packages and do an update of the whole system:
+\begin{lstlisting}
+sudo apt-get clean
+sudo apt-get autoclean
+sudo apt-get autoremove
+sudo apt-get update
+sudo apt-get upgrade
+\end{lstlisting}
+
+Remove the default folders from the home directory:
+\begin{lstlisting}
+rm -rf ~/Documents/ ~/Downloads/ ~/examples.desktop ~/Music/ ~/Pictures/ ~/Public/ ~/Templates/ ~/Videos/
+\end{lstlisting}
+
+
+\subsection{Special Settings}
+\begin{itemize}
+	\item \textbf{Update manager} $\rightarrow$ disable distribution upgrade in settings of the update manager
+	\item \textbf{Power management} $\rightarrow$ don't suspend if inactive	
+	\item \textbf{Power management} $\rightarrow$ do nothing if lid is closed
+	\item \textbf{Power management} $\rightarrow$ hibernate if power is critical low
+	\item \textbf{Screen} $\rightarrow$ dim screen to save power
+	\item \textbf{Screen} $\rightarrow$ turn off after 5min
+	\item \textbf{Screen} $\rightarrow$ lock: off	
+\end{itemize}
 
 
 
-
+\newpage
 \section{Network Configuration}
 \begin{center}
 	\includegraphics[width=0.60\textwidth]{gfx/network.png}
@@ -99,7 +143,7 @@ In case of an additional laptop beside the internal youBot PC, the network conne
 \end{itemize}
 
 \subsubsection{EtherCAT}
-For the EtherCAT connection, a random but valid static IP address is recommended. 
+For the EtherCAT connection, a random but valid static IP address is recommended.\\
 
 \textbf{INFO}: do not forget to set the subnet mask to 255.255.255.0
 
@@ -135,11 +179,96 @@ ssh-keygen
 cat ~/.ssh/id_rsa.pub | ssh b-it-bots@youbot-hbrs#-pc# 'cat >> ~/.ssh/authorized_keys'
 \end{lstlisting}
 
+Now, login once from one PC to the other and vice versa. You should NOT be asked for a password. Otherwise something went wrong in the previous steps.\\
+
 Finally, copy the generated SSH key and add it to the related github account:
 \begin{lstlisting}
 cat ~/.ssh/id_rsa.pub
 \end{lstlisting}
 
+
+
+
+\newpage
+\section{GIT}
+Install git version control system and various GUI tools:
+\begin{lstlisting}
+sudo apt-get install git-core gitg gitk
+\end{lstlisting}
+
+Enable auto coloring for git outputs in the terminal:
+\begin{lstlisting}
+git config --global color.branch auto
+git config --global color.diff auto
+git config --global color.interactive auto
+git config --global color.status auto
+\end{lstlisting}
+
+
+
+\newpage
+\section{youBot Software}
+
+\subsection{RoboCup@Work}
+Please follow the instructions on the following webpage to setup the RoboCup@Work software on the youBot:
+\begin{lstlisting}
+https://github.com/b-it-bots/RoboCupAtWork
+\end{lstlisting}
+
+
+\subsection{Setup .bashrc}
+Please follow the instructions on the following webpage to setup the RoboCup@Work software on the youBot:
+\begin{lstlisting}
+cd ~/RoboCupAtWork/setup/bashrc
+sudo mkdir /etc/youbot
+sudo cp youbot-pc#.bashrc /etc/youbot/youbot.bashrc	    
+cp user.bashrc ~/.bashrc
+\end{lstlisting}
+
+Adapt all aliases, variables like ROBOT, ROBOT\_ENV in the .bashrc file to the needs of the specific youBot.\\
+
+\textbf{INFO}: do not forget to replace the \# with the specific PC number on which you are working right now.
+
+
+\subsection{UDEV Rules}
+Copy the predefined udev rules into the rules.d directory:
+\begin{lstlisting}
+cd ~/RoboCupAtWork/setup/udev_rules
+sudo cp *.* /etc/udev/rules.d/
+\end{lstlisting}
+
+
+
+\subsection{Battery Status Monitor}
+The battery status monitor checks the current state of the battery and also the power connection. In case of a drop of the battery level below $ 10\% $, a beep sound will be played on the mainboard speaker. If a roscore is present the voltage information are published as a rostopic. 
+
+\subsubsection{Enable PC-Steaker / Disable Soundcard}
+Remove or comment the following line from "/etc/modprobe.d/blacklist.conf"
+\begin{lstlisting}
+blacklist pcspkr
+\end{lstlisting}
+    
+and add the following line:
+\begin{lstlisting}
+blacklist snd_hda_intel
+\end{lstlisting}
+    
+
+\subsubsection{On youbot-hbrs\#-pc1}
+\begin{lstlisting}
+roscd raw_youbot_battery_monitor
+rosmake
+sudo cp youbot_battery_monitor.sh ./bin/youbot_battery_monitor /etc/youbot/
+\end{lstlisting}
+
+
+\subsubsection{On youbot-hbrs\#-pc2}
+\textbf{WARNING}: TBD
+\begin{lstlisting}
+roscd raw_laptop_battery_monitor
+rosmake
+sudo cp youbot_battery_monitor.sh ./bin/youbot_battery_monitor /etc/youbot/
+\end{lstlisting}
 
 \end{document}
 
