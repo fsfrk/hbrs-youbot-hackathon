@@ -50,23 +50,21 @@ First of all you have to clone the youBot hackathon repository.
 
     cd ~
     git clone git@github.com:b-it-bots/hbrs-youbot-hackathon.git
-
+    
 Then go on with installing further external dependencies:
 
     sudo easy_install -U rosinstall vcstools
 
-    cd ~/RoboCupAtWork
+    cd ~/hbrs-youbot-hackathon
     rosinstall ../external_software repository.rosinstall
-    rosdep install * -y
-
-    cd ~/external_software/hbrs-youbot-hackathon-common
-    rosinstall ../external_software repository.rosinstall
-
-Now you have all the code which you need to operate/use the youBot platform. The new directory which you created in the beginning needs to be added the ROS_PACKAGE_PATH in your ".bashrc" in your home directory:
-
-    echo "export ROS_PACKAGE_PATH=~/RoboCupAtWork:\$ROS_PACKAGE_PATH" >> ~/.bashrc
+    
+    echo "export ROS_PACKAGE_PATH=~/hbrs-youbot-hackathon:\$ROS_PACKAGE_PATH" >> ~/.bashrc
     echo "export ROS_PACKAGE_PATH=~/external_software:\$ROS_PACKAGE_PATH" >> ~/.bashrc
     source ~/.bashrc
+    
+    cd ~/external_software/hbrs-youbot-hackathon-common
+    rosinstall ../external_software repository.rosinstall
+    
 
 
 Finally you should be able to compile the fetch & carry scenario:
