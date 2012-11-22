@@ -40,8 +40,13 @@
 
 - git:
     local-name: youbot-stack
-    uri: git@github.com:b-it-bots/youbot-stack.git
+    uri: https://git.ce.utwente.nl/youbot-stack
     version: devel
+
+- git:
+    local-name: eband_planner
+    uri: https://github.com/bhaskara/eband_planner.git
+    version: master
 
 - git:
     local-name: ccny_vision
@@ -51,14 +56,3 @@
 - svn:
     local-name: albany_vision
     uri: http://albany-ros-pkg.googlecode.com/svn/trunk/albany_vision
-
-- git:
-    local-name: eband_planner
-    uri: https://github.com/bhaskara/eband_planner.git
-    version: master
-
-- svn:
-    local-name: pcl_trunk
-    uri: http://svn.pointclouds.org/ros/trunk/perception_pcl_electric_unstable/
-    version: -r283
-

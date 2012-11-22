@@ -3,6 +3,11 @@
     blacklist pcspkr
 
 
+# and add the following line:
+
+    blacklist snd_hda_intel
+
+
 # install the beep command
     
     sudo apt-get install beep

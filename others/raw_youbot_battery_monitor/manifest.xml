@@ -1,13 +1,13 @@
 <package>
-  	<description brief="youbot_battery_tool">
+  	<description brief="raw_youbot_battery_monitor">
 
-    	youbot_battery_tool
+    	raw_youbot_battery_monitor
 
   	</description>
   	<author>fred</author>
   	<license>BSD</license>
   	<review status="unreviewed" notes=""/>
-  	<url>http://ros.org/wiki/youbot_battery_tool</url>
+  	<url>http://ros.org/wiki/raw_youbot_battery_monitor</url>
   
   	<depend package="roscpp" />
 	<depend package="hbrs_msgs" />

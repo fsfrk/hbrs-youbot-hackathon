@@ -1,5 +1,5 @@
 ## Install Ubuntu
-The Fetch & Carry scenario and its related component has been test under Ubuntu 10.04 LTS. If you do not have a Ubuntu distribution on you computer you can download it here
+The repository and its related components have been tested under Ubuntu 10.04 LTS. If you do not have a Ubuntu distribution on you computer you can download it here
 
      http://www.ubuntu.com/download
 
@@ -48,19 +48,24 @@ In order to understand at least the different core components of ROS, you have t
 ## Clone and compile the youBot Software
 First of all you have to clone the youBot hackathon repository.
 
-    mkdir ~/ros_stacks
-    cd ~/ros_stacks
+    cd ~
     git clone git@github.com:b-it-bots/hbrs-youbot-hackathon.git
 
 Then go on with installing further external dependencies:
 
-    cd hbrs-youbot-hackathon
     sudo easy_install -U rosinstall vcstools
+
+    cd ~/RoboCupAtWork
+    rosinstall ../external_software repository.rosinstall
+    rosdep install * -y
+
+    cd ~/external_software/hbrs-ros-pkg
     rosinstall ../external_software repository.rosinstall
 
 Now you have all the code which you need to operate/use the youBot platform. The new directory which you created in the beginning needs to be added the ROS_PACKAGE_PATH in your ".bashrc" in your home directory:
 
-    echo "export ROS_PACKAGE_PATH=~/ros_stacks:\$ROS_PACKAGE_PATH" >> ~/.bashrc
+    echo "export ROS_PACKAGE_PATH=~/RoboCupAtWork:\$ROS_PACKAGE_PATH" >> ~/.bashrc
+    echo "export ROS_PACKAGE_PATH=~/external_software:\$ROS_PACKAGE_PATH" >> ~/.bashrc
     source ~/.bashrc
 
 
@@ -89,7 +94,7 @@ The ROBOT_ENV variable can be used to switch between different environments. So 
 
 
 
-## Start the Fetch&Carry Scenario 
+## Start e.g. a simple Fetch&Carry Scenario 
 ### In Simulation
     roslaunch raw_fetch_and_carry fetch_and_carry_demo_sim.launch
 

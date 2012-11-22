@@ -9,9 +9,13 @@ build/
 .clang_complete
 .metadata
 *.*~
+*~
 msg_gen
 srv_gen
 *.cfgc
 CMakeFiles
 CMakeCache.txt
 stack.xml.bak
+*.aux
+*.log
+*.toc

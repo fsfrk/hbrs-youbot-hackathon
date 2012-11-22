@@ -1,13 +1,13 @@
 <package>
-  <description brief="laptop_battery_tool">
+  <description brief="raw_laptop_battery_monitor">
 
-     laptop_battery_tool
+     raw_laptop_battery_monitor
 
   </description>
   <author>fred</author>
   <license>BSD</license>
   <review status="unreviewed" notes=""/>
-  <url>http://ros.org/wiki/laptop_battery_tool</url>
+  <url>http://ros.org/wiki/raw_laptop_battery_monitor</url>
 
   <depend package="rospy" />
   <depend package="hbrs_msgs" />

@@ -17,6 +17,7 @@
   <depend package="raw_gazebo_worlds" /> 
   <depend package="raw_hardware_config" />
   <depend package="raw_simulated_kinect" />
+  <depend package="youbot_description" />
 
 
 </package>

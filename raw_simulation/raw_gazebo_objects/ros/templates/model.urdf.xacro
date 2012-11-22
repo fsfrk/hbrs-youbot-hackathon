@@ -14,7 +14,7 @@
 	    xmlns:physics="http://playerstage.sourceforge.net/gazebo/xmlschema/#physics"
 	    xmlns:xacro="http://www.ros.org/wiki/xacro">	
 
-	<xacro:macro name="model_template" params="name model_filename scale height weight">
+	<xacro:macro name="model_template" params="name model_filename scale height width depth weight">
 		<link name="${name}_link">
 			<inertial>
 				<origin xyz="0 0 ${-height / 2}" rpy="0 0 0" />
@@ -32,7 +32,7 @@
 			<collision>
 				<origin xyz="0 0 ${-height / 2}" rpy="0 0 0" />
 				<geometry>
-					<mesh filename="package://raw_gazebo_objects/common/models/${model_filename}" scale="${scale} ${scale} ${scale}" />
+					<box size="${height} ${width} ${depth}"/>
 				</geometry>
 			</collision >
 		</link>
