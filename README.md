@@ -1,5 +1,5 @@
 ## Install Ubuntu
-The repository and its related components have been tested under Ubuntu 10.04 LTS. If you do not have a Ubuntu distribution on you computer you can download it here
+The repository and its related components have been tested under Ubuntu 10.04 LTS and 11.10. If you do not have a Ubuntu distribution on you computer you can download it here
 
      http://www.ubuntu.com/download
 
