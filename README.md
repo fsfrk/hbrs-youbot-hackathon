@@ -59,7 +59,7 @@ Then go on with installing further external dependencies:
     rosinstall ../external_software repository.rosinstall
     rosdep install * -y
 
-    cd ~/external_software/hbrs-ros-pkg
+    cd ~/external_software/hbrs-youbot-hackathon-common
     rosinstall ../external_software repository.rosinstall
 
 Now you have all the code which you need to operate/use the youBot platform. The new directory which you created in the beginning needs to be added the ROS_PACKAGE_PATH in your ".bashrc" in your home directory:
