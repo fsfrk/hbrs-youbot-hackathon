@@ -1,6 +1,6 @@
 - git:
     local-name: hbrs-youbot-hackathon-common
-    uri: git@github.com:b-it-bots/hbrs-youbot-hackathon-common
+    uri: git://github.com/b-it-bots/hbrs-youbot-hackathon-common
     version: master
 
 - git:
