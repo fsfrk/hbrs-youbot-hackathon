@@ -1,6 +1,6 @@
 - git:
     local-name: hbrs-youbot-hackathon-common
-    uri: git@github.com:b-it-bots/hbrs-youbot-hackathon-common
+    uri: https://github.com/b-it-bots/hbrs-youbot-hackathon-common
     version: master
 
 - git:
@@ -48,9 +48,9 @@
     uri: http://robotics.ccny.cuny.edu/git/ccny-ros-pkg/ccny_vision.git
     version: master
 
-- svn:
-    local-name: albany_vision
-    uri: http://albany-ros-pkg.googlecode.com/svn/trunk/albany_vision
+#- svn:
+#    local-name: albany_vision
+#    uri: http://albany-ros-pkg.googlecode.com/svn/trunk/albany_vision
 
 #- git:
 #    local-name: eband_planner
