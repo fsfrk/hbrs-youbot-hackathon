@@ -49,7 +49,7 @@ In order to understand at least the different core components of ROS, you have t
 First of all you have to clone the youBot hackathon repository.
 
     cd ~
-    git clone git@github.com:b-it-bots/hbrs-youbot-hackathon.git
+    git clone https://github.com/b-it-bots/hbrs-youbot-hackathon.git
     
 Then go on with installing further external dependencies:
 
