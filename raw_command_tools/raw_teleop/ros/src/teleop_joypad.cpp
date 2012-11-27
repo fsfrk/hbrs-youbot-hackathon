@@ -68,7 +68,7 @@ TeleOpJoypad::TeleOpJoypad(ros::NodeHandle &nh)
 	}
 
 	sub_joy_ = nh.subscribe<sensor_msgs::Joy>("/joy", 1, &TeleOpJoypad::cbJoy, this);
-	pub_base_vel = nh.advertise<geometry_msgs::Twist>("/cmd_vel_safe", 1);
+	pub_base_vel = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
 
 	if(arm_parameters_available)
 	{
